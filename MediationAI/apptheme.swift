@@ -8,39 +8,39 @@
 import SwiftUI
 
 struct AppTheme {
-    // MARK: - Colors
+    // MARK: - Colors (Twitter/Grok Professional Theme)
     
-    // Primary brand colors
-    static let primary = Color(red: 0.2, green: 0.3, blue: 0.9)
-    static let secondary = Color(red: 0.5, green: 0.3, blue: 0.8)
-    static let accent = Color(red: 0.0, green: 0.7, blue: 0.9)
+    // Primary brand colors - Professional blue like Twitter/Grok
+    static let primary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
+    static let secondary = Color(red: 0.05, green: 0.46, blue: 0.86) // Darker blue
+    static let accent = Color(red: 0.20, green: 0.70, blue: 1.0) // Bright blue accent
     
-    // Background colors
-    static let background = Color(red: 0.05, green: 0.05, blue: 0.08)
-    static let surfaceBackground = Color(red: 0.08, green: 0.08, blue: 0.12)
-    static let cardBackground = Color(red: 0.12, green: 0.12, blue: 0.18)
+    // Background colors - True blacks and whites
+    static let background = Color(red: 0.0, green: 0.0, blue: 0.0) // Pure black
+    static let surfaceBackground = Color(red: 0.05, green: 0.05, blue: 0.05) // Very dark gray
+    static let cardBackground = Color(red: 0.08, green: 0.08, blue: 0.08) // Dark card background
     
     // Glass-morphism backgrounds
-    static let glassPrimary = Color.white.opacity(0.1)
-    static let glassSecondary = Color.white.opacity(0.05)
+    static let glassPrimary = Color.white.opacity(0.08)
+    static let glassSecondary = Color.white.opacity(0.04)
     
     // Text colors
     static let textPrimary = Color.white
-    static let textSecondary = Color.white.opacity(0.8)
-    static let textTertiary = Color.white.opacity(0.6)
+    static let textSecondary = Color.white.opacity(0.75)
+    static let textTertiary = Color.white.opacity(0.55)
     
-    // Status colors
-    static let success = Color(red: 0.2, green: 0.8, blue: 0.4)
-    static let warning = Color(red: 1.0, green: 0.7, blue: 0.0)
-    static let error = Color(red: 1.0, green: 0.3, blue: 0.3)
-    static let info = Color(red: 0.2, green: 0.6, blue: 1.0)
+    // Status colors - Professional and minimal
+    static let success = Color(red: 0.0, green: 0.78, blue: 0.0) // Clean green
+    static let warning = Color(red: 0.95, green: 0.95, blue: 0.95) // White for warnings
+    static let error = Color(red: 0.95, green: 0.24, blue: 0.24) // Clean red
+    static let info = Color(red: 0.11, green: 0.63, blue: 0.95) // Same as primary blue
     
     // MARK: - Gradients
     
     static let mainGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.2, green: 0.3, blue: 0.9),
-            Color(red: 0.5, green: 0.3, blue: 0.8)
+            Color(red: 0.11, green: 0.63, blue: 0.95), // Twitter Blue
+            Color(red: 0.05, green: 0.46, blue: 0.86)  // Darker Blue
         ]),
         startPoint: .leading,
         endPoint: .trailing
@@ -48,9 +48,9 @@ struct AppTheme {
     
     static let backgroundGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.05, green: 0.05, blue: 0.08),
-            Color(red: 0.08, green: 0.08, blue: 0.12),
-            Color(red: 0.05, green: 0.05, blue: 0.08)
+            Color.black,
+            Color(red: 0.02, green: 0.02, blue: 0.02),
+            Color.black
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -58,8 +58,8 @@ struct AppTheme {
     
     static let cardGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white.opacity(0.1),
-            Color.white.opacity(0.05)
+            Color.white.opacity(0.08),
+            Color.white.opacity(0.04)
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -67,8 +67,8 @@ struct AppTheme {
     
     static let successGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.2, green: 0.8, blue: 0.4),
-            Color(red: 0.1, green: 0.6, blue: 0.8)
+            Color(red: 0.0, green: 0.78, blue: 0.0),
+            Color(red: 0.0, green: 0.65, blue: 0.0)
         ]),
         startPoint: .leading,
         endPoint: .trailing
@@ -76,8 +76,8 @@ struct AppTheme {
     
     static let warningGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 1.0, green: 0.7, blue: 0.0),
-            Color(red: 1.0, green: 0.5, blue: 0.0)
+            Color.white,
+            Color.white.opacity(0.9)
         ]),
         startPoint: .leading,
         endPoint: .trailing
@@ -86,51 +86,51 @@ struct AppTheme {
     // MARK: - Typography
     
     static func largeTitle() -> Font {
-        .system(size: 34, weight: .bold, design: .rounded)
+        .system(size: 34, weight: .bold, design: .default)
     }
     
     static func title() -> Font {
-        .system(size: 28, weight: .bold, design: .rounded)
+        .system(size: 28, weight: .bold, design: .default)
     }
     
     static func title2() -> Font {
-        .system(size: 22, weight: .semibold, design: .rounded)
+        .system(size: 22, weight: .semibold, design: .default)
     }
     
     static func title3() -> Font {
-        .system(size: 20, weight: .semibold, design: .rounded)
+        .system(size: 20, weight: .semibold, design: .default)
     }
     
     static func headline() -> Font {
-        .system(size: 17, weight: .semibold, design: .rounded)
+        .system(size: 17, weight: .semibold, design: .default)
     }
     
     static func body() -> Font {
-        .system(size: 17, weight: .regular, design: .rounded)
+        .system(size: 17, weight: .regular, design: .default)
     }
     
     static func bodyMedium() -> Font {
-        .system(size: 17, weight: .medium, design: .rounded)
+        .system(size: 17, weight: .medium, design: .default)
     }
     
     static func callout() -> Font {
-        .system(size: 16, weight: .regular, design: .rounded)
+        .system(size: 16, weight: .regular, design: .default)
     }
     
     static func subheadline() -> Font {
-        .system(size: 15, weight: .medium, design: .rounded)
+        .system(size: 15, weight: .medium, design: .default)
     }
     
     static func footnote() -> Font {
-        .system(size: 13, weight: .regular, design: .rounded)
+        .system(size: 13, weight: .regular, design: .default)
     }
     
     static func caption() -> Font {
-        .system(size: 12, weight: .medium, design: .rounded)
+        .system(size: 12, weight: .medium, design: .default)
     }
     
     static func caption2() -> Font {
-        .system(size: 11, weight: .regular, design: .rounded)
+        .system(size: 11, weight: .regular, design: .default)
     }
     
     // MARK: - Legacy support (keeping for backward compatibility)
@@ -163,10 +163,10 @@ struct AppTheme {
     
     // MARK: - Shadows
     
-    static let shadowSM = Color.black.opacity(0.1)
-    static let shadowMD = Color.black.opacity(0.15)
-    static let shadowLG = Color.black.opacity(0.2)
-    static let shadowXL = Color.black.opacity(0.25)
+    static let shadowSM = Color.black.opacity(0.2)
+    static let shadowMD = Color.black.opacity(0.3)
+    static let shadowLG = Color.black.opacity(0.4)
+    static let shadowXL = Color.black.opacity(0.5)
     
     // MARK: - Glass Card Modifier
     
@@ -185,7 +185,7 @@ struct GlassCardModifier: ViewModifier {
                     .fill(AppTheme.cardGradient)
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
                     )
             )
             .shadow(color: AppTheme.shadowMD, radius: 8, x: 0, y: 4)
@@ -219,7 +219,7 @@ extension View {
             .background(AppTheme.cardGradient)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.radiusLG)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
             )
             .cornerRadius(AppTheme.radiusLG)
     }
@@ -235,7 +235,7 @@ extension View {
                     .fill(AppTheme.glassPrimary)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppTheme.radiusLG)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
                     )
             )
     }

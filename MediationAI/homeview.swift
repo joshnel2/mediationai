@@ -13,6 +13,8 @@ struct HomeView: View {
     @State private var showCreate = false
     @State private var showJoin = false
     @State private var showSettings = false
+    @State private var showCommunity = false
+    @State private var showSubscription = false
     @State private var selectedDispute: Dispute?
     @State private var animateCards = false
     
@@ -35,6 +37,9 @@ struct HomeView: View {
                     
                     // Quick stats
                     statsSection
+                    
+                    // Quick access section
+                    quickAccessSection
                     
                     // Action buttons
                     actionButtonsSection
@@ -61,6 +66,12 @@ struct HomeView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showCommunity) {
+            CommunityView()
+        }
+        .sheet(isPresented: $showSubscription) {
+            SubscriptionView()
+        }
         .onAppear {
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 animateCards = true
@@ -83,15 +94,38 @@ struct HomeView: View {
             
             Spacer()
             
-            Button(action: { showSettings = true }) {
-                Image(systemName: "person.crop.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(AppTheme.mainGradient)
-                    .background(
-                        Circle()
-                            .fill(AppTheme.glassPrimary)
-                            .frame(width: 44, height: 44)
-                    )
+            HStack(spacing: AppTheme.spacingMD) {
+                // Community button
+                Button(action: { showCommunity = true }) {
+                    Image(systemName: "person.3.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(AppTheme.primary)
+                        .frame(width: 40, height: 40)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusSM)
+                }
+                
+                // Subscription button (show crown if not premium)
+                if authService.currentUser?.subscription == .basic {
+                    Button(action: { showSubscription = true }) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(AppTheme.warning)
+                            .frame(width: 40, height: 40)
+                            .background(AppTheme.glassPrimary)
+                            .cornerRadius(AppTheme.radiusSM)
+                    }
+                }
+                
+                // Profile/Settings button
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(AppTheme.mainGradient)
+                        .frame(width: 40, height: 40)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusSM)
+                }
             }
         }
         .padding(.top, AppTheme.spacingLG)
@@ -123,6 +157,76 @@ struct HomeView: View {
         .scaleEffect(animateCards ? 1.0 : 0.95)
         .opacity(animateCards ? 1.0 : 0.0)
         .animation(.easeOut(duration: 0.6).delay(0.1), value: animateCards)
+    }
+    
+    private var quickAccessSection: some View {
+        VStack(spacing: AppTheme.spacingMD) {
+            HStack(spacing: AppTheme.spacingMD) {
+                Button(action: { showCommunity = true }) {
+                    HStack {
+                        Image(systemName: "person.3.fill")
+                            .font(.title2)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Community")
+                                .font(AppTheme.headline())
+                                .fontWeight(.semibold)
+                            
+                            Text("Connect with other users")
+                                .font(AppTheme.caption())
+                                .opacity(0.8)
+                        }
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(.white)
+                    .padding(AppTheme.spacingLG)
+                    .frame(maxWidth: .infinity)
+                    .background(AppTheme.mainGradient)
+                    .cornerRadius(AppTheme.radiusLG)
+                    .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                
+                Button(action: { showSubscription = true }) {
+                    HStack {
+                        Image(systemName: "crown.fill")
+                            .font(.title2)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Subscription")
+                                .font(AppTheme.headline())
+                                .fontWeight(.semibold)
+                            
+                            Text("Unlock premium features")
+                                .font(AppTheme.caption())
+                                .opacity(0.8)
+                        }
+                        
+                        Spacer()
+                    }
+                    .foregroundColor(AppTheme.textPrimary)
+                    .padding(AppTheme.spacingLG)
+                    .frame(maxWidth: .infinity)
+                }
+                .glassCard()
+            }
+            
+            // Pricing info
+            HStack {
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(AppTheme.info)
+                
+                Text("$1 to create • $1 to join • AI-powered resolution")
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textTertiary)
+                
+                Spacer()
+            }
+            .padding(.horizontal, AppTheme.spacingSM)
+        }
+        .scaleEffect(animateCards ? 1.0 : 0.95)
+        .opacity(animateCards ? 1.0 : 0.0)
+        .animation(.easeOut(duration: 0.6).delay(0.2), value: animateCards)
     }
     
     private var actionButtonsSection: some View {
@@ -176,23 +280,10 @@ struct HomeView: View {
                 }
                 .glassCard()
             }
-            
-            // Pricing info
-            HStack {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(AppTheme.info)
-                
-                Text("$1 to create • $1 to join • AI-powered resolution")
-                    .font(AppTheme.caption())
-                    .foregroundColor(AppTheme.textTertiary)
-                
-                Spacer()
-            }
-            .padding(.horizontal, AppTheme.spacingSM)
         }
         .scaleEffect(animateCards ? 1.0 : 0.95)
         .opacity(animateCards ? 1.0 : 0.0)
-        .animation(.easeOut(duration: 0.6).delay(0.2), value: animateCards)
+        .animation(.easeOut(duration: 0.6).delay(0.3), value: animateCards)
     }
     
     private var disputesSection: some View {
@@ -235,7 +326,7 @@ struct HomeView: View {
                         .buttonStyle(PlainButtonStyle())
                         .scaleEffect(animateCards ? 1.0 : 0.95)
                         .opacity(animateCards ? 1.0 : 0.0)
-                        .animation(.easeOut(duration: 0.6).delay(0.3 + Double(index) * 0.1), value: animateCards)
+                        .animation(.easeOut(duration: 0.6).delay(0.4 + Double(index) * 0.1), value: animateCards)
                     }
                 }
             }

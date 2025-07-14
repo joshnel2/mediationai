@@ -62,12 +62,12 @@ struct ReputationScore: Codable {
     
     var badge: String {
         switch level {
-        case .unreliable: return "⚠️"
-        case .novice: return "🥉"
-        case .trusted: return "🥈"
-        case .expert: return "🥇"
-        case .master: return "💎"
-        case .legendary: return "👑"
+        case .unreliable: return "⚪"
+        case .novice: return "🔵"
+        case .trusted: return "⚫"
+        case .expert: return "🔷"
+        case .master: return "◆"
+        case .legendary: return "★"
         }
     }
     
@@ -235,17 +235,17 @@ enum DisputeCategory: String, Codable, CaseIterable {
     
     var color: Color {
         switch self {
-        case .ecommerce: return .blue
-        case .rental: return .green
-        case .employment: return .orange
-        case .services: return .purple
-        case .relationships: return .pink
-        case .technology: return .cyan
-        case .finance: return .mint
-        case .travel: return .teal
-        case .education: return .indigo
-        case .healthcare: return .red
-        case .other: return .gray
+        case .ecommerce: return Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter blue
+        case .rental: return Color(red: 0.05, green: 0.46, blue: 0.86) // Darker blue
+        case .employment: return Color(red: 0.20, green: 0.70, blue: 1.0) // Bright blue
+        case .services: return Color(red: 0.0, green: 0.78, blue: 0.0) // Clean green
+        case .relationships: return Color.white.opacity(0.9) // Clean white
+        case .technology: return Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter blue
+        case .finance: return Color(red: 0.0, green: 0.78, blue: 0.0) // Clean green
+        case .travel: return Color(red: 0.05, green: 0.46, blue: 0.86) // Darker blue
+        case .education: return Color(red: 0.20, green: 0.70, blue: 1.0) // Bright blue
+        case .healthcare: return Color(red: 0.95, green: 0.24, blue: 0.24) // Clean red
+        case .other: return Color.white.opacity(0.6) // Muted white
         }
     }
 }
@@ -332,10 +332,10 @@ enum DisputePriority: String, Codable {
     
     var color: Color {
         switch self {
-        case .low: return .green
-        case .normal: return .blue
-        case .high: return .orange
-        case .urgent: return .red
+        case .low: return Color(red: 0.0, green: 0.78, blue: 0.0) // Clean green
+        case .normal: return Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter blue
+        case .high: return Color.white.opacity(0.9) // Clean white
+        case .urgent: return Color(red: 0.95, green: 0.24, blue: 0.24) // Clean red
         }
     }
 }
