@@ -10,94 +10,92 @@ import SwiftUI
 struct DisputeCardView: View {
     let dispute: Dispute
     
-    var statusColor: Color {
+    private var statusColor: Color {
         switch dispute.status {
-        case .inviteSent:
-            return .orange
-        case .inProgress:
-            return .blue
-        case .resolved:
-            return .green
+        case .inviteSent: return AppTheme.warning
+        case .inProgress: return AppTheme.info
+        case .resolved: return AppTheme.success
         }
     }
     
-    var statusIcon: String {
+    private var statusIcon: String {
         switch dispute.status {
-        case .inviteSent:
-            return "paperplane"
-        case .inProgress:
-            return "clock"
-        case .resolved:
-            return "checkmark.circle.fill"
+        case .inviteSent: return "paperplane.fill"
+        case .inProgress: return "clock.fill"
+        case .resolved: return "checkmark.seal.fill"
         }
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header with title and status
+        VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
+            // Header with status
             HStack {
-                Text(dispute.title)
-                    .font(AppTheme.subtitleFont())
-                    .foregroundColor(AppTheme.primary)
-                    .lineLimit(1)
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
+                HStack(spacing: AppTheme.spacingSM) {
                     Image(systemName: statusIcon)
                         .font(.caption)
                         .foregroundColor(statusColor)
                     
                     Text(dispute.status.rawValue)
-                        .font(.caption)
+                        .font(AppTheme.caption())
                         .fontWeight(.medium)
                         .foregroundColor(statusColor)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, AppTheme.spacingMD)
+                .padding(.vertical, AppTheme.spacingSM)
                 .background(statusColor.opacity(0.1))
-                .cornerRadius(8)
+                .cornerRadius(AppTheme.radiusSM)
+                
+                Spacer()
+                
+                Text(dispute.createdAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(AppTheme.caption2())
+                    .foregroundColor(AppTheme.textTertiary)
             }
             
-            // Description
-            Text(dispute.description)
-                .font(AppTheme.bodyFont())
-                .foregroundColor(.gray)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
+            // Content
+            VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                Text(dispute.title)
+                    .font(AppTheme.title3())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                
+                Text(dispute.description)
+                    .font(AppTheme.body())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+            }
             
-            // Footer with additional info
+            // Footer
             HStack {
-                // Participants info
-                HStack(spacing: 4) {
-                    Image(systemName: "person.2")
+                HStack(spacing: AppTheme.spacingSM) {
+                    Image(systemName: "person.2.fill")
                         .font(.caption2)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppTheme.textTertiary)
                     
-                    if dispute.partyB != nil {
-                        Text("Both parties joined")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    } else {
-                        Text("Waiting for other party")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    }
+                    Text(dispute.partyB != nil ? "Both parties joined" : "Waiting for other party")
+                        .font(AppTheme.caption2())
+                        .foregroundColor(AppTheme.textTertiary)
                 }
                 
                 Spacer()
                 
-                // Date
-                Text(dispute.createdAt.formatted(date: .abbreviated, time: .omitted))
-                    .font(.caption2)
-                    .foregroundColor(.gray)
+                if dispute.isResolved {
+                    HStack(spacing: AppTheme.spacingSM) {
+                        Image(systemName: "brain.head.profile")
+                            .font(.caption2)
+                            .foregroundColor(AppTheme.success)
+                        
+                        Text("AI Resolved")
+                            .font(AppTheme.caption2())
+                            .foregroundColor(AppTheme.success)
+                            .fontWeight(.medium)
+                    }
+                }
             }
         }
-        .padding()
-        .background(AppTheme.card)
-        .cornerRadius(16)
-        .shadow(radius: 3)
-        .padding(.horizontal)
-        .padding(.vertical, 4)
+        .padding(AppTheme.spacingLG)
+        .glassCard()
     }
 }

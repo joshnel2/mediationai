@@ -12,20 +12,25 @@ struct RootView: View {
     @State private var showSplash = true
     
     var body: some View {
-        Group {
-            if showSplash {
-                SplashScreen(showSplash: $showSplash)
-            } else {
-                // Main app content
-                Group {
-                    if authService.currentUser == nil {
-                        OnboardingView()
-                    } else {
-                        HomeView()
+        ZStack {
+            // Background gradient
+            AppTheme.backgroundGradient
+                .ignoresSafeArea()
+            
+            Group {
+                if showSplash {
+                    SplashScreen(showSplash: $showSplash)
+                } else {
+                    // Main app content
+                    Group {
+                        if authService.currentUser == nil {
+                            OnboardingView()
+                        } else {
+                            HomeView()
+                        }
                     }
+                    .transition(.opacity.combined(with: .scale))
                 }
-                .background(AppTheme.background.ignoresSafeArea())
-                .transition(.opacity.combined(with: .scale))
             }
         }
         .animation(.easeInOut(duration: 0.5), value: showSplash)

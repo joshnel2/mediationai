@@ -15,16 +15,15 @@ struct DisputeRoomView: View {
     @State private var attachments: [Attachment] = []
     @State private var error: String?
     @State private var isPickerPresented = false
-    @State private var isResolving = false
-    @State private var showResolution = false
-    @State private var resolutionText: String?
     @State private var showAIProcessing = false
+    @State private var animateElements = false
     
     let dispute: Dispute
     
     var myTruth: Truth? {
         dispute.truths.first(where: { $0.userId == authService.currentUser?.id })
     }
+    
     var otherTruth: Truth? {
         dispute.truths.first(where: { $0.userId != authService.currentUser?.id })
     }
@@ -38,201 +37,358 @@ struct DisputeRoomView: View {
     }
     
     var body: some View {
-        NavigationView {
+        ZStack {
+            // Background gradient
+            AppTheme.backgroundGradient
+                .ignoresSafeArea()
+            
             VStack(spacing: 0) {
-                // Status banner
-                if waitingForOtherParty {
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(.orange)
-                            Text("Waiting for other party to join")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(8)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 8)
-                }
+                // Header
+                headerSection
                 
+                // Main content
                 ScrollView {
-                    VStack(spacing: 24) {
-                        // Dispute details
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(dispute.title)
-                                .font(AppTheme.titleFont())
-                                .foregroundColor(AppTheme.primary)
-                            
-                            Text(dispute.description)
-                                .font(AppTheme.bodyFont())
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.leading)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(AppTheme.card)
-                        .cornerRadius(16)
-                        .shadow(radius: 2)
-                        .padding(.horizontal)
+                    LazyVStack(spacing: AppTheme.spacingXL) {
+                        // Dispute details card
+                        disputeDetailsCard
                         
-                        // Party A Truth
-                        if let partyA = dispute.partyA {
-                            TruthBubble(
-                                user: partyA,
-                                truth: dispute.truths.first(where: { $0.userId == partyA.id }),
-                                isMe: partyA.id == authService.currentUser?.id
-                            )
+                        // Status banner
+                        if waitingForOtherParty {
+                            waitingBanner
                         }
                         
-                        // Party B Truth
-                        if let partyB = dispute.partyB {
-                            TruthBubble(
-                                user: partyB,
-                                truth: dispute.truths.first(where: { $0.userId == partyB.id }),
-                                isMe: partyB.id == authService.currentUser?.id
-                            )
-                        }
+                        // Truth submissions
+                        truthSubmissionsSection
                         
                         // AI Processing indicator
                         if showAIProcessing {
-                            VStack(spacing: 12) {
-                                ProgressView()
-                                    .scaleEffect(1.2)
-                                Text("🤖 Grok AI is analyzing both submissions...")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                                    .multilineTextAlignment(.center)
-                            }
-                            .padding()
-                            .background(AppTheme.card)
-                            .cornerRadius(16)
-                            .shadow(radius: 2)
-                            .padding(.horizontal)
+                            aiProcessingCard
                         }
                         
                         // Resolution
                         if dispute.isResolved, let resolution = dispute.resolution {
                             ResolutionCardView(resolution: resolution)
+                                .padding(.horizontal, AppTheme.spacingLG)
                         }
+                        
+                        Spacer(minLength: AppTheme.spacingXXL)
                     }
-                    .padding(.vertical)
-                }
-                .background(AppTheme.background)
-                
-                // Input area for submitting truth
-                if canSubmitTruth {
-                    VStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("📝 Submit Your Truth")
-                                .font(.headline)
-                                .foregroundColor(AppTheme.primary)
-                            
-                            Text("Share your side of the story with evidence. Once both parties submit, Grok AI will provide a resolution.")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        TextField("Describe your truth...", text: $message, axis: .vertical)
-                            .padding()
-                            .background(AppTheme.card)
-                            .cornerRadius(12)
-                            .shadow(radius: 2)
-                            .frame(minHeight: 60)
-                        
-                        HStack {
-                            Button(action: { isPickerPresented = true }) {
-                                Label("Attach", systemImage: "paperclip")
-                                    .font(.caption)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(AppTheme.secondary.opacity(0.2))
-                                    .cornerRadius(8)
-                            }
-                            .sheet(isPresented: $isPickerPresented) {
-                                AttachmentPicker(attachments: $attachments)
-                            }
-                            
-                            if !attachments.isEmpty {
-                                Text("\(attachments.count) file(s)")
-                                    .font(.caption2)
-                                    .foregroundColor(.gray)
-                            }
-                            
-                            Spacer()
-                            
-                            Button(action: handleSend) {
-                                Text("Submit Truth")
-                                    .font(AppTheme.buttonFont())
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(AppTheme.mainGradient)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        
-                        if let error = error {
-                            Text(error)
-                                .foregroundColor(.red)
-                                .font(.caption)
-                        }
-                    }
-                    .padding()
-                    .background(AppTheme.background)
+                    .padding(.top, AppTheme.spacingLG)
                 }
                 
-                // Waiting message if truth already submitted
-                if !dispute.isResolved && myTruth != nil && otherTruth == nil {
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Your truth has been submitted")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                        }
-                        
-                        Text("Waiting for the other party to submit their truth...")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                    .background(AppTheme.background)
-                }
+                // Input section
+                inputSection
             }
-            .navigationTitle(dispute.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
+        }
+        .navigationBarHidden(true)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
+                animateElements = true
             }
-            .background(AppTheme.background.ignoresSafeArea())
-            .sheet(isPresented: $showResolution) {
-                if let resolutionText = resolutionText {
-                    ResolutionView(resolution: resolutionText)
-                }
+        }
+        .onChange(of: dispute.truths) { _ in
+            // Show AI processing when both parties have submitted
+            if myTruth != nil && otherTruth != nil && !dispute.isResolved {
+                showAIProcessing = true
             }
-            .onChange(of: dispute.truths) { _ in
-                // Show AI processing when both parties have submitted
-                if myTruth != nil && otherTruth != nil && !dispute.isResolved {
-                    showAIProcessing = true
-                }
-                
-                // Hide AI processing when resolved
-                if dispute.isResolved {
-                    showAIProcessing = false
-                }
+            
+            // Hide AI processing when resolved
+            if dispute.isResolved {
+                showAIProcessing = false
             }
         }
     }
     
-    func handleSend() {
+    private var headerSection: some View {
+        VStack(spacing: AppTheme.spacingMD) {
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(AppTheme.textPrimary)
+                        .frame(width: 32, height: 32)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusSM)
+                }
+                
+                Spacer()
+                
+                Text("Dispute Room")
+                    .font(AppTheme.title3())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                // Status indicator
+                statusIndicator
+            }
+        }
+        .padding(.horizontal, AppTheme.spacingLG)
+        .padding(.top, AppTheme.spacingSM)
+    }
+    
+    private var statusIndicator: some View {
+        HStack(spacing: AppTheme.spacingSM) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+            
+            Text(dispute.status.rawValue)
+                .font(AppTheme.caption())
+                .foregroundColor(statusColor)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, AppTheme.spacingMD)
+        .padding(.vertical, AppTheme.spacingSM)
+        .background(statusColor.opacity(0.1))
+        .cornerRadius(AppTheme.radiusMD)
+    }
+    
+    private var statusColor: Color {
+        switch dispute.status {
+        case .inviteSent: return AppTheme.warning
+        case .inProgress: return AppTheme.info
+        case .resolved: return AppTheme.success
+        }
+    }
+    
+    private var disputeDetailsCard: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
+            VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                Text(dispute.title)
+                    .font(AppTheme.title2())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.bold)
+                
+                Text(dispute.description)
+                    .font(AppTheme.body())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .lineSpacing(4)
+            }
+            
+            HStack {
+                Label("Created \(dispute.createdAt.formatted(date: .abbreviated, time: .omitted))", 
+                      systemImage: "calendar")
+                .font(AppTheme.caption())
+                .foregroundColor(AppTheme.textTertiary)
+                
+                Spacer()
+                
+                if dispute.partyB != nil {
+                    Label("Both parties joined", systemImage: "person.2.fill")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.success)
+                } else {
+                    Label("Waiting for other party", systemImage: "clock.fill")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.warning)
+                }
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .glassCard()
+        .padding(.horizontal, AppTheme.spacingLG)
+        .scaleEffect(animateElements ? 1.0 : 0.95)
+        .opacity(animateElements ? 1.0 : 0.0)
+        .animation(.easeOut(duration: 0.6).delay(0.1), value: animateElements)
+    }
+    
+    private var waitingBanner: some View {
+        HStack(spacing: AppTheme.spacingMD) {
+            Image(systemName: "clock.fill")
+                .foregroundColor(AppTheme.warning)
+                .font(.title3)
+            
+            VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                Text("Waiting for other party to join")
+                    .font(AppTheme.headline())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.semibold)
+                
+                Text("Share your dispute link to get them involved")
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+            }
+            
+            Spacer()
+        }
+        .padding(AppTheme.spacingLG)
+        .background(AppTheme.warning.opacity(0.1))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                .stroke(AppTheme.warning.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(AppTheme.radiusLG)
+        .padding(.horizontal, AppTheme.spacingLG)
+    }
+    
+    private var truthSubmissionsSection: some View {
+        VStack(spacing: AppTheme.spacingXL) {
+            if let partyA = dispute.partyA {
+                ModernTruthBubble(
+                    user: partyA,
+                    truth: dispute.truths.first(where: { $0.userId == partyA.id }),
+                    isMe: partyA.id == authService.currentUser?.id
+                )
+                .scaleEffect(animateElements ? 1.0 : 0.95)
+                .opacity(animateElements ? 1.0 : 0.0)
+                .animation(.easeOut(duration: 0.6).delay(0.2), value: animateElements)
+            }
+            
+            if let partyB = dispute.partyB {
+                ModernTruthBubble(
+                    user: partyB,
+                    truth: dispute.truths.first(where: { $0.userId == partyB.id }),
+                    isMe: partyB.id == authService.currentUser?.id
+                )
+                .scaleEffect(animateElements ? 1.0 : 0.95)
+                .opacity(animateElements ? 1.0 : 0.0)
+                .animation(.easeOut(duration: 0.6).delay(0.3), value: animateElements)
+            }
+        }
+    }
+    
+    private var aiProcessingCard: some View {
+        VStack(spacing: AppTheme.spacingLG) {
+            HStack(spacing: AppTheme.spacingMD) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.primary))
+                    .scaleEffect(1.2)
+                
+                VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                    Text("🤖 Grok AI is analyzing...")
+                        .font(AppTheme.headline())
+                        .foregroundColor(AppTheme.textPrimary)
+                        .fontWeight(.semibold)
+                    
+                    Text("Processing both submissions to provide a fair resolution")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+                
+                Spacer()
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .glassCard()
+        .padding(.horizontal, AppTheme.spacingLG)
+    }
+    
+    private var inputSection: some View {
+        VStack(spacing: 0) {
+            if canSubmitTruth {
+                truthInputCard
+            } else if !dispute.isResolved && myTruth != nil && otherTruth == nil {
+                waitingForOtherTruthCard
+            }
+        }
+    }
+    
+    private var truthInputCard: some View {
+        VStack(spacing: AppTheme.spacingLG) {
+            VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                HStack {
+                    Text("📝 Submit Your Truth")
+                        .font(AppTheme.headline())
+                        .foregroundColor(AppTheme.textPrimary)
+                        .fontWeight(.semibold)
+                    
+                    Spacer()
+                }
+                
+                Text("Share your side of the story with evidence. Once both parties submit, Grok AI will provide a resolution.")
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .lineSpacing(3)
+            }
+            
+            VStack(spacing: AppTheme.spacingMD) {
+                TextField("Describe your truth...", text: $message, axis: .vertical)
+                    .modernTextField()
+                    .frame(minHeight: 80)
+                
+                HStack {
+                    Button(action: { isPickerPresented = true }) {
+                        Label("Attach Files", systemImage: "paperclip")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                            .padding(.horizontal, AppTheme.spacingMD)
+                            .padding(.vertical, AppTheme.spacingSM)
+                            .background(AppTheme.glassSecondary)
+                            .cornerRadius(AppTheme.radiusSM)
+                    }
+                    .sheet(isPresented: $isPickerPresented) {
+                        AttachmentPicker(attachments: $attachments)
+                    }
+                    
+                    if !attachments.isEmpty {
+                        Text("\(attachments.count) file(s)")
+                            .font(AppTheme.caption2())
+                            .foregroundColor(AppTheme.textTertiary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button("Submit Truth", action: handleSend)
+                        .font(AppTheme.headline())
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, AppTheme.spacingLG)
+                        .padding(.vertical, AppTheme.spacingMD)
+                        .background(AppTheme.mainGradient)
+                        .cornerRadius(AppTheme.radiusLG)
+                        .shadow(color: AppTheme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
+                }
+                
+                if let error = error {
+                    Text(error)
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.error)
+                        .padding(.horizontal, AppTheme.spacingSM)
+                }
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .glassCard()
+        .padding(.horizontal, AppTheme.spacingLG)
+        .padding(.bottom, AppTheme.spacingLG)
+    }
+    
+    private var waitingForOtherTruthCard: some View {
+        VStack(spacing: AppTheme.spacingMD) {
+            HStack(spacing: AppTheme.spacingMD) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(AppTheme.success)
+                    .font(.title3)
+                
+                VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                    Text("Your truth has been submitted")
+                        .font(AppTheme.headline())
+                        .foregroundColor(AppTheme.success)
+                        .fontWeight(.semibold)
+                    
+                    Text("Waiting for the other party to submit their truth...")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+                
+                Spacer()
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .background(AppTheme.success.opacity(0.1))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                .stroke(AppTheme.success.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(AppTheme.radiusLG)
+        .padding(.horizontal, AppTheme.spacingLG)
+        .padding(.bottom, AppTheme.spacingLG)
+    }
+    
+    private func handleSend() {
         error = nil
         guard let user = authService.currentUser else { return }
         if message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -251,5 +407,97 @@ struct DisputeRoomView: View {
         disputeService.addTruth(to: dispute, truth: truth)
         message = ""
         attachments = []
+    }
+}
+
+struct ModernTruthBubble: View {
+    let user: User
+    let truth: Truth?
+    let isMe: Bool
+    @State private var animateIn = false
+    
+    var body: some View {
+        HStack {
+            if isMe { Spacer() }
+            
+            VStack(alignment: isMe ? .trailing : .leading, spacing: AppTheme.spacingMD) {
+                // User label
+                HStack {
+                    if !isMe {
+                        Text(user.email.components(separatedBy: "@").first?.capitalized ?? user.email)
+                            .font(AppTheme.caption())
+                            .fontWeight(.semibold)
+                            .foregroundColor(AppTheme.textSecondary)
+                        Spacer()
+                    } else {
+                        Spacer()
+                        Text("You")
+                            .font(AppTheme.caption())
+                            .fontWeight(.semibold)
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                }
+                
+                if let truth = truth {
+                    VStack(alignment: isMe ? .trailing : .leading, spacing: AppTheme.spacingMD) {
+                        // Truth content
+                        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                            Text(truth.text)
+                                .font(AppTheme.body())
+                                .foregroundColor(isMe ? .white : AppTheme.textPrimary)
+                                .lineSpacing(4)
+                            
+                            // Attachments
+                            if !truth.attachments.isEmpty {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: AppTheme.spacingMD) {
+                                        ForEach(truth.attachments) { attachment in
+                                            AttachmentPreview(attachment: attachment)
+                                        }
+                                    }
+                                    .padding(.horizontal, AppTheme.spacingLG)
+                                }
+                            }
+                        }
+                        .padding(AppTheme.spacingLG)
+                        .background(
+                            isMe ? AppTheme.mainGradient : AppTheme.cardGradient
+                        )
+                        .cornerRadius(AppTheme.radiusLG)
+                        .shadow(color: AppTheme.shadowMD, radius: 4, x: 0, y: 2)
+                        
+                        // Timestamp
+                        Text("Submitted \(truth.submittedAt.formatted(date: .omitted, time: .shortened))")
+                            .font(AppTheme.caption2())
+                            .foregroundColor(AppTheme.textTertiary)
+                    }
+                } else {
+                    VStack(alignment: isMe ? .trailing : .leading, spacing: AppTheme.spacingMD) {
+                        Text("Waiting for truth submission...")
+                            .font(AppTheme.body())
+                            .foregroundColor(AppTheme.textTertiary)
+                            .italic()
+                            .padding(AppTheme.spacingLG)
+                            .background(AppTheme.cardGradient)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                                    .stroke(AppTheme.textTertiary.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [5]))
+                            )
+                            .cornerRadius(AppTheme.radiusLG)
+                    }
+                }
+            }
+            .frame(maxWidth: 300, alignment: isMe ? .trailing : .leading)
+            
+            if !isMe { Spacer() }
+        }
+        .padding(.horizontal, AppTheme.spacingLG)
+        .scaleEffect(animateIn ? 1.0 : 0.95)
+        .opacity(animateIn ? 1.0 : 0.0)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.6).delay(0.1)) {
+                animateIn = true
+            }
+        }
     }
 }
