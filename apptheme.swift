@@ -9,12 +9,12 @@
 import SwiftUI
 
 struct AppTheme {
-    // Colors
-    static let primary = Color("Primary") // Add to Assets: #6C47FF
-    static let secondary = Color("Secondary") // Add to Assets: #FFB800
-    static let background = Color("Background") // Add to Assets: #F7F7FB
+    // Colors - Using system colors to prevent crashes until custom assets are added
+    static let primary = Color(red: 0.42, green: 0.28, blue: 1.0) // #6C47FF
+    static let secondary = Color(red: 1.0, green: 0.72, blue: 0.0) // #FFB800
+    static let background = Color(red: 0.97, green: 0.97, blue: 0.98) // #F7F7FB
     static let card = Color.white
-    static let accent = Color("Accent") // Add to Assets: #00D2FF
+    static let accent = Color(red: 0.0, green: 0.82, blue: 1.0) // #00D2FF
 
     // Gradients
     static let mainGradient = LinearGradient(

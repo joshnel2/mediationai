@@ -18,7 +18,20 @@ struct HomeView: View {
     @State private var selectedDispute: Dispute?
     
     var body: some View {
-        NavigationView {
+        if #available(iOS 16.0, *) {
+            NavigationStack {
+                contentView
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+        } else {
+            NavigationView {
+                contentView
+            }
+            .navigationViewStyle(StackNavigationViewStyle())
+        }
+    }
+    
+    private var contentView: some View {
             VStack(spacing: 24) {
                 Text("Your Disputes")
                     .font(AppTheme.titleFont())
@@ -78,6 +91,4 @@ struct HomeView: View {
                 JoinDisputeView()
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
 }
