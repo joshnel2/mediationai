@@ -17,45 +17,54 @@ An AI-powered dispute resolution iOS app built with SwiftUI.
 - Xcode 14.0+
 - Swift 5.0+
 
-## 🛠 Installation
+## 🛠 Setup Instructions
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/joshnel2/mediationai.git
-   cd mediationai
-   ```
+### **Step 1: Download the Project**
+1. Go to: **https://github.com/joshnel2/mediationai**
+2. Click **"Code"** → **"Download ZIP"**
+3. Extract the downloaded `mediationai-main.zip`
 
-2. **Open in Xcode:**
-   ```bash
-   open MediationAI.xcodeproj
-   ```
+### **Step 2: Create New Xcode Project**
+1. **Open Xcode**
+2. **File** → **New** → **Project**
+3. Choose: **iOS** → **App**
+4. **Settings:**
+   - Product Name: `MediationAI`
+   - Interface: `SwiftUI`
+   - Language: `Swift`
+   - Bundle Identifier: `com.mediationai.app`
+5. **Save** to a location of your choice
 
-3. **Build and Run:**
-   - Select your target device or simulator
-   - Press `Cmd+R` to build and run
+### **Step 3: Import the Swift Files**
+1. **Delete default files:**
+   - Right-click and delete `ContentView.swift` and `MediationAIApp.swift` from the project
+2. **Add our files:**
+   - Drag all `.swift` files from the downloaded `MediationAI/` folder into your Xcode project
+   - Select: ✅ **"Copy items if needed"**
+   - Select: ✅ **"Add to target: MediationAI"**
+3. **Replace Info.plist:**
+   - Replace the default `Info.plist` with the one from the downloaded `MediationAI/` folder
+
+### **Step 4: Build and Run**
+1. **Select** iPhone simulator (iPhone 15, etc.)
+2. **Press** `Cmd+R` or click the ▶️ **Play** button
+3. **Your app will build and run!**
 
 ## 🏗 Project Structure
 
 ```
 MediationAI/
-├── MediationAI.xcodeproj/          # Xcode project files
 ├── MediationAI/                    # Source code
 │   ├── MediationAIApp.swift        # Main app entry point
-│   ├── Models/
-│   │   ├── User.swift              # User and data models
-│   │   └── MockAuthService.swift   # Mock authentication service
-│   ├── Views/
-│   │   ├── RootView.swift          # Root navigation view
-│   │   ├── OnboardingView.swift    # Welcome screen
-│   │   ├── AuthView.swift          # Login/signup
-│   │   ├── HomeView.swift          # Main dashboard
-│   │   ├── DisputeViews/           # Dispute-related views
-│   │   └── Components/             # Reusable UI components
-│   ├── Theme/
-│   │   └── AppTheme.swift          # App styling and colors
-│   └── Info.plist                  # App configuration
-├── DEBUG_REPORT.md                 # Debugging information
-└── README.md                       # This file
+│   ├── RootView.swift              # Root navigation view
+│   ├── OnboardingView.swift        # Welcome screen
+│   ├── AuthView.swift              # Login/signup
+│   ├── HomeView.swift              # Main dashboard
+│   ├── User.swift                  # Data models
+│   ├── MockAuthService.swift       # Mock services
+│   ├── AppTheme.swift              # App styling
+│   └── [Other Views]               # Dispute and component views
+└── Info.plist                     # App configuration
 ```
 
 ## 🎨 Design
@@ -68,13 +77,13 @@ The app features a modern, clean design with:
 
 ## 🔧 Development Notes
 
-### Fixed Issues:
-- ✅ Color asset dependencies (replaced with hardcoded colors)
-- ✅ Navigation deprecation warnings (iOS 16+ compatibility)
-- ✅ File naming inconsistencies
-- ✅ Project structure organization
+### ✅ **Debugged & Fixed Issues:**
+- **Color crashes** - Uses hardcoded RGB values instead of missing assets
+- **Navigation deprecation** - iOS 16+ compatible with backward support
+- **File organization** - Clean, structured codebase
+- **Ready to run** - No additional setup required
 
-### Architecture:
+### **Architecture:**
 - **MVVM Pattern**: Clean separation of concerns
 - **ObservableObject**: Reactive state management
 - **Mock Services**: Development-ready authentication and data
@@ -93,4 +102,4 @@ This project is available under the MIT License.
 
 ---
 
-**Ready to build and run in Xcode!** 🎉
+**Follow the setup instructions above to get started!** 🎉
