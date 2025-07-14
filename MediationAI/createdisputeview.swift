@@ -1,6 +1,6 @@
 //
-//  JoinDisputeView.swift
-//  meidationaiapp
+//  CreateDisputeView.swift
+//  MediationAI
 //
 //  Created by Linda Alster on 7/14/25.
 //
@@ -8,28 +8,34 @@
 
 import SwiftUI
 
-struct JoinDisputeView: View {
+struct CreateDisputeView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
-    @State private var code = ""
+    @State private var title = ""
+    @State private var description = ""
     @State private var error: String?
-    @State private var joinedDispute: Dispute?
+    @State private var createdDispute: Dispute?
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 32) {
-                Text("Join a Dispute")
+            VStack(spacing: 24) {
+                Text("Create a Dispute")
                     .font(AppTheme.titleFont())
                     .foregroundColor(AppTheme.primary)
                 
-                TextField("Enter Share Code", text: $code)
-                    .textCase(.uppercase)
+                TextField("Dispute Title", text: $title)
                     .padding()
                     .background(AppTheme.card)
                     .cornerRadius(12)
                     .shadow(radius: 2)
-                    .textInputAutocapitalization(.characters) // <-- ADD THIS LINE
+                
+                TextField("Describe the situation...", text: $description, axis: .vertical)
+                    .padding()
+                    .background(AppTheme.card)
+                    .cornerRadius(12)
+                    .shadow(radius: 2)
+                    .frame(minHeight: 100, maxHeight: 150)
                 
                 if let error = error {
                     Text(error)
@@ -37,8 +43,8 @@ struct JoinDisputeView: View {
                         .font(.caption)
                 }
                 
-                Button(action: handleJoin) {
-                    Text("Join")
+                Button(action: handleCreate) {
+                    Text("Create & Get Share Code")
                         .font(AppTheme.buttonFont())
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -46,6 +52,7 @@ struct JoinDisputeView: View {
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
+                .padding(.top)
                 
                 Spacer()
             }
@@ -57,21 +64,20 @@ struct JoinDisputeView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .sheet(item: $createdDispute) { dispute in
+                ShareDisputeView(dispute: dispute)
+            }
         }
     }
     
-    func handleJoin() {
+    func handleCreate() {
         error = nil
         guard let user = authService.currentUser else { return }
-        if code.isEmpty {
-            error = "Please enter a code."
+        if title.isEmpty || description.isEmpty {
+            error = "Please fill in all fields."
             return
         }
-        if let dispute = disputeService.joinDispute(shareCode: code, user: user) {
-            joinedDispute = dispute
-            dismiss()
-        } else {
-            error = "Invalid or already joined code."
-        }
+        let dispute = disputeService.createDispute(title: title, description: description, user: user)
+        createdDispute = dispute
     }
 }

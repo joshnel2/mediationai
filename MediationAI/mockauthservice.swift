@@ -1,6 +1,6 @@
 //
 //  MockAuthService.swift
-//  meidationaiapp
+//  MediationAI
 //
 //  Created by Linda Alster on 7/14/25.
 //
