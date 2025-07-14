@@ -17,6 +17,7 @@ struct JoinDisputeView: View {
     @State private var joinedDispute: Dispute?
     @State private var isProcessingPayment = false
     @State private var selectedInputType: InputType = .link
+    @State private var showTermsOfService = false
     
     enum InputType: String, CaseIterable {
         case link = "Link"
@@ -109,6 +110,27 @@ struct JoinDisputeView: View {
                 }
                 .disabled(isProcessingPayment || purchaseService.isLoading)
                 
+                // Payment compliance notice
+                VStack(spacing: 8) {
+                    Text("Payment processed securely through Apple")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                    
+                    HStack(spacing: 4) {
+                        Text("By proceeding, you agree to our")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        
+                        Button("Terms of Service") {
+                            showTermsOfService = true
+                        }
+                        .font(.caption2)
+                        .foregroundColor(AppTheme.primary)
+                    }
+                }
+                .padding(.horizontal)
+                
                 Spacer()
             }
             .padding()
@@ -118,6 +140,9 @@ struct JoinDisputeView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showTermsOfService) {
+                TermsOfServiceView()
             }
         }
     }

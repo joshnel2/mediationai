@@ -17,6 +17,7 @@ struct CreateDisputeView: View {
     @State private var error: String?
     @State private var createdDispute: Dispute?
     @State private var isProcessingPayment = false
+    @State private var showTermsOfService = false
     
     var body: some View {
         NavigationView {
@@ -82,6 +83,27 @@ struct CreateDisputeView: View {
                 .disabled(isProcessingPayment || purchaseService.isLoading)
                 .padding(.top)
                 
+                // Payment compliance notice
+                VStack(spacing: 8) {
+                    Text("Payment processed securely through Apple")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                    
+                    HStack(spacing: 4) {
+                        Text("By proceeding, you agree to our")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        
+                        Button("Terms of Service") {
+                            showTermsOfService = true
+                        }
+                        .font(.caption2)
+                        .foregroundColor(AppTheme.primary)
+                    }
+                }
+                .padding(.horizontal)
+                
                 Spacer()
             }
             .padding()
@@ -94,6 +116,9 @@ struct CreateDisputeView: View {
             }
             .sheet(item: $createdDispute) { dispute in
                 ShareDisputeView(dispute: dispute)
+            }
+            .sheet(isPresented: $showTermsOfService) {
+                TermsOfServiceView()
             }
         }
     }

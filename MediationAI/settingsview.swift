@@ -1,0 +1,270 @@
+//
+//  SettingsView.swift
+//  MediationAI
+//
+//  Created by Linda Alster on 7/14/25.
+//
+
+import SwiftUI
+
+struct SettingsView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authService: MockAuthService
+    @State private var showPrivacyPolicy = false
+    @State private var showTermsOfService = false
+    @State private var showSupport = false
+    @State private var showDeleteAccountAlert = false
+    
+    var body: some View {
+        NavigationView {
+            List {
+                // Profile Section
+                Section {
+                    HStack(spacing: 16) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(AppTheme.primary)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(authService.currentUser?.email ?? "User")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            Text("MediationAI Member")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                
+                // Support Section
+                Section("Support") {
+                    SettingsRow(
+                        icon: "questionmark.circle",
+                        title: "Help & Support",
+                        subtitle: "Get help with your account",
+                        action: { showSupport = true }
+                    )
+                    
+                    SettingsRow(
+                        icon: "envelope",
+                        title: "Contact Us",
+                        subtitle: "support@mediationai.app",
+                        action: { openEmail() }
+                    )
+                    
+                    SettingsRow(
+                        icon: "star",
+                        title: "Rate the App",
+                        subtitle: "Share your experience",
+                        action: { rateApp() }
+                    )
+                }
+                
+                // Legal Section
+                Section("Legal") {
+                    SettingsRow(
+                        icon: "shield.checkerboard",
+                        title: "Privacy Policy",
+                        subtitle: "How we protect your data",
+                        action: { showPrivacyPolicy = true }
+                    )
+                    
+                    SettingsRow(
+                        icon: "doc.text",
+                        title: "Terms of Service",
+                        subtitle: "Service agreement",
+                        action: { showTermsOfService = true }
+                    )
+                    
+                    SettingsRow(
+                        icon: "scale.3d",
+                        title: "Legal Disclaimer",
+                        subtitle: "AI mediation limitations",
+                        action: { showLegalDisclaimer() }
+                    )
+                }
+                
+                // App Information
+                Section("App Information") {
+                    SettingsRow(
+                        icon: "info.circle",
+                        title: "Version",
+                        subtitle: "1.0.0 (Build 1)",
+                        action: { }
+                    )
+                    
+                    SettingsRow(
+                        icon: "globe",
+                        title: "Website",
+                        subtitle: "mediationai.app",
+                        action: { openWebsite() }
+                    )
+                    
+                    SettingsRow(
+                        icon: "hand.raised",
+                        title: "Acknowledgments",
+                        subtitle: "Open source libraries",
+                        action: { showAcknowledgments() }
+                    )
+                }
+                
+                // Account Actions
+                Section("Account") {
+                    SettingsRow(
+                        icon: "icloud.and.arrow.up",
+                        title: "Export Data",
+                        subtitle: "Download your dispute history",
+                        action: { exportData() }
+                    )
+                    
+                    SettingsRow(
+                        icon: "trash",
+                        title: "Delete Account",
+                        subtitle: "Permanently remove your account",
+                        destructive: true,
+                        action: { showDeleteAccountAlert = true }
+                    )
+                }
+                
+                // Sign Out
+                Section {
+                    Button(action: signOut) {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.red)
+                            Text("Sign Out")
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .sheet(isPresented: $showPrivacyPolicy) {
+                PrivacyPolicyView()
+            }
+            .sheet(isPresented: $showTermsOfService) {
+                TermsOfServiceView()
+            }
+            .sheet(isPresented: $showSupport) {
+                SupportView()
+            }
+            .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    deleteAccount()
+                }
+            } message: {
+                Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+            }
+        }
+    }
+    
+    private func signOut() {
+        authService.signOut()
+        dismiss()
+    }
+    
+    private func deleteAccount() {
+        // In a real app, this would call an API to delete the account
+        authService.signOut()
+        dismiss()
+    }
+    
+    private func openEmail() {
+        if let emailURL = URL(string: "mailto:support@mediationai.app") {
+            UIApplication.shared.open(emailURL)
+        }
+    }
+    
+    private func rateApp() {
+        // Open App Store rating
+        if let appStoreURL = URL(string: "https://apps.apple.com/app/id123456789?action=write-review") {
+            UIApplication.shared.open(appStoreURL)
+        }
+    }
+    
+    private func openWebsite() {
+        if let websiteURL = URL(string: "https://mediationai.app") {
+            UIApplication.shared.open(websiteURL)
+        }
+    }
+    
+    private func showLegalDisclaimer() {
+        // Show alert with legal disclaimer
+    }
+    
+    private func showAcknowledgments() {
+        // Show acknowledgments view
+    }
+    
+    private func exportData() {
+        // Export user data functionality
+    }
+}
+
+struct SettingsRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let destructive: Bool
+    let action: () -> Void
+    
+    init(icon: String, title: String, subtitle: String, destructive: Bool = false, action: @escaping () -> Void) {
+        self.icon = icon
+        self.title = title
+        self.subtitle = subtitle
+        self.destructive = destructive
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(destructive ? .red : AppTheme.primary)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(destructive ? .red : .primary)
+                    
+                    if !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Spacer()
+                
+                if !destructive {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct SettingsView_Previews: PreviewProvider {
+    static var previews: some View {
+        SettingsView()
+            .environmentObject(MockAuthService())
+    }
+}
