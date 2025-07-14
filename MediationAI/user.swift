@@ -14,6 +14,12 @@ struct User: Identifiable, Equatable {
     var password: String // For mock only; never store plaintext in production
 }
 
+enum DisputeStatus: String, CaseIterable {
+    case inviteSent = "Invite Sent"
+    case inProgress = "In Progress"
+    case resolved = "View Resolution"
+}
+
 struct Dispute: Identifiable {
     let id: UUID
     var title: String
@@ -23,7 +29,12 @@ struct Dispute: Identifiable {
     var truths: [Truth]
     var isResolved: Bool
     var resolution: String?
-    var shareCode: String // Used to join dispute
+    var shareCode: String // Legacy - keeping for backward compatibility
+    var shareLink: String // New shareable link
+    var status: DisputeStatus
+    var creatorPaid: Bool
+    var joinerPaid: Bool
+    var createdAt: Date
 }
 
 struct Truth: Identifiable {
@@ -31,6 +42,7 @@ struct Truth: Identifiable {
     let userId: UUID
     var text: String
     var attachments: [Attachment]
+    var submittedAt: Date
 }
 
 struct Attachment: Identifiable {
