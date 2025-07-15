@@ -39,9 +39,9 @@ struct TruthBubble: View {
                         // Truth text
                         Text(truth.text)
                             .font(AppTheme.chatFont())
-                            .foregroundColor(isMe ? .white : .primary)
+                            .foregroundColor(isMe ? .white : AppTheme.textPrimary)
                             .padding()
-                            .background(isMe ? AppTheme.mainGradient : AppTheme.card)
+                            .background(isMe ? AppTheme.mainGradient : AppTheme.cardGradient)
                             .cornerRadius(16)
                             .shadow(radius: 2)
                         
