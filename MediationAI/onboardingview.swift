@@ -9,12 +9,15 @@ import SwiftUI
 
 struct OnboardingView: View {
     @State private var showAuth = false
+    @State private var showMain = false
     
     var body: some View {
         if showAuth {
             ModernAuthView()
+        } else if showMain {
+            BalancedScaleView(onGetStarted: { showAuth = true })
         } else {
-            OnboardingCarouselView(onGetStarted: { showAuth = true })
+            AnimatedScaleIntroView(onContinue: { showMain = true })
         }
     }
 }
