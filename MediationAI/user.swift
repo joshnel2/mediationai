@@ -354,7 +354,7 @@ struct SatisfactionRating: Identifiable, Codable {
     let createdAt: Date
 }
 
-struct Truth: Identifiable, Codable {
+struct Truth: Identifiable, Codable, Equatable {
     let id: UUID
     let userId: UUID
     let text: String
@@ -391,7 +391,7 @@ enum FileType: String, Codable, CaseIterable {
     case other = "other"
 }
 
-struct Attachment: Identifiable, Codable {
+struct Attachment: Identifiable, Codable, Equatable {
     let id: UUID
     let fileName: String
     let fileData: Data

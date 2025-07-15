@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ResolutionView: View {
-    let resolution: String
+    let resolution: Resolution
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -23,32 +23,32 @@ struct ResolutionView: View {
                             .frame(width: 60, height: 60)
                             .foregroundStyle(AppTheme.mainGradient)
                             .padding()
-                            .background(AppTheme.card)
+                            .background(AppTheme.cardGradient)
                             .clipShape(Circle())
                             .shadow(radius: 8)
                         
                         VStack(spacing: 8) {
-                            Text("🤖 Grok AI Resolution")
-                                .font(AppTheme.titleFont())
+                            Text("🤖 AI Resolution")
+                                .font(AppTheme.title())
                                 .foregroundColor(AppTheme.primary)
                             
-                            Text("AI-powered mediation analysis complete")
+                            Text(resolution.summary)
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(AppTheme.textSecondary)
                         }
                     }
                     .padding(.top)
                     
                     // Resolution content
                     VStack(alignment: .leading, spacing: 16) {
-                        Text(resolution)
-                            .font(AppTheme.bodyFont())
-                            .foregroundColor(.primary)
+                        Text(resolution.decision)
+                            .font(AppTheme.body())
+                            .foregroundColor(AppTheme.textPrimary)
                             .lineSpacing(4)
                             .multilineTextAlignment(.leading)
                     }
                     .padding()
-                    .background(AppTheme.card)
+                    .background(AppTheme.cardGradient)
                     .cornerRadius(16)
                     .shadow(radius: 4)
                     
@@ -91,7 +91,7 @@ struct ResolutionView: View {
 // MARK: - Resolution Card View for Dispute Room
 
 struct ResolutionCardView: View {
-    let resolution: String
+    let resolution: Resolution
     @State private var showFullResolution = false
     
     var body: some View {
@@ -104,19 +104,19 @@ struct ResolutionCardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("🤖 AI Resolution Complete")
                         .font(.headline)
-                        .foregroundColor(.green)
+                        .foregroundColor(AppTheme.success)
                     
-                    Text("Grok AI has analyzed both submissions")
+                    Text(resolution.summary)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppTheme.textSecondary)
                 }
                 
                 Spacer()
             }
             
-            Text(resolution.prefix(200) + (resolution.count > 200 ? "..." : ""))
-                .font(AppTheme.bodyFont())
-                .foregroundColor(.primary)
+            Text(resolution.decision.prefix(200) + (resolution.decision.count > 200 ? "..." : ""))
+                .font(AppTheme.body())
+                .foregroundColor(AppTheme.textPrimary)
                 .lineLimit(4)
                 .multilineTextAlignment(.leading)
             
@@ -124,11 +124,11 @@ struct ResolutionCardView: View {
                 showFullResolution = true
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundColor(AppTheme.primary)
             .padding(.top, 4)
         }
         .padding()
-        .background(AppTheme.card)
+        .background(AppTheme.cardGradient)
         .cornerRadius(16)
         .shadow(radius: 4)
         .padding(.horizontal)
