@@ -226,3 +226,371 @@ struct OnboardingFeatureView: View {
         }
     }
 }
+
+// MARK: - Animated Scale Introduction View
+struct AnimatedScaleIntroView: View {
+    let onContinue: () -> Void
+    @State private var scaleRotation: Double = 0
+    @State private var leftSideWeight: CGFloat = 0.3
+    @State private var rightSideWeight: CGFloat = 0.7
+    @State private var showTitle = false
+    @State private var showSubtitle = false
+    @State private var pulseScale = false
+    
+    var body: some View {
+        ZStack {
+            AppTheme.backgroundGradient
+                .ignoresSafeArea()
+            
+            VStack(spacing: AppTheme.spacingXXL) {
+                Spacer()
+                
+                // Animated Scale
+                VStack(spacing: AppTheme.spacingXL) {
+                    // Title
+                    if showTitle {
+                        Text("Disputes Are Unbalanced")
+                            .font(AppTheme.largeTitle())
+                            .fontWeight(.bold)
+                            .foregroundColor(AppTheme.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .scaleEffect(pulseScale ? 1.05 : 1.0)
+                            .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseScale)
+                    }
+                    
+                    // Scale Animation
+                    ScaleView(
+                        leftWeight: leftSideWeight,
+                        rightWeight: rightSideWeight,
+                        rotation: scaleRotation
+                    )
+                    .frame(height: 200)
+                    
+                    // Subtitle
+                    if showSubtitle {
+                        Text("Traditional legal systems favor those with more resources")
+                            .font(AppTheme.title3())
+                            .foregroundColor(AppTheme.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, AppTheme.spacingXL)
+                    }
+                }
+                
+                Spacer()
+                
+                // Continue button
+                Button(action: onContinue) {
+                    HStack {
+                        Text("See How We Balance Things")
+                            .font(AppTheme.headline())
+                            .fontWeight(.semibold)
+                        
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.title2)
+                    }
+                }
+                .accentButton()
+                .padding(.horizontal, AppTheme.spacingXL)
+                .padding(.bottom, AppTheme.spacingXXL)
+            }
+        }
+        .onAppear {
+            startAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        // Start with imbalanced scale
+        withAnimation(.easeInOut(duration: 1.0)) {
+            scaleRotation = -15
+        }
+        
+        // Show title
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeOut(duration: 0.8)) {
+                showTitle = true
+            }
+        }
+        
+        // Show subtitle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeOut(duration: 0.8)) {
+                showSubtitle = true
+            }
+        }
+        
+        // Start pulsing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            pulseScale = true
+        }
+        
+        // Animate scale imbalance
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                scaleRotation = scaleRotation == -15 ? 15 : -15
+            }
+        }
+    }
+}
+
+// MARK: - Balanced Scale View
+struct BalancedScaleView: View {
+    let onGetStarted: () -> Void
+    @State private var animateElements = false
+    @State private var scaleRotation: Double = -15
+    @State private var showFeatures = false
+    
+    var body: some View {
+        ZStack {
+            AppTheme.backgroundGradient
+                .ignoresSafeArea()
+            
+            VStack(spacing: AppTheme.spacingXXL) {
+                Spacer()
+                
+                // Balanced Scale Section
+                VStack(spacing: AppTheme.spacingXL) {
+                    // Title
+                    Text("MediationAI Brings Balance")
+                        .font(AppTheme.largeTitle())
+                        .fontWeight(.bold)
+                        .foregroundColor(AppTheme.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .scaleEffect(animateElements ? 1.0 : 0.8)
+                        .opacity(animateElements ? 1.0 : 0.0)
+                    
+                    // Balanced Scale
+                    ScaleView(
+                        leftWeight: 0.5,
+                        rightWeight: 0.5,
+                        rotation: scaleRotation
+                    )
+                    .frame(height: 200)
+                    
+                    // Subtitle
+                    Text("Fair, Fast, and Affordable Dispute Resolution")
+                        .font(AppTheme.title3())
+                        .foregroundColor(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, AppTheme.spacingXL)
+                        .scaleEffect(animateElements ? 1.0 : 0.8)
+                        .opacity(animateElements ? 1.0 : 0.0)
+                }
+                
+                // Features Section
+                if showFeatures {
+                    VStack(spacing: AppTheme.spacingLG) {
+                        ComparisonCard(
+                            icon: "dollarsign.circle.fill",
+                            title: "Traditional Lawyers",
+                            subtitle: "Thousands of dollars",
+                            vsTitle: "MediationAI",
+                            vsSubtitle: "$1 per party",
+                            color: AppTheme.success
+                        )
+                        
+                        ComparisonCard(
+                            icon: "clock.fill",
+                            title: "Court System",
+                            subtitle: "Months to years",
+                            vsTitle: "Our AI",
+                            vsSubtitle: "Minutes to hours",
+                            color: AppTheme.info
+                        )
+                        
+                        ComparisonCard(
+                            icon: "shield.checkered",
+                            title: "Biased Process",
+                            subtitle: "Favors resources",
+                            vsTitle: "Fair AI",
+                            vsSubtitle: "Unbiased analysis",
+                            color: AppTheme.accent
+                        )
+                    }
+                    .padding(.horizontal, AppTheme.spacingLG)
+                }
+                
+                Spacer()
+                
+                // Get Started Button
+                Button(action: onGetStarted) {
+                    HStack {
+                        Text("Get Started")
+                            .font(AppTheme.headline())
+                            .fontWeight(.semibold)
+                        
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.title2)
+                    }
+                }
+                .primaryButton()
+                .padding(.horizontal, AppTheme.spacingXL)
+                .padding(.bottom, AppTheme.spacingXXL)
+                .pulseEffect()
+            }
+        }
+        .onAppear {
+            startBalanceAnimation()
+        }
+    }
+    
+    private func startBalanceAnimation() {
+        // Balance the scale
+        withAnimation(.easeInOut(duration: 1.5)) {
+            scaleRotation = 0
+            animateElements = true
+        }
+        
+        // Show features after scale balances
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeOut(duration: 0.8)) {
+                showFeatures = true
+            }
+        }
+    }
+}
+
+// MARK: - Scale View Component
+struct ScaleView: View {
+    let leftWeight: CGFloat
+    let rightWeight: CGFloat
+    let rotation: Double
+    
+    var body: some View {
+        ZStack {
+            // Base/Stand
+            Rectangle()
+                .fill(AppTheme.cardGradient)
+                .frame(width: 8, height: 60)
+                .cornerRadius(4)
+            
+            // Scale beam
+            Rectangle()
+                .fill(AppTheme.glassPrimary)
+                .frame(width: 200, height: 4)
+                .cornerRadius(2)
+                .rotationEffect(.degrees(rotation))
+                .overlay(
+                    // Center pivot
+                    Circle()
+                        .fill(AppTheme.primary)
+                        .frame(width: 12, height: 12)
+                )
+            
+            // Left scale pan
+            VStack {
+                // Chain
+                Rectangle()
+                    .fill(AppTheme.textTertiary)
+                    .frame(width: 2, height: 20)
+                
+                // Pan
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(AppTheme.cardGradient)
+                    .frame(width: 60, height: 8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppTheme.textTertiary, lineWidth: 1)
+                    )
+                    .overlay(
+                        // Weight representation
+                        HStack(spacing: 2) {
+                            ForEach(0..<Int(leftWeight * 10), id: \.self) { _ in
+                                Circle()
+                                    .fill(AppTheme.error)
+                                    .frame(width: 4, height: 4)
+                            }
+                        }
+                    )
+            }
+            .offset(x: -100, y: CGFloat(rotation) * 1.5)
+            
+            // Right scale pan
+            VStack {
+                // Chain
+                Rectangle()
+                    .fill(AppTheme.textTertiary)
+                    .frame(width: 2, height: 20)
+                
+                // Pan
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(AppTheme.cardGradient)
+                    .frame(width: 60, height: 8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(AppTheme.textTertiary, lineWidth: 1)
+                    )
+                    .overlay(
+                        // Weight representation
+                        HStack(spacing: 2) {
+                            ForEach(0..<Int(rightWeight * 10), id: \.self) { _ in
+                                Circle()
+                                    .fill(AppTheme.primary)
+                                    .frame(width: 4, height: 4)
+                            }
+                        }
+                    )
+            }
+            .offset(x: 100, y: CGFloat(-rotation) * 1.5)
+        }
+    }
+}
+
+// MARK: - Comparison Card
+struct ComparisonCard: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let vsTitle: String
+    let vsSubtitle: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: AppTheme.spacingLG) {
+            // Traditional side
+            HStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(AppTheme.error)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                    
+                    Text(subtitle)
+                        .font(AppTheme.footnote())
+                        .foregroundColor(AppTheme.error)
+                        .fontWeight(.medium)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            
+            // VS
+            Text("VS")
+                .font(AppTheme.caption())
+                .foregroundColor(AppTheme.textTertiary)
+                .fontWeight(.bold)
+            
+            // Our solution side
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(color)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(vsTitle)
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                    
+                    Text(vsSubtitle)
+                        .font(AppTheme.footnote())
+                        .foregroundColor(color)
+                        .fontWeight(.medium)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .twitterStyle()
+    }
+}
