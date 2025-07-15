@@ -150,7 +150,11 @@ struct DisputeRoomView: View {
         switch dispute.status {
         case .inviteSent: return AppTheme.warning
         case .inProgress: return AppTheme.info
+        case .aiAnalyzing: return AppTheme.secondary
+        case .expertReview: return AppTheme.accent
         case .resolved: return AppTheme.success
+        case .appealed: return AppTheme.error
+        case .archived: return AppTheme.textTertiary
         }
     }
     

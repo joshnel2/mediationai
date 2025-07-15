@@ -14,7 +14,11 @@ struct DisputeCardView: View {
         switch dispute.status {
         case .inviteSent: return AppTheme.warning
         case .inProgress: return AppTheme.info
+        case .aiAnalyzing: return AppTheme.secondary
+        case .expertReview: return AppTheme.accent
         case .resolved: return AppTheme.success
+        case .appealed: return AppTheme.error
+        case .archived: return AppTheme.textTertiary
         }
     }
     
@@ -22,7 +26,11 @@ struct DisputeCardView: View {
         switch dispute.status {
         case .inviteSent: return "paperplane.fill"
         case .inProgress: return "clock.fill"
+        case .aiAnalyzing: return "brain.head.profile"
+        case .expertReview: return "person.badge.shield.checkmark"
         case .resolved: return "checkmark.seal.fill"
+        case .appealed: return "exclamationmark.triangle.fill"
+        case .archived: return "archivebox.fill"
         }
     }
     
