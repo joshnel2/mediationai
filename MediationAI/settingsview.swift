@@ -17,131 +17,172 @@ struct SettingsView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                // Profile Section
-                Section {
-                    HStack(spacing: 16) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(AppTheme.primary)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(authService.currentUser?.email ?? "User")
-                                .font(.headline)
-                                .foregroundColor(.primary)
+            ScrollView {
+                VStack(spacing: AppTheme.spacingXL) {
+                    // Profile Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        HStack(spacing: 16) {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(AppTheme.primary)
                             
-                            Text("MediationAI Member")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(authService.currentUser?.email ?? "User")
+                                    .font(.headline)
+                                    .foregroundColor(AppTheme.textPrimary)
+                                
+                                Text("MediationAI Member")
+                                    .font(.caption)
+                                    .foregroundColor(AppTheme.textSecondary)
+                            }
+                            
+                            Spacer()
                         }
-                        
-                        Spacer()
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
-                }
-                
-                // Support Section
-                Section("Support") {
-                    SettingsRow(
-                        icon: "questionmark.circle",
-                        title: "Help & Support",
-                        subtitle: "Get help with your account",
-                        action: { showSupport = true }
-                    )
+                    .modernCard()
                     
-                    SettingsRow(
-                        icon: "envelope",
-                        title: "Contact Us",
-                        subtitle: "support@mediationai.app",
-                        action: { openEmail() }
-                    )
+                    // Support Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Support")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                icon: "questionmark.circle",
+                                title: "Help & Support",
+                                subtitle: "Get help with your account",
+                                action: { showSupport = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "envelope",
+                                title: "Contact Us",
+                                subtitle: "support@mediationai.app",
+                                action: { openEmail() }
+                            )
+                            
+                            SettingsRow(
+                                icon: "star",
+                                title: "Rate the App",
+                                subtitle: "Share your experience",
+                                action: { rateApp() }
+                            )
+                        }
+                        .modernCard()
+                    }
                     
-                    SettingsRow(
-                        icon: "star",
-                        title: "Rate the App",
-                        subtitle: "Share your experience",
-                        action: { rateApp() }
-                    )
-                }
-                
-                // Legal Section
-                Section("Legal") {
-                    SettingsRow(
-                        icon: "shield.checkerboard",
-                        title: "Privacy Policy",
-                        subtitle: "How we protect your data",
-                        action: { showPrivacyPolicy = true }
-                    )
+                    // Legal Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Legal")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                icon: "shield.checkerboard",
+                                title: "Privacy Policy",
+                                subtitle: "How we protect your data",
+                                action: { showPrivacyPolicy = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "doc.text",
+                                title: "Terms of Service",
+                                subtitle: "Service agreement",
+                                action: { showTermsOfService = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "scale.3d",
+                                title: "Legal Disclaimer",
+                                subtitle: "AI mediation limitations",
+                                action: { showLegalDisclaimer() }
+                            )
+                        }
+                        .modernCard()
+                    }
                     
-                    SettingsRow(
-                        icon: "doc.text",
-                        title: "Terms of Service",
-                        subtitle: "Service agreement",
-                        action: { showTermsOfService = true }
-                    )
+                    // App Information
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("App Information")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                icon: "info.circle",
+                                title: "Version",
+                                subtitle: "1.0.0 (Build 1)",
+                                action: { }
+                            )
+                            
+                            SettingsRow(
+                                icon: "globe",
+                                title: "Website",
+                                subtitle: "mediationai.app",
+                                action: { openWebsite() }
+                            )
+                            
+                            SettingsRow(
+                                icon: "hand.raised",
+                                title: "Acknowledgments",
+                                subtitle: "Open source libraries",
+                                action: { showAcknowledgments() }
+                            )
+                        }
+                        .modernCard()
+                    }
                     
-                    SettingsRow(
-                        icon: "scale.3d",
-                        title: "Legal Disclaimer",
-                        subtitle: "AI mediation limitations",
-                        action: { showLegalDisclaimer() }
-                    )
-                }
-                
-                // App Information
-                Section("App Information") {
-                    SettingsRow(
-                        icon: "info.circle",
-                        title: "Version",
-                        subtitle: "1.0.0 (Build 1)",
-                        action: { }
-                    )
+                    // Account Actions
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Account")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                icon: "icloud.and.arrow.up",
+                                title: "Export Data",
+                                subtitle: "Download your dispute history",
+                                action: { exportData() }
+                            )
+                            
+                            SettingsRow(
+                                icon: "trash",
+                                title: "Delete Account",
+                                subtitle: "Permanently remove your account",
+                                destructive: true,
+                                action: { showDeleteAccountAlert = true }
+                            )
+                        }
+                        .modernCard()
+                    }
                     
-                    SettingsRow(
-                        icon: "globe",
-                        title: "Website",
-                        subtitle: "mediationai.app",
-                        action: { openWebsite() }
-                    )
-                    
-                    SettingsRow(
-                        icon: "hand.raised",
-                        title: "Acknowledgments",
-                        subtitle: "Open source libraries",
-                        action: { showAcknowledgments() }
-                    )
-                }
-                
-                // Account Actions
-                Section("Account") {
-                    SettingsRow(
-                        icon: "icloud.and.arrow.up",
-                        title: "Export Data",
-                        subtitle: "Download your dispute history",
-                        action: { exportData() }
-                    )
-                    
-                    SettingsRow(
-                        icon: "trash",
-                        title: "Delete Account",
-                        subtitle: "Permanently remove your account",
-                        destructive: true,
-                        action: { showDeleteAccountAlert = true }
-                    )
-                }
-                
-                // Sign Out
-                Section {
+                    // Sign Out
                     Button(action: signOut) {
                         HStack {
                             Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.error)
                             Text("Sign Out")
-                                .foregroundColor(.red)
+                                .foregroundColor(AppTheme.error)
+                                .font(AppTheme.headline())
+                                .fontWeight(.semibold)
                         }
                     }
+                    .secondaryButton()
+                    
+                    Spacer(minLength: AppTheme.spacingXXL)
                 }
+                .padding(AppTheme.spacingLG)
             }
+            .background(AppTheme.backgroundGradient.ignoresSafeArea())
+        }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
