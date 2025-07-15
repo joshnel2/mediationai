@@ -11,22 +11,24 @@ import SwiftUI
 struct User: Identifiable, Codable {
     let id: UUID
     let email: String
+    let password: String
     var profile: UserProfile
     var reputation: ReputationScore
     var verification: VerificationStatus
-    var subscription: SubscriptionTier
     var stats: UserStats
     var preferences: UserPreferences
+    var hasUsedFreeDispute: Bool = false
     
-    init(id: UUID = UUID(), email: String) {
+    init(id: UUID = UUID(), email: String, password: String = "") {
         self.id = id
         self.email = email
+        self.password = password
         self.profile = UserProfile()
         self.reputation = ReputationScore()
         self.verification = VerificationStatus()
-        self.subscription = .basic
         self.stats = UserStats()
         self.preferences = UserPreferences()
+        self.hasUsedFreeDispute = false
     }
 }
 
@@ -122,43 +124,8 @@ enum VerificationLevel: String, Codable {
     case premium = "Premium"
 }
 
-enum SubscriptionTier: String, Codable, CaseIterable {
-    case basic = "Basic"
-    case premium = "Premium"
-    case expert = "Expert"
-    case enterprise = "Enterprise"
-    
-    var monthlyPrice: Double {
-        switch self {
-        case .basic: return 0.0
-        case .premium: return 9.99
-        case .expert: return 29.99
-        case .enterprise: return 99.99
-        }
-    }
-    
-    var features: [String] {
-        switch self {
-        case .basic:
-            return ["$1 per dispute", "Basic AI resolution", "24-48hr response time"]
-        case .premium:
-            return ["Unlimited disputes", "Advanced AI models", "Priority processing", "Evidence analysis", "6-12hr response time"]
-        case .expert:
-            return ["All Premium features", "Human expert backup", "Legal precedent analysis", "2-4hr response time", "Dispute coaching"]
-        case .enterprise:
-            return ["All Expert features", "Custom integrations", "Dedicated support", "1hr response time", "Legal document generation"]
-        }
-    }
-    
-    var maxDisputeValue: Double {
-        switch self {
-        case .basic: return 500
-        case .premium: return 5000
-        case .expert: return 50000
-        case .enterprise: return 500000
-        }
-    }
-}
+// Removed subscription tiers - now using simple $1 per party per dispute model
+// First dispute is free for all users
 
 struct UserStats: Codable {
     var totalDisputes: Int = 0

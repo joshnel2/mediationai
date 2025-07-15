@@ -8,49 +8,52 @@
 import SwiftUI
 
 struct AppTheme {
-    // MARK: - Colors (Twitter/Grok Professional Theme)
+    // MARK: - Colors (Professional Modern Theme with Wow Factor)
     
-    // Primary brand colors - Professional blue like Twitter/Grok
-    static let primary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
-    static let secondary = Color(red: 0.05, green: 0.46, blue: 0.86) // Darker blue
-    static let accent = Color(red: 0.20, green: 0.70, blue: 1.0) // Bright blue accent
+    // Primary brand colors - Modern purple/blue gradient like premium apps
+    static let primary = Color(red: 0.45, green: 0.30, blue: 0.95) // Deep purple #7248F2
+    static let secondary = Color(red: 0.25, green: 0.50, blue: 0.95) // Electric blue #4080F2
+    static let accent = Color(red: 0.95, green: 0.30, blue: 0.60) // Vibrant pink accent #F24D99
     
-    // Background colors - True blacks and whites
-    static let background = Color(red: 0.0, green: 0.0, blue: 0.0) // Pure black
-    static let surfaceBackground = Color(red: 0.05, green: 0.05, blue: 0.05) // Very dark gray
-    static let cardBackground = Color(red: 0.08, green: 0.08, blue: 0.08) // Dark card background
+    // Background colors - Deep sophisticated gradients
+    static let background = Color(red: 0.05, green: 0.05, blue: 0.12) // Deep navy #0D0D1E
+    static let surfaceBackground = Color(red: 0.08, green: 0.08, blue: 0.16) // Slightly lighter navy
+    static let cardBackground = Color(red: 0.12, green: 0.12, blue: 0.20) // Card background
     
-    // Glass-morphism backgrounds
-    static let glassPrimary = Color.white.opacity(0.08)
-    static let glassSecondary = Color.white.opacity(0.04)
+    // Glass-morphism backgrounds with subtle color tints
+    static let glassPrimary = Color.white.opacity(0.12)
+    static let glassSecondary = Color.white.opacity(0.06)
+    static let glassAccent = Color(red: 0.45, green: 0.30, blue: 0.95).opacity(0.08)
     
-    // Text colors
+    // Text colors - High contrast for readability
     static let textPrimary = Color.white
-    static let textSecondary = Color.white.opacity(0.75)
-    static let textTertiary = Color.white.opacity(0.55)
+    static let textSecondary = Color.white.opacity(0.80)
+    static let textTertiary = Color.white.opacity(0.60)
     
-    // Status colors - Professional and minimal
-    static let success = Color(red: 0.0, green: 0.78, blue: 0.0) // Clean green
-    static let warning = Color(red: 0.95, green: 0.95, blue: 0.95) // White for warnings
-    static let error = Color(red: 0.95, green: 0.24, blue: 0.24) // Clean red
-    static let info = Color(red: 0.11, green: 0.63, blue: 0.95) // Same as primary blue
+    // Status colors - Modern and vibrant
+    static let success = Color(red: 0.0, green: 0.85, blue: 0.40) // Vibrant green #00D966
+    static let warning = Color(red: 1.0, green: 0.70, blue: 0.0) // Warm orange #FFB300
+    static let error = Color(red: 1.0, green: 0.25, blue: 0.25) // Bright red #FF4040
+    static let info = Color(red: 0.0, green: 0.75, blue: 1.0) // Bright blue #00BFFF
     
-    // MARK: - Gradients
+    // MARK: - Gradients (Enhanced for Wow Factor)
     
     static let mainGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.11, green: 0.63, blue: 0.95), // Twitter Blue
-            Color(red: 0.05, green: 0.46, blue: 0.86)  // Darker Blue
+            Color(red: 0.45, green: 0.30, blue: 0.95), // Deep purple
+            Color(red: 0.25, green: 0.50, blue: 0.95), // Electric blue
+            Color(red: 0.95, green: 0.30, blue: 0.60)  // Vibrant pink
         ]),
-        startPoint: .leading,
-        endPoint: .trailing
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
     
     static let backgroundGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.black,
-            Color(red: 0.02, green: 0.02, blue: 0.02),
-            Color.black
+            Color(red: 0.05, green: 0.05, blue: 0.12), // Deep navy
+            Color(red: 0.08, green: 0.08, blue: 0.16), // Slightly lighter
+            Color(red: 0.12, green: 0.12, blue: 0.20), // Card background
+            Color(red: 0.05, green: 0.05, blue: 0.12)  // Back to deep navy
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -58,8 +61,9 @@ struct AppTheme {
     
     static let cardGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white.opacity(0.08),
-            Color.white.opacity(0.04)
+            Color.white.opacity(0.12),
+            Color.white.opacity(0.06),
+            Color(red: 0.45, green: 0.30, blue: 0.95).opacity(0.08)
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -67,8 +71,8 @@ struct AppTheme {
     
     static let successGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.0, green: 0.78, blue: 0.0),
-            Color(red: 0.0, green: 0.65, blue: 0.0)
+            Color(red: 0.0, green: 0.85, blue: 0.40),
+            Color(red: 0.0, green: 0.95, blue: 0.50)
         ]),
         startPoint: .leading,
         endPoint: .trailing
@@ -76,8 +80,17 @@ struct AppTheme {
     
     static let warningGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white,
-            Color.white.opacity(0.9)
+            Color(red: 1.0, green: 0.70, blue: 0.0),
+            Color(red: 1.0, green: 0.80, blue: 0.2)
+        ]),
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+    
+    static let accentGradient = LinearGradient(
+        gradient: Gradient(colors: [
+            Color(red: 0.95, green: 0.30, blue: 0.60),
+            Color(red: 0.95, green: 0.50, blue: 0.70)
         ]),
         startPoint: .leading,
         endPoint: .trailing
