@@ -256,6 +256,10 @@ struct Dispute: Identifiable, Codable {
         return satisfactionRatings.map { $0.rating }.reduce(0, +) / Double(satisfactionRatings.count)
     }
     
+    var shareCode: String {
+        return String(id.uuidString.prefix(6).uppercased())
+    }
+    
     init(id: UUID = UUID(), title: String, description: String, category: DisputeCategory = .other, disputeValue: Double = 100, user: User) {
         self.id = id
         self.title = title

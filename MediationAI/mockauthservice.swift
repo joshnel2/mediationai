@@ -54,17 +54,7 @@ class MockDisputeService: ObservableObject {
             id: disputeId,
             title: title,
             description: description,
-            partyA: user,
-            partyB: nil,
-            truths: [],
-            isResolved: false,
-            resolution: nil,
-            shareCode: String(shareCode),
-            shareLink: shareLink,
-            status: .inviteSent,
-            creatorPaid: true, // Assuming payment was successful
-            joinerPaid: false,
-            createdAt: Date()
+            user: user
         )
         disputes.append(dispute)
         return dispute
@@ -109,18 +99,28 @@ class MockDisputeService: ObservableObject {
     private func triggerAIResolution(for dispute: Dispute) {
         guard let index = disputes.firstIndex(where: { $0.id == dispute.id }) else { return }
         
-        MockGrokAPI().resolveDispute(truths: dispute.truths) { [weak self] resolution in
+        MockGrokAPI().resolveDispute(truths: dispute.truths) { [weak self] resolutionText in
             guard let self = self else { return }
-            self.disputes[index].isResolved = true
+            let resolution = Resolution(
+                summary: "AI Analysis Complete",
+                decision: resolutionText,
+                reasoning: "Based on submitted evidence and AI analysis"
+            )
             self.disputes[index].resolution = resolution
+            self.disputes[index].resolvedAt = Date()
             self.disputes[index].status = .resolved
         }
     }
     
-    func resolveDispute(_ dispute: Dispute, resolution: String) {
+    func resolveDispute(_ dispute: Dispute, resolutionText: String) {
         guard let index = disputes.firstIndex(where: { $0.id == dispute.id }) else { return }
-        disputes[index].isResolved = true
+        let resolution = Resolution(
+            summary: "Manual Resolution",
+            decision: resolutionText,
+            reasoning: "Resolution provided by mediator"
+        )
         disputes[index].resolution = resolution
+        disputes[index].resolvedAt = Date()
         disputes[index].status = .resolved
     }
     
