@@ -129,30 +129,67 @@ struct CreateDisputeView: View {
     
     private var pricingCard: some View {
         VStack(spacing: AppTheme.spacingLG) {
-            HStack {
-                VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                    Text("💰 Creation Fee")
-                        .font(AppTheme.headline())
-                        .foregroundColor(AppTheme.textPrimary)
-                        .fontWeight(.semibold)
+            if authService.currentUser?.hasUsedFreeDispute == false {
+                // First dispute free banner
+                HStack {
+                    Image(systemName: "gift.fill")
+                        .font(.title2)
+                        .foregroundColor(AppTheme.accent)
                     
-                    Text("One-time payment to create and share your dispute")
-                        .font(AppTheme.caption())
-                        .foregroundColor(AppTheme.textSecondary)
+                    VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                        Text("🎉 Your First Dispute is FREE!")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.accent)
+                            .fontWeight(.bold)
+                        
+                        Text("Start your first dispute at no cost. Future disputes are just $1 per party when truth is created.")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
-                
-                Text("$1.00")
-                    .font(AppTheme.title())
-                    .foregroundColor(AppTheme.success)
-                    .fontWeight(.bold)
+                .padding(AppTheme.spacingLG)
+                .background(AppTheme.accentGradient.opacity(0.1))
+                .cornerRadius(AppTheme.radiusLG)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                        .stroke(AppTheme.accent.opacity(0.3), lineWidth: 1)
+                )
+            } else {
+                // Regular pricing
+                HStack {
+                    VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                        Text("💰 Simple Pricing")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        Text("$1 per party when truth is created - pay only for results")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: AppTheme.spacingSM) {
+                        Text("$1.00")
+                            .font(AppTheme.title())
+                            .foregroundColor(AppTheme.success)
+                            .fontWeight(.bold)
+                        
+                        Text("per party")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                }
             }
             
             HStack(spacing: AppTheme.spacingMD) {
                 FeatureBadge(icon: "checkmark.circle.fill", text: "Instant sharing")
                 FeatureBadge(icon: "shield.checkered", text: "Secure payment")
                 FeatureBadge(icon: "brain.head.profile", text: "AI mediation")
+                FeatureBadge(icon: "clock.fill", text: "Fast resolution")
             }
         }
         .padding(AppTheme.spacingLG)
@@ -246,7 +283,7 @@ struct CreateDisputeView: View {
                             .font(.title3)
                     }
                     
-                    Text(isProcessingPayment ? "Processing Payment..." : "Pay $1 & Create Dispute")
+                    Text(isProcessingPayment ? "Processing..." : (authService.currentUser?.hasUsedFreeDispute == false ? "Create Your FREE Dispute" : "Pay $1 & Create Dispute"))
                         .font(AppTheme.headline())
                         .fontWeight(.semibold)
                 }
@@ -298,7 +335,7 @@ struct CreateDisputeView: View {
     
     private func handleCreateWithPayment() {
         error = nil
-        guard let user = authService.currentUser else { return }
+        guard var user = authService.currentUser else { return }
         
         if title.isEmpty || description.isEmpty {
             error = "Please fill in all fields."
@@ -308,8 +345,18 @@ struct CreateDisputeView: View {
         isProcessingPayment = true
         
         Task {
-            // Use mock purchase for development
-            let paymentSuccess = await purchaseService.mockPurchase()
+            var paymentSuccess = false
+            
+            // Check if this is the user's first dispute (free)
+            if !user.hasUsedFreeDispute {
+                // First dispute is free
+                paymentSuccess = true
+                user.hasUsedFreeDispute = true
+                authService.updateUser(user)
+            } else {
+                // Regular payment processing
+                paymentSuccess = await purchaseService.mockPurchase()
+            }
             
             await MainActor.run {
                 isProcessingPayment = false

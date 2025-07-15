@@ -31,6 +31,13 @@ class MockAuthService: ObservableObject {
     func signOut() {
         currentUser = nil
     }
+    
+    func updateUser(_ user: User) {
+        currentUser = user
+        if let index = users.firstIndex(where: { $0.id == user.id }) {
+            users[index] = user
+        }
+    }
 }
 
 // MARK: - Mock Dispute Service
