@@ -379,19 +379,27 @@ struct SentimentScore: Codable {
     let confidence: Double
 }
 
+enum FileType: String, Codable, CaseIterable {
+    case image = "image"
+    case document = "document"
+    case audio = "audio"
+    case video = "video"
+    case other = "other"
+}
+
 struct Attachment: Identifiable, Codable {
     let id: UUID
-    let name: String
-    let type: String
+    let fileName: String
+    let fileData: Data
+    let fileType: FileType
     let size: Int64
-    let url: String?
     
-    init(id: UUID = UUID(), name: String, type: String, size: Int64 = 0, url: String? = nil) {
+    init(id: UUID = UUID(), fileName: String, fileData: Data, fileType: FileType, size: Int64 = 0) {
         self.id = id
-        self.name = name
-        self.type = type
-        self.size = size
-        self.url = url
+        self.fileName = fileName
+        self.fileData = fileData
+        self.fileType = fileType
+        self.size = size > 0 ? size : Int64(fileData.count)
     }
 }
 
