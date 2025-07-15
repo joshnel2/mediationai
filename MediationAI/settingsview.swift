@@ -183,30 +183,29 @@ struct SettingsView: View {
             }
             .background(AppTheme.backgroundGradient.ignoresSafeArea())
         }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") { dismiss() }
             }
-            .sheet(isPresented: $showPrivacyPolicy) {
-                PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showTermsOfService) {
+            TermsOfServiceView()
+        }
+        .sheet(isPresented: $showSupport) {
+            SupportView()
+        }
+        .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deleteAccount()
             }
-            .sheet(isPresented: $showTermsOfService) {
-                TermsOfServiceView()
-            }
-            .sheet(isPresented: $showSupport) {
-                SupportView()
-            }
-            .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    deleteAccount()
-                }
-            } message: {
-                Text("This will permanently delete your account and all associated data. This action cannot be undone.")
-            }
+        } message: {
+            Text("This will permanently delete your account and all associated data. This action cannot be undone.")
         }
     }
     
