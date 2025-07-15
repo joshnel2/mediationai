@@ -192,17 +192,17 @@ struct HomeView: View {
                     .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 
-                Button(action: { showSubscription = true }) {
+                Button(action: { showCommunity = true }) {
                     HStack {
-                        Image(systemName: "crown.fill")
+                        Image(systemName: "person.3.fill")
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Subscription")
+                            Text("Community")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                            Text("Unlock premium features")
+                            Text("Connect with users")
                                 .font(AppTheme.caption())
                                 .opacity(0.8)
                         }
@@ -221,7 +221,7 @@ struct HomeView: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(AppTheme.info)
                 
-                Text("$1 to create • $1 to join • AI-powered resolution")
+                Text("First dispute FREE • $1 per party when truth is created • AI-powered resolution")
                     .font(AppTheme.caption())
                     .foregroundColor(AppTheme.textTertiary)
                 

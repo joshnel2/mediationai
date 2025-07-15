@@ -331,15 +331,29 @@ struct DisputeRoomView: View {
                     
                     Spacer()
                     
-                    Button("Submit Truth", action: handleSend)
-                        .font(AppTheme.headline())
-                        .fontWeight(.semibold)
+                    Button(action: handleSend) {
+                        HStack {
+                            if authService.currentUser?.hasUsedFreeDispute == true && !hasUserPaidForThisDispute() {
+                                Image(systemName: "creditcard.fill")
+                                    .font(.headline)
+                                Text("Pay $1 & Submit Truth")
+                                    .font(AppTheme.headline())
+                                    .fontWeight(.semibold)
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.headline)
+                                Text("Submit Truth")
+                                    .font(AppTheme.headline())
+                                    .fontWeight(.semibold)
+                            }
+                        }
                         .foregroundColor(.white)
                         .padding(.horizontal, AppTheme.spacingLG)
                         .padding(.vertical, AppTheme.spacingMD)
                         .background(AppTheme.mainGradient)
                         .cornerRadius(AppTheme.radiusLG)
                         .shadow(color: AppTheme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
                 }
                 
                 if let error = error {
@@ -395,6 +409,41 @@ struct DisputeRoomView: View {
             error = "Please enter your truth."
             return
         }
+        
+        // Check if user needs to pay for truth submission
+        let needsPayment = user.hasUsedFreeDispute && !hasUserPaidForThisDispute()
+        
+        if needsPayment {
+            // Show payment required
+            processTruthPayment { success in
+                if success {
+                    submitTruth()
+                } else {
+                    error = "Payment failed. Please try again."
+                }
+            }
+        } else {
+            submitTruth()
+        }
+    }
+    
+    private func hasUserPaidForThisDispute() -> Bool {
+        // Check if user has already paid for this dispute
+        // For now, we'll assume they pay once per dispute participation
+        return dispute.creatorPaid && dispute.partyA?.id == authService.currentUser?.id ||
+               dispute.joinerPaid && dispute.partyB?.id == authService.currentUser?.id
+    }
+    
+    private func processTruthPayment(completion: @escaping (Bool) -> Void) {
+        // In a real app, this would process the $1 payment
+        // For demo purposes, we'll simulate success
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            completion(true)
+        }
+    }
+    
+    private func submitTruth() {
+        guard let user = authService.currentUser else { return }
         
         let truth = Truth(
             id: UUID(),
