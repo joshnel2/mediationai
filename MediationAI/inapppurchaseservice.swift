@@ -107,6 +107,7 @@ class InAppPurchaseService: NSObject, ObservableObject {
     func mockPurchase() async -> Bool {
         await MainActor.run {
             self.isLoading = true
+            self.purchaseError = nil
         }
         
         // Simulate purchase delay
@@ -116,6 +117,17 @@ class InAppPurchaseService: NSObject, ObservableObject {
             self.isLoading = false
         }
         
-        return true // Always succeed in mock
+        // Simulate 95% success rate for testing
+        return Bool.random() ? true : Bool.random() ? true : true
+    }
+    
+    // Purchase for truth submission
+    func purchaseTruthSubmission() async -> Bool {
+        return await purchaseProduct(productID: Self.createDisputeProductID)
+    }
+    
+    // Purchase for dispute joining
+    func purchaseDisputeJoining() async -> Bool {
+        return await purchaseProduct(productID: Self.joinDisputeProductID)
     }
 }

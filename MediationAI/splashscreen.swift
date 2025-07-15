@@ -85,18 +85,56 @@ struct SplashScreen: View {
                                     .stroke(Color.white.opacity(0.3), lineWidth: 2)
                             )
                         
-                        // Scale/Balance icon
-                        Image(systemName: "balance.scale")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 60, height: 60)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.8)]),
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                        // Enhanced Balance Scale icon with animation
+                        ZStack {
+                            // Scale beam
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.8)]),
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
+                                .frame(width: 50, height: 3)
+                                .cornerRadius(2)
+                                .rotationEffect(.degrees(logoScale > 0.9 ? 0 : 15))
+                                .animation(.easeInOut(duration: 1.5), value: logoScale)
+                            
+                            // Scale pans
+                            HStack(spacing: 50) {
+                                // Left pan
+                                Circle()
+                                    .fill(AppTheme.cardGradient)
+                                    .frame(width: 15, height: 15)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                                    )
+                                    .offset(y: logoScale > 0.9 ? 0 : -5)
+                                    .animation(.easeInOut(duration: 1.5), value: logoScale)
+                                
+                                // Right pan
+                                Circle()
+                                    .fill(AppTheme.cardGradient)
+                                    .frame(width: 15, height: 15)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                                    )
+                                    .offset(y: logoScale > 0.9 ? 0 : 5)
+                                    .animation(.easeInOut(duration: 1.5), value: logoScale)
+                            }
+                            
+                            // Center pivot
+                            Circle()
+                                .fill(AppTheme.primary)
+                                .frame(width: 8, height: 8)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: 1)
+                                )
+                        }
                     }
                     .scaleEffect(logoScale)
                     .opacity(logoOpacity)
@@ -119,37 +157,43 @@ struct SplashScreen: View {
                 // Enhanced Marketing Message
                 VStack(spacing: 20) {
                     VStack(spacing: 12) {
-                        Text("Skip Arguments and Legal Fees")
-                            .font(.system(size: 26, weight: .bold))
+                        Text("Fair Dispute Resolution")
+                            .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                             .opacity(textOpacity)
                         
-                        Text("with our Non-Bias AI")
-                            .font(.system(size: 22, weight: .medium))
+                        Text("Skip expensive lawyers • Get unbiased AI mediation")
+                            .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(
                                 LinearGradient(
-                                    gradient: Gradient(colors: [Color.white, Color.blue.opacity(0.8)]),
+                                    gradient: Gradient(colors: [Color.white.opacity(0.9), AppTheme.accent]),
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
                             .multilineTextAlignment(.center)
                             .opacity(textOpacity)
+                        
+                        Text("$1 per party • First dispute FREE")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.success)
+                            .multilineTextAlignment(.center)
+                            .opacity(textOpacity)
                     }
                     
-                    // Enhanced Coming Soon Badge
+                    // Enhanced Features Badge
                     HStack(spacing: 10) {
-                        Image(systemName: "sparkles")
-                            .foregroundColor(.yellow)
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundColor(AppTheme.success)
                             .font(.system(size: 16, weight: .medium))
                         
-                        Text("Escrow Coming Soon")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(.yellow)
+                        Text("Secure • Fast • Affordable")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(AppTheme.success)
                         
-                        Image(systemName: "sparkles")
-                            .foregroundColor(.yellow)
+                        Image(systemName: "shield.checkered")
+                            .foregroundColor(AppTheme.info)
                             .font(.system(size: 16, weight: .medium))
                     }
                     .padding(.horizontal, 20)
@@ -159,8 +203,8 @@ struct SplashScreen: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color.yellow.opacity(0.25),
-                                        Color.orange.opacity(0.15)
+                                        AppTheme.success.opacity(0.15),
+                                        AppTheme.info.opacity(0.15)
                                     ]),
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -170,7 +214,7 @@ struct SplashScreen: View {
                                 Capsule()
                                     .stroke(
                                         LinearGradient(
-                                            gradient: Gradient(colors: [Color.yellow, Color.orange]),
+                                            gradient: Gradient(colors: [AppTheme.success, AppTheme.info]),
                                             startPoint: .leading,
                                             endPoint: .trailing
                                         ),
@@ -180,7 +224,7 @@ struct SplashScreen: View {
                     )
                     .scaleEffect(badgeScale)
                     .opacity(textOpacity)
-                    .shadow(color: Color.yellow.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: AppTheme.success.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .padding(.horizontal, 32)
                 

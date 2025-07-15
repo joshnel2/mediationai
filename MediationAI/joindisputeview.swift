@@ -31,18 +31,34 @@ struct JoinDisputeView: View {
                     .font(AppTheme.titleFont())
                     .foregroundColor(AppTheme.primary)
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("💰 Cost: $1.00")
-                        .font(.headline)
-                        .foregroundColor(AppTheme.primary)
-                    Text("One-time payment to join and participate in the dispute")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                    if authService.currentUser?.hasUsedFreeDispute == false {
+                        HStack {
+                            Image(systemName: "gift.fill")
+                                .foregroundColor(AppTheme.accent)
+                            Text("🎉 Join for FREE!")
+                                .font(AppTheme.headline())
+                                .foregroundColor(AppTheme.accent)
+                                .fontWeight(.bold)
+                        }
+                        Text("This is your first dispute - join at no cost!")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    } else {
+                        HStack {
+                            Image(systemName: "dollarsign.circle.fill")
+                                .foregroundColor(AppTheme.success)
+                            Text("💰 Simple Pricing")
+                                .font(AppTheme.headline())
+                                .foregroundColor(AppTheme.textPrimary)
+                                .fontWeight(.semibold)
+                        }
+                        Text("$1 when you submit your truth - pay only for results")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
                 }
-                .padding()
-                .background(AppTheme.card)
-                .cornerRadius(12)
-                .shadow(radius: 2)
+                .modernCard()
                 
                 // Input type selector
                 Picker("Input Type", selection: $selectedInputType) {
@@ -98,16 +114,24 @@ struct JoinDisputeView: View {
                             ProgressView()
                                 .scaleEffect(0.8)
                                 .foregroundColor(.white)
+                        } else {
+                            if authService.currentUser?.hasUsedFreeDispute == false {
+                                Image(systemName: "gift.fill")
+                                    .font(.headline)
+                                Text("Join FREE Dispute")
+                                    .font(AppTheme.headline())
+                                    .fontWeight(.semibold)
+                            } else {
+                                Image(systemName: "link.circle.fill")
+                                    .font(.headline)
+                                Text("Join Dispute")
+                                    .font(AppTheme.headline())
+                                    .fontWeight(.semibold)
+                            }
                         }
-                        Text(isProcessingPayment ? "Processing Payment..." : "Pay $1 & Join Dispute")
-                            .font(AppTheme.buttonFont())
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(AppTheme.mainGradient)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
                 }
+                .primaryButton()
                 .disabled(isProcessingPayment || purchaseService.isLoading)
                 
                 // Payment compliance notice
@@ -149,7 +173,7 @@ struct JoinDisputeView: View {
     
     func handleJoinWithPayment() {
         error = nil
-        guard let user = authService.currentUser else { return }
+        guard var user = authService.currentUser else { return }
         if linkOrCode.isEmpty {
             error = "Please enter a \(selectedInputType.rawValue.lowercased())."
             return
@@ -158,8 +182,18 @@ struct JoinDisputeView: View {
         isProcessingPayment = true
         
         Task {
-            // Use mock purchase for development
-            let paymentSuccess = await purchaseService.mockPurchase()
+            var paymentSuccess = false
+            
+            // Check if this is the user's first dispute (free)
+            if !user.hasUsedFreeDispute {
+                // First dispute is free - mark as used
+                paymentSuccess = true
+                user.hasUsedFreeDispute = true
+                authService.updateUser(user)
+            } else {
+                // Regular payment processing - will be handled when truth is submitted
+                paymentSuccess = true
+            }
             
             await MainActor.run {
                 isProcessingPayment = false
@@ -180,7 +214,7 @@ struct JoinDisputeView: View {
                         error = "Invalid or expired \(selectedInputType.rawValue.lowercased())."
                     }
                 } else {
-                    error = "Payment failed. Please try again."
+                    error = "Failed to join dispute. Please try again."
                 }
             }
         }
