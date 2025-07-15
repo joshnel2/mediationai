@@ -217,10 +217,14 @@ extension View {
             .font(AppTheme.headline())
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, AppTheme.spacingMD)
+            .padding(.vertical, AppTheme.spacingLG)
             .background(AppTheme.mainGradient)
             .cornerRadius(AppTheme.radiusLG)
-            .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
+            .shadow(color: AppTheme.primary.opacity(0.4), radius: 12, x: 0, y: 6)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
     }
     
     func secondaryButton() -> some View {
@@ -228,28 +232,96 @@ extension View {
             .font(AppTheme.headline())
             .foregroundColor(AppTheme.textPrimary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, AppTheme.spacingMD)
+            .padding(.vertical, AppTheme.spacingLG)
             .background(AppTheme.cardGradient)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.radiusLG)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .cornerRadius(AppTheme.radiusLG)
+            .shadow(color: AppTheme.shadowMD, radius: 6, x: 0, y: 3)
+    }
+    
+    func accentButton() -> some View {
+        self
+            .font(AppTheme.headline())
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, AppTheme.spacingLG)
+            .background(AppTheme.accentGradient)
+            .cornerRadius(AppTheme.radiusLG)
+            .shadow(color: AppTheme.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
     }
     
     func modernTextField() -> some View {
         self
             .font(AppTheme.body())
             .foregroundColor(AppTheme.textPrimary)
-            .padding(.vertical, AppTheme.spacingMD)
+            .padding(.vertical, AppTheme.spacingLG)
             .padding(.horizontal, AppTheme.spacingLG)
             .background(
                 RoundedRectangle(cornerRadius: AppTheme.radiusLG)
                     .fill(AppTheme.glassPrimary)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+            )
+            .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
+    }
+    
+    func heroCard() -> some View {
+        self
+            .padding(AppTheme.spacingXL)
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.radiusXL)
+                    .fill(AppTheme.cardGradient)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.radiusXL)
                             .stroke(Color.white.opacity(0.15), lineWidth: 1)
                     )
             )
+            .shadow(color: AppTheme.shadowLG, radius: 16, x: 0, y: 8)
+    }
+    
+    func pulseEffect() -> some View {
+        self
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                    .stroke(AppTheme.accent.opacity(0.3), lineWidth: 2)
+                    .scaleEffect(1.1)
+                    .opacity(0.7)
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: UUID())
+            )
+    }
+    
+    func modernCard() -> some View {
+        self
+            .padding(AppTheme.spacingLG)
+            .background(AppTheme.cardGradient)
+            .cornerRadius(AppTheme.radiusLG)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: AppTheme.shadowMD, radius: 8, x: 0, y: 4)
+    }
+    
+    func twitterStyle() -> some View {
+        self
+            .padding(AppTheme.spacingLG)
+            .background(
+                RoundedRectangle(cornerRadius: AppTheme.radiusXL)
+                    .fill(AppTheme.glassPrimary)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.radiusXL)
+                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    )
+            )
+            .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
     }
 }

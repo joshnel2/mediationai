@@ -14,7 +14,7 @@ struct HomeView: View {
     @State private var showJoin = false
     @State private var showSettings = false
     @State private var showCommunity = false
-    @State private var showSubscription = false
+
     @State private var selectedDispute: Dispute?
     @State private var animateCards = false
     
@@ -69,9 +69,7 @@ struct HomeView: View {
         .sheet(isPresented: $showCommunity) {
             CommunityView()
         }
-        .sheet(isPresented: $showSubscription) {
-            SubscriptionView()
-        }
+
         .onAppear {
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 animateCards = true
@@ -99,33 +97,40 @@ struct HomeView: View {
                 Button(action: { showCommunity = true }) {
                     Image(systemName: "person.3.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(AppTheme.primary)
-                        .frame(width: 40, height: 40)
+                        .foregroundColor(AppTheme.secondary)
+                        .frame(width: 44, height: 44)
                         .background(AppTheme.glassPrimary)
-                        .cornerRadius(AppTheme.radiusSM)
+                        .cornerRadius(AppTheme.radiusLG)
+                        .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
                 }
+                .scaleEffect(animateCards ? 1.0 : 0.9)
+                .animation(.easeOut(duration: 0.6).delay(0.0), value: animateCards)
                 
-                // Subscription button (show crown if not premium)
-                if authService.currentUser?.subscription == .basic {
-                    Button(action: { showSubscription = true }) {
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(AppTheme.warning)
-                            .frame(width: 40, height: 40)
-                            .background(AppTheme.glassPrimary)
-                            .cornerRadius(AppTheme.radiusSM)
-                    }
+                // Notification button (modern touch)
+                Button(action: { /* TODO: Add notifications */ }) {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(AppTheme.accent)
+                        .frame(width: 44, height: 44)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusLG)
+                        .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
                 }
+                .scaleEffect(animateCards ? 1.0 : 0.9)
+                .animation(.easeOut(duration: 0.6).delay(0.1), value: animateCards)
                 
                 // Profile/Settings button
                 Button(action: { showSettings = true }) {
                     Image(systemName: "person.crop.circle.fill")
                         .font(.system(size: 24))
                         .foregroundStyle(AppTheme.mainGradient)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 44, height: 44)
                         .background(AppTheme.glassPrimary)
-                        .cornerRadius(AppTheme.radiusSM)
+                        .cornerRadius(AppTheme.radiusLG)
+                        .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
                 }
+                .scaleEffect(animateCards ? 1.0 : 0.9)
+                .animation(.easeOut(duration: 0.6).delay(0.2), value: animateCards)
             }
         }
         .padding(.top, AppTheme.spacingLG)
