@@ -14,9 +14,9 @@ struct User: Identifiable, Codable {
     var profile: UserProfile
     var reputation: ReputationScore
     var verification: VerificationStatus
-    var subscription: SubscriptionTier
     var stats: UserStats
     var preferences: UserPreferences
+    var hasUsedFreeDispute: Bool = false
     
     init(id: UUID = UUID(), email: String) {
         self.id = id
@@ -24,9 +24,9 @@ struct User: Identifiable, Codable {
         self.profile = UserProfile()
         self.reputation = ReputationScore()
         self.verification = VerificationStatus()
-        self.subscription = .basic
         self.stats = UserStats()
         self.preferences = UserPreferences()
+        self.hasUsedFreeDispute = false
     }
 }
 
