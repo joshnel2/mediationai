@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var authService: MockAuthService
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject private var authService: MockAuthService
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfService = false
     @State private var showSupport = false
@@ -187,7 +188,7 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismiss() }
+                Button("Done") { dismissView() }
             }
         }
         .sheet(isPresented: $showPrivacyPolicy) {
@@ -209,15 +210,19 @@ struct SettingsView: View {
         }
     }
     
+    private func dismissView() {
+        dismiss()
+    }
+    
     private func signOut() {
         authService.signOut()
-        dismiss()
+        dismissView()
     }
     
     private func deleteAccount() {
         // In a real app, this would call an API to delete the account
         authService.signOut()
-        dismiss()
+        dismissView()
     }
     
     private func openEmail() {
