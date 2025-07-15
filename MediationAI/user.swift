@@ -376,14 +376,14 @@ struct Truth: Identifiable, Codable, Equatable {
     }
 }
 
-struct SentimentScore: Codable {
+struct SentimentScore: Codable, Equatable {
     let positive: Double
     let negative: Double
     let neutral: Double
     let confidence: Double
 }
 
-enum FileType: String, Codable, CaseIterable {
+enum FileType: String, Codable, CaseIterable, Equatable {
     case image = "image"
     case document = "document"
     case audio = "audio"
