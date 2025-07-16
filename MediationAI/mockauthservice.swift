@@ -7,12 +7,25 @@
 
 import Foundation
 import SwiftUI
+import LocalAuthentication
 
 // MARK: - Mock Auth Service
 
 class MockAuthService: ObservableObject {
     @Published var currentUser: User?
     @Published var users: [User] = []
+    @Published var isFaceIDEnabled = false
+    @Published var isAutoLoginEnabled = false
+    
+    private let userDefaults = UserDefaults.standard
+    private let userKey = "mediationAI_currentUser"
+    private let faceIDKey = "mediationAI_faceID_enabled"
+    private let autoLoginKey = "mediationAI_autoLogin_enabled"
+    
+    init() {
+        loadUserSettings()
+        attemptAutoLogin()
+    }
     
     func signUp(email: String, password: String) -> Bool {
         guard !users.contains(where: { $0.email == email }) else { return false }

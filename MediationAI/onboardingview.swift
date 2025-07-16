@@ -351,7 +351,7 @@ struct BalancedScaleView: View {
                 // Balanced Scale Section
                 VStack(spacing: AppTheme.spacingMD) {
                     // Title with fade effect
-                    Text("MediationAI Brings Balance")
+                    Text("AIMediation")
                         .font(AppTheme.largeTitle())
                         .fontWeight(.bold)
                         .foregroundColor(AppTheme.textPrimary)
@@ -418,9 +418,7 @@ struct BalancedScaleView: View {
                     .padding(.horizontal, AppTheme.spacingLG)
                 }
                 
-                Spacer(minLength: AppTheme.spacingLG)
-                
-                // Get Started Button - Raised position
+                // Get Started Button - No spacer lines
                 Button(action: onGetStarted) {
                     HStack {
                         Text("Get Started")
@@ -433,6 +431,7 @@ struct BalancedScaleView: View {
                 }
                 .primaryButton()
                 .padding(.horizontal, AppTheme.spacingXL)
+                .padding(.top, AppTheme.spacingMD)
                 .padding(.bottom, AppTheme.spacingLG)
                 .pulseEffect()
                 .opacity(showFeatures ? 1.0 : 0.0)
