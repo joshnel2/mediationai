@@ -22,6 +22,8 @@ struct CreateDisputeView: View {
     @State private var createContract = false
     @State private var requestSignature = false
     @State private var useEscrow = false
+    @State private var showSignatureView = false
+    @State private var creatorSignature: UIImage?
     
     var body: some View {
         ZStack {
@@ -70,6 +72,15 @@ struct CreateDisputeView: View {
         }
         .sheet(isPresented: $showTermsOfService) {
             TermsOfServiceView()
+        }
+        .sheet(isPresented: $showSignatureView) {
+            SignatureView(
+                title: "Sign Your Contract",
+                subtitle: "Please provide your digital signature to make this contract legally binding and enforceable in court."
+            ) { signature in
+                creatorSignature = signature
+                handleCreatorSignature(signature: signature)
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
@@ -441,13 +452,43 @@ struct CreateDisputeView: View {
                 isProcessingPayment = false
                 
                 if paymentSuccess {
-                    let dispute = disputeService.createDispute(title: title, description: description, user: user)
-                    createdDispute = dispute
+                    let dispute = disputeService.createDispute(
+                    title: title, 
+                    description: description, 
+                    user: user,
+                    requiresContract: createContract,
+                    requiresSignature: requestSignature,
+                    requiresEscrow: useEscrow
+                )
+                    
+                    // If signature is required, show signature view, otherwise show dispute
+                    if requestSignature {
+                        showSignatureView = true
+                        createdDispute = dispute
+                    } else {
+                        createdDispute = dispute
+                    }
                 } else {
                     error = "Payment failed. Please try again."
                 }
             }
         }
+    }
+    
+    private func handleCreatorSignature(signature: UIImage) {
+        guard let user = authService.currentUser,
+              let dispute = createdDispute,
+              let signatureData = signature.jpegData(compressionQuality: 0.8) else {
+            return
+        }
+        
+        let digitalSignature = DigitalSignature(
+            userId: user.id,
+            signatureImageData: signatureData,
+            userName: user.displayName
+        )
+        
+        disputeService.addCreatorSignature(to: dispute, signature: digitalSignature)
     }
 }
 

@@ -288,6 +288,11 @@ struct Dispute: Identifiable, Codable {
         self.expertReviewRequested = false
         self.urgencyLevel = .normal
         self.satisfactionRatings = []
+        self.requiresContract = false
+        self.requiresSignature = false
+        self.requiresEscrow = false
+        self.partyASignature = nil
+        self.partyBSignature = nil
     }
 }
 
@@ -386,6 +391,30 @@ struct SentimentScore: Codable, Equatable {
     let negative: Double
     let neutral: Double
     let confidence: Double
+}
+
+struct DigitalSignature: Codable, Equatable {
+    let id: UUID
+    let userId: UUID
+    let signatureImageData: Data
+    let signedAt: Date
+    let ipAddress: String
+    let deviceInfo: String
+    let userName: String
+    
+    init(id: UUID = UUID(), userId: UUID, signatureImageData: Data, signedAt: Date = Date(), ipAddress: String = "127.0.0.1", deviceInfo: String = "iOS Device", userName: String) {
+        self.id = id
+        self.userId = userId
+        self.signatureImageData = signatureImageData
+        self.signedAt = signedAt
+        self.ipAddress = ipAddress
+        self.deviceInfo = deviceInfo
+        self.userName = userName
+    }
+    
+    var signatureImage: UIImage? {
+        return UIImage(data: signatureImageData)
+    }
 }
 
 enum FileType: String, Codable, CaseIterable, Equatable {

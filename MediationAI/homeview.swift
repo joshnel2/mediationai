@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showCommunity = false
     @State private var showContract = false
+    @State private var showEscrow = false
 
     @State private var selectedDispute: Dispute?
     @State private var animateCards = false
@@ -78,6 +79,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showContract) {
             ContractView()
+        }
+        .sheet(isPresented: $showEscrow) {
+            EscrowView()
         }
 
         .onAppear {
@@ -202,7 +206,7 @@ struct HomeView: View {
                     .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 
-                Button(action: { /* Coming soon */ }) {
+                Button(action: { showEscrow = true }) {
                     HStack {
                         Image(systemName: "lock.shield.fill")
                             .font(.title2)

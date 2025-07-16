@@ -45,17 +45,22 @@ class MockAuthService: ObservableObject {
 class MockDisputeService: ObservableObject {
     @Published var disputes: [Dispute] = []
     
-    func createDispute(title: String, description: String, user: User) -> Dispute {
+    func createDispute(title: String, description: String, user: User, requiresContract: Bool = false, requiresSignature: Bool = false, requiresEscrow: Bool = false) -> Dispute {
         let shareCode = UUID().uuidString.prefix(6).uppercased()
         let disputeId = UUID()
         let shareLink = "https://mediationai.app/join/\(disputeId.uuidString)"
         
-        let dispute = Dispute(
+        var dispute = Dispute(
             id: disputeId,
             title: title,
             description: description,
             user: user
         )
+        
+        dispute.requiresContract = requiresContract
+        dispute.requiresSignature = requiresSignature
+        dispute.requiresEscrow = requiresEscrow
+        
         disputes.append(dispute)
         return dispute
     }
@@ -94,6 +99,16 @@ class MockDisputeService: ObservableObject {
             // Both parties have submitted - trigger AI resolution
             triggerAIResolution(for: disputes[index])
         }
+    }
+    
+    func addCreatorSignature(to dispute: Dispute, signature: DigitalSignature) {
+        guard let index = disputes.firstIndex(where: { $0.id == dispute.id }) else { return }
+        disputes[index].partyASignature = signature
+    }
+    
+    func addJoinerSignature(to dispute: Dispute, signature: DigitalSignature) {
+        guard let index = disputes.firstIndex(where: { $0.id == dispute.id }) else { return }
+        disputes[index].partyBSignature = signature
     }
     
     private func triggerAIResolution(for dispute: Dispute) {

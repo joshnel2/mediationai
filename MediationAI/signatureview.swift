@@ -109,16 +109,47 @@ struct SignatureView: View {
                 
                 // Legal notice
                 VStack(spacing: AppTheme.spacingSM) {
-                    Text("Legal Notice")
+                    Text("Legal Notice & Disclaimer")
                         .font(AppTheme.caption())
                         .foregroundColor(AppTheme.textSecondary)
                         .fontWeight(.bold)
                     
-                    Text("By signing, you agree that this digital signature is legally binding and equivalent to a handwritten signature under the Electronic Signatures in Global and National Commerce Act (ESIGN).")
-                        .font(.system(size: 11))
-                        .foregroundColor(AppTheme.textTertiary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, AppTheme.spacingMD)
+                    VStack(spacing: AppTheme.spacingSM) {
+                        Text("By affixing your digital signature below, you hereby acknowledge and agree that:")
+                            .font(.system(size: 11))
+                            .foregroundColor(AppTheme.textTertiary)
+                            .fontWeight(.medium)
+                            .multilineTextAlignment(.center)
+                        
+                        VStack(alignment: .leading, spacing: AppTheme.spacingXS) {
+                            Text("• This digital signature is legally binding and equivalent to a handwritten signature under the Electronic Signatures in Global and National Commerce Act (ESIGN) and applicable state laws.")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("• The dispute resolution and any contract terms agreed upon through this platform constitute a binding legal agreement enforceable in courts of competent jurisdiction.")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("• You waive any right to contest the validity of this digital signature or the enforceability of this agreement based solely on its electronic nature.")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("• This signed resolution may be presented as evidence in legal proceedings and shall have the same force and effect as if executed with a traditional handwritten signature.")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("• You have read, understood, and voluntarily agree to be bound by all terms and conditions set forth in this dispute resolution.")
+                                .font(.system(size: 10))
+                                .foregroundColor(AppTheme.textTertiary)
+                        }
+                        
+                        Text("NOTICE: This signature creates a legally enforceable obligation. If you do not agree to be legally bound, do not sign.")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(AppTheme.warning)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, AppTheme.spacingSM)
+                    }
+                    .padding(.horizontal, AppTheme.spacingMD)
                 }
                 .padding(AppTheme.spacingMD)
                 .background(AppTheme.glassPrimary)

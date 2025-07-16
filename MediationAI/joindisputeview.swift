@@ -18,6 +18,9 @@ struct JoinDisputeView: View {
     @State private var isProcessingPayment = false
     @State private var selectedInputType: InputType = .link
     @State private var showTermsOfService = false
+    @State private var showSignatureView = false
+    @State private var joinerSignature: UIImage?
+    @State private var disputeToJoin: Dispute?
     
     enum InputType: String, CaseIterable {
         case link = "Link"
@@ -180,6 +183,15 @@ struct JoinDisputeView: View {
             .sheet(isPresented: $showTermsOfService) {
                 TermsOfServiceView()
             }
+            .sheet(isPresented: $showSignatureView) {
+                SignatureView(
+                    title: "Sign Contract Agreement",
+                    subtitle: "Please provide your digital signature to join this dispute and make the contract legally binding."
+                ) { signature in
+                    joinerSignature = signature
+                    handleJoinerSignature(signature: signature)
+                }
+            }
         }
     }
     
@@ -220,8 +232,14 @@ struct JoinDisputeView: View {
                     }
                     
                     if let joinedDispute = dispute {
-                        self.joinedDispute = joinedDispute
-                        dismiss()
+                        // Check if signature is required
+                        if joinedDispute.requiresSignature {
+                            disputeToJoin = joinedDispute
+                            showSignatureView = true
+                        } else {
+                            self.joinedDispute = joinedDispute
+                            dismiss()
+                        }
                     } else {
                         error = "Invalid or expired \(selectedInputType.rawValue.lowercased())."
                     }
@@ -230,5 +248,25 @@ struct JoinDisputeView: View {
                 }
             }
         }
+    }
+    
+    private func handleJoinerSignature(signature: UIImage) {
+        guard let user = authService.currentUser,
+              let dispute = disputeToJoin,
+              let signatureData = signature.jpegData(compressionQuality: 0.8) else {
+            return
+        }
+        
+        let digitalSignature = DigitalSignature(
+            userId: user.id,
+            signatureImageData: signatureData,
+            userName: user.displayName
+        )
+        
+        disputeService.addJoinerSignature(to: dispute, signature: digitalSignature)
+        
+        // Complete the join process
+        joinedDispute = dispute
+        dismiss()
     }
 }
