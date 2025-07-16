@@ -205,11 +205,16 @@ struct CreateDisputeView: View {
                 }
             }
             
-            HStack(spacing: AppTheme.spacingMD) {
-                FeatureBadge(icon: "checkmark.circle.fill", text: "Instant sharing")
-                FeatureBadge(icon: "shield.checkered", text: "Secure payment")
-                FeatureBadge(icon: "brain.head.profile", text: "AI mediation")
-                FeatureBadge(icon: "clock.fill", text: "Fast resolution")
+            // 2x2 grid layout for better iPhone display
+            VStack(spacing: AppTheme.spacingSM) {
+                HStack(spacing: AppTheme.spacingSM) {
+                    FeatureBadge(icon: "checkmark.circle.fill", text: "Instant sharing")
+                    FeatureBadge(icon: "shield.checkered", text: "Secure payment")
+                }
+                HStack(spacing: AppTheme.spacingSM) {
+                    FeatureBadge(icon: "brain.head.profile", text: "AI mediation")
+                    FeatureBadge(icon: "clock.fill", text: "Fast resolution")
+                }
             }
         }
         .padding(AppTheme.spacingLG)
@@ -505,8 +510,11 @@ struct FeatureBadge: View {
             Text(text)
                 .font(AppTheme.caption2())
                 .foregroundColor(AppTheme.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .padding(.horizontal, AppTheme.spacingMD)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, AppTheme.spacingSM)
         .padding(.vertical, AppTheme.spacingSM)
         .background(AppTheme.success.opacity(0.1))
         .cornerRadius(AppTheme.radiusSM)
