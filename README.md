@@ -25,6 +25,53 @@
 
 ---
 
+## 📁 Project Organization
+
+**This is the main project structure - clean and organized:**
+
+```
+📁 MediationAI/
+├── 📄 README.md                 # Main project documentation
+├── 📁 backend/                  # Python FastAPI backend
+│   ├── 🔧 .env                 # Environment variables
+│   ├── 📋 .env.example         # Environment template
+│   ├── 📦 requirements.txt     # Python dependencies
+│   ├── 🚀 vercel.json          # Vercel deployment config
+│   ├── 🤖 mediation_api.py     # Main API endpoints
+│   ├── 🧠 mediation_agents.py  # AI mediation agents
+│   ├── 💰 ai_cost_controller.py # Cost optimization
+│   ├── 📄 contract_generator.py # Legal contract creation
+│   ├── 🏛️ legal_research.py    # Harvard Law API integration
+│   ├── 📊 dispute_models.py    # Data models
+│   ├── ⚙️ config.py            # Configuration settings
+│   ├── 🏃 run.py               # Application runner
+│   ├── 🎬 start_demo.py        # Demo launcher
+│   ├── 🛠️ setup.py             # Setup script
+│   └── 🧪 demo_mediation.py    # Demo mediation flow
+├── 📁 frontend/                 # Swift iOS frontend
+│   ├── 📱 MediationAIApp.swift # Main app entry point
+│   ├── 🏠 homeview.swift       # Dashboard
+│   ├── 💬 disputeroomview.swift # Dispute interface
+│   ├── ➕ createdisputeview.swift # Create new disputes
+│   ├── 🌐 RealDisputeService.swift # API communication
+│   ├── ⚙️ APIConfig.swift      # Backend connection
+│   ├── 📋 Info.plist          # iOS app configuration
+│   └── ... (all other Swift UI files)
+└── 📁 guides/                   # Documentation & Guides
+    ├── 🔧 API_SETUP_GUIDE.md
+    ├── 🚀 DEPLOYMENT_GUIDE.md
+    ├── 💰 COST_OPTIMIZATION_GUIDE.md
+    ├── 📊 DISPUTE_FLOW_ANALYSIS.md
+    ├── 📱 iOS_Deployment_Guide.md
+    ├── 🎨 iPhone_UI_Improvements_Summary.md
+    ├── 📝 MediationAI_Revisions_Summary.md
+    └── 🔮 NEXT_ESCROW_FEATURES.md
+```
+
+**✅ All duplicates removed • ✅ Clean organization • ✅ Ready for development**
+
+---
+
 ## 🌟 Features
 
 ### 🤖 **AI-Powered Mediation**
