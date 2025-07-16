@@ -32,23 +32,101 @@ class MockAuthService: ObservableObject {
         let user = User(id: UUID(), email: email, password: password)
         users.append(user)
         currentUser = user
+        saveUserSettings()
         return true
     }
     
     func signIn(email: String, password: String) -> Bool {
         guard let user = users.first(where: { $0.email == email && $0.password == password }) else { return false }
         currentUser = user
+        saveUserSettings()
         return true
     }
     
     func signOut() {
         currentUser = nil
+        userDefaults.removeObject(forKey: userKey)
+        userDefaults.removeObject(forKey: autoLoginKey)
     }
     
     func updateUser(_ user: User) {
         currentUser = user
         if let index = users.firstIndex(where: { $0.id == user.id }) {
             users[index] = user
+        }
+        saveUserSettings()
+    }
+    
+    // MARK: - Auto Login & Face ID
+    
+    func enableAutoLogin() {
+        isAutoLoginEnabled = true
+        userDefaults.set(true, forKey: autoLoginKey)
+        saveUserSettings()
+    }
+    
+    func disableAutoLogin() {
+        isAutoLoginEnabled = false
+        userDefaults.set(false, forKey: autoLoginKey)
+        userDefaults.removeObject(forKey: userKey)
+    }
+    
+    func enableFaceID() {
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.biometricAuthentication, error: &error) {
+            isFaceIDEnabled = true
+            userDefaults.set(true, forKey: faceIDKey)
+        }
+    }
+    
+    func disableFaceID() {
+        isFaceIDEnabled = false
+        userDefaults.set(false, forKey: faceIDKey)
+    }
+    
+    func authenticateWithFaceID(completion: @escaping (Bool) -> Void) {
+        let context = LAContext()
+        let reason = "Authenticate to access your MediationAI account"
+        
+        context.evaluatePolicy(.biometricAuthentication, localizedReason: reason) { success, error in
+            DispatchQueue.main.async {
+                completion(success)
+            }
+        }
+    }
+    
+    private func loadUserSettings() {
+        isAutoLoginEnabled = userDefaults.bool(forKey: autoLoginKey)
+        isFaceIDEnabled = userDefaults.bool(forKey: faceIDKey)
+    }
+    
+    private func saveUserSettings() {
+        if let user = currentUser, isAutoLoginEnabled {
+            if let encoded = try? JSONEncoder().encode(user) {
+                userDefaults.set(encoded, forKey: userKey)
+            }
+        }
+    }
+    
+    private func attemptAutoLogin() {
+        guard isAutoLoginEnabled else { return }
+        
+        if let savedUserData = userDefaults.data(forKey: userKey),
+           let user = try? JSONDecoder().decode(User.self, from: savedUserData) {
+            
+            if isFaceIDEnabled {
+                authenticateWithFaceID { [weak self] success in
+                    if success {
+                        self?.currentUser = user
+                        self?.users.append(user)
+                    }
+                }
+            } else {
+                currentUser = user
+                users.append(user)
+            }
         }
     }
 }

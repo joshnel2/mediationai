@@ -294,6 +294,13 @@ struct EscrowView: View {
                     description: "Money held for personal transactions and shared expenses",
                     examples: ["Loan repayments", "Shared purchases", "Event expenses", "Group investments"]
                 )
+                
+                UseCaseCard(
+                    icon: "bitcoinsign.circle.fill",
+                    title: "Crypto Smart Contract Mediation",
+                    description: "AI-powered mediation for blockchain disputes and smart contract issues",
+                    examples: ["DeFi protocol disputes", "NFT transaction issues", "Smart contract bugs", "Crypto payment disputes"]
+                )
             }
         }
         .padding(AppTheme.spacingLG)

@@ -145,6 +145,14 @@ struct ContractView: View {
                     examples: ["Partnership dissolution", "Employment disputes", "Vendor agreements", "Intellectual property issues"],
                     color: AppTheme.primary
                 )
+                
+                ContractTypeCard(
+                    icon: "bitcoinsign.circle.fill",
+                    title: "Crypto Smart Contract Mediation",
+                    description: "AI-powered contracts for blockchain and cryptocurrency disputes",
+                    examples: ["DeFi protocol disputes", "NFT transaction issues", "Smart contract bugs", "Crypto payment disputes", "Token distribution conflicts"],
+                    color: AppTheme.warning
+                )
             }
         }
         .padding(AppTheme.spacingLG)

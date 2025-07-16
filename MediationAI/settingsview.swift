@@ -43,6 +43,45 @@ struct SettingsView: View {
                     }
                     .modernCard()
                     
+                    // Security Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Security")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsToggleRow(
+                                icon: "faceid",
+                                title: "Face ID",
+                                subtitle: "Use Face ID to unlock the app",
+                                isOn: $authService.isFaceIDEnabled,
+                                action: { 
+                                    if authService.isFaceIDEnabled {
+                                        authService.enableFaceID()
+                                    } else {
+                                        authService.disableFaceID()
+                                    }
+                                }
+                            )
+                            
+                            SettingsToggleRow(
+                                icon: "key.fill",
+                                title: "Auto Login",
+                                subtitle: "Stay signed in automatically",
+                                isOn: $authService.isAutoLoginEnabled,
+                                action: { 
+                                    if authService.isAutoLoginEnabled {
+                                        authService.enableAutoLogin()
+                                    } else {
+                                        authService.disableAutoLogin()
+                                    }
+                                }
+                            )
+                        }
+                        .modernCard()
+                    }
+                    
                     // Support Section
                     VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                         Text("Support")
@@ -260,6 +299,46 @@ struct SettingsView: View {
     
     private func exportData() {
         // Export user data functionality
+    }
+}
+
+struct SettingsToggleRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    @Binding var isOn: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(AppTheme.primary)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(AppTheme.textPrimary)
+                
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: $isOn)
+                .onChange(of: isOn) { _ in
+                    action()
+                }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(Color.clear)
     }
 }
 
