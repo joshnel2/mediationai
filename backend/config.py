@@ -37,6 +37,17 @@ class Settings(BaseSettings):
     rate_limit_requests: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
     rate_limit_minutes: int = int(os.getenv("RATE_LIMIT_MINUTES", "60"))
     
+    # AI Cost Control Settings
+    max_ai_interventions_per_dispute: int = int(os.getenv("MAX_AI_INTERVENTIONS", "3"))
+    max_ai_response_tokens: int = int(os.getenv("MAX_AI_TOKENS", "300"))
+    ai_intervention_cooldown_minutes: int = int(os.getenv("AI_COOLDOWN_MINUTES", "10"))
+    enable_ai_cost_optimization: bool = os.getenv("ENABLE_AI_COST_OPTIMIZATION", "True").lower() == "true"
+    
+    # AI Response Configuration
+    ai_response_temperature: float = float(os.getenv("AI_TEMPERATURE", "0.3"))
+    ai_model_preference: str = os.getenv("AI_MODEL_PREFERENCE", "gpt-3.5-turbo")  # Cheaper than GPT-4
+    enable_ai_response_caching: bool = os.getenv("ENABLE_AI_CACHING", "True").lower() == "true"
+    
     class Config:
         env_file = ".env"
 

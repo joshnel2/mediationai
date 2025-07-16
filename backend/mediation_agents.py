@@ -4,9 +4,11 @@ from typing import List, Dict, Any, Optional
 from config import settings
 from dispute_models import *
 from legal_research import legal_research_service
+from ai_cost_controller import ai_cost_controller
 import logging
 import json
 import asyncio
+import hashlib
 from datetime import datetime, timedelta
 
 logging.basicConfig(level=logging.INFO)
@@ -35,31 +37,56 @@ class BaseMediationAgent:
             return f"I apologize, but I'm having trouble processing your request right now. Please try again."
     
     async def _generate_openai_response(self, prompt: str, context: str = None, dispute_data: Dict = None) -> str:
-        """Generate response using OpenAI"""
+        """Generate cost-optimized response using OpenAI"""
         if not self.openai_client:
             return "OpenAI client not configured"
         
         try:
+            # Check cache first to avoid duplicate API calls
+            prompt_hash = hashlib.md5(prompt.encode()).hexdigest()
+            cached_response = ai_cost_controller.get_cached_response(prompt_hash)
+            if cached_response:
+                logger.info("Using cached AI response")
+                return cached_response
+            
+            # Get dispute category for optimization
+            dispute_category = dispute_data.get('category', 'general') if dispute_data else 'general'
+            
+            # Optimize prompt for cost efficiency
+            optimized_prompt = ai_cost_controller.get_optimized_prompt(prompt, dispute_category)
+            
             messages = [
                 {"role": "system", "content": self._get_system_prompt()},
             ]
             
             if context:
-                messages.append({"role": "user", "content": f"Context: {context}"})
+                messages.append({"role": "user", "content": f"Context: {context[:200]}..."})  # Limit context
             
             if dispute_data:
-                messages.append({"role": "user", "content": f"Dispute Information: {json.dumps(dispute_data, indent=2)}"})
+                # Limit dispute data to essential info only
+                essential_data = {
+                    'category': dispute_data.get('category', ''),
+                    'title': dispute_data.get('title', '')[:100],
+                    'evidence_count': len(dispute_data.get('evidence', []))
+                }
+                messages.append({"role": "user", "content": f"Dispute Info: {json.dumps(essential_data)}"})
             
-            messages.append({"role": "user", "content": prompt})
+            messages.append({"role": "user", "content": optimized_prompt})
             
+            # Use cost-efficient model and settings
             response = self.openai_client.chat.completions.create(
-                model=self.model,
+                model=settings.ai_model_preference,  # Use cheaper model
                 messages=messages,
-                max_tokens=1000,
-                temperature=0.7
+                max_tokens=settings.max_ai_response_tokens,  # Limit tokens
+                temperature=settings.ai_response_temperature  # Lower temperature for focused responses
             )
             
-            return response.choices[0].message.content
+            response_text = response.choices[0].message.content
+            
+            # Cache the response
+            ai_cost_controller.cache_response(prompt_hash, response_text)
+            
+            return response_text
             
         except Exception as e:
             logger.error(f"OpenAI API error: {str(e)}")
@@ -653,11 +680,26 @@ class MediationOrchestrator:
     
     async def handle_dispute_message(self, dispute: Dispute, message: MediationMessage) -> Optional[MediationMessage]:
         """Handle a new message in the dispute and determine if AI intervention is needed"""
+        # Check if AI can intervene based on cost controls
+        if not ai_cost_controller.can_intervene(dispute.id):
+            logger.info(f"AI intervention blocked for cost control: {dispute.id}")
+            return None
+        
         # Analyze if AI intervention is needed
         analytics = await self.analyst.analyze_dispute(dispute)
         
-        # Determine if mediation is needed
-        if self._should_mediate(dispute, analytics):
+        # Use cost controller to determine if intervention is needed
+        messages_data = [{"content": m.content} for m in dispute.messages]
+        should_intervene = ai_cost_controller.should_intervene(
+            dispute.id, 
+            messages_data, 
+            analytics.sentiment_score
+        )
+        
+        if should_intervene:
+            # Record the intervention
+            ai_cost_controller.record_intervention(dispute.id)
+            
             # Get mediation response
             mediation_response = await self.mediator.facilitate_discussion(dispute, [message])
             

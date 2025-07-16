@@ -13,6 +13,7 @@ from config import settings
 from dispute_models import *
 from mediation_agents import mediation_orchestrator
 from contract_generator import contract_generator
+from ai_cost_controller import ai_cost_controller
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -724,6 +725,45 @@ async def resolve_dispute_with_contract(dispute_id: str, background_tasks: Backg
     except Exception as e:
         logger.error(f"Resolution failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Resolution process failed")
+
+# ==============================================================================
+# COST MONITORING ENDPOINTS
+# ==============================================================================
+
+@app.get("/api/disputes/{dispute_id}/cost-summary")
+async def get_cost_summary(dispute_id: str):
+    """Get cost summary for AI usage in a dispute"""
+    if dispute_id not in disputes_db:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    
+    try:
+        cost_summary = ai_cost_controller.get_cost_summary(dispute_id)
+        return {
+            "dispute_id": dispute_id,
+            "cost_summary": cost_summary,
+            "cost_optimization_enabled": settings.enable_ai_cost_optimization,
+            "limits": {
+                "max_interventions": settings.max_ai_interventions_per_dispute,
+                "max_tokens": settings.max_ai_response_tokens,
+                "cooldown_minutes": settings.ai_intervention_cooldown_minutes
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting cost summary: {str(e)}")
+        raise HTTPException(status_code=500, detail="Unable to retrieve cost summary")
+
+@app.get("/api/cost-settings")
+async def get_cost_settings():
+    """Get current cost optimization settings"""
+    return {
+        "cost_optimization_enabled": settings.enable_ai_cost_optimization,
+        "max_interventions_per_dispute": settings.max_ai_interventions_per_dispute,
+        "max_tokens_per_response": settings.max_ai_response_tokens,
+        "cooldown_minutes": settings.ai_intervention_cooldown_minutes,
+        "ai_model": settings.ai_model_preference,
+        "caching_enabled": settings.enable_ai_response_caching,
+        "estimated_cost_per_intervention": 0.05  # Rough estimate
+    }
 
 # ==============================================================================
 # WEBSOCKET ENDPOINTS
