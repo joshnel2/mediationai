@@ -22,6 +22,9 @@ struct ContractView: View {
                         // Header
                         headerSection
                         
+                        // Contract types
+                        contractTypesSection
+                        
                         // How it works
                         howItWorksSection
                         
@@ -30,6 +33,9 @@ struct ContractView: View {
                         
                         // Legal standing
                         legalStandingSection
+                        
+                        // AI advantages
+                        aiAdvantagesSection
                         
                         // Footer
                         footerSection
@@ -76,13 +82,13 @@ struct ContractView: View {
                     .foregroundStyle(AppTheme.mainGradient)
                     .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                 
-                Text("Fair & Legal Contracts")
+                Text("AI-Powered Legal Contracts")
                     .font(AppTheme.title2())
                     .foregroundColor(AppTheme.textPrimary)
                     .fontWeight(.semibold)
                     .multilineTextAlignment(.center)
                 
-                Text("AI creates contracts that hold up in court and ensure fairness for all parties")
+                Text("Our AI creates legally binding contracts tailored to your specific dispute, ensuring fairness and enforceability in court")
                     .font(AppTheme.body())
                     .foregroundColor(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -92,9 +98,63 @@ struct ContractView: View {
         .padding(.top, AppTheme.spacingXL)
     }
     
+    private var contractTypesSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
+            Text("Contract Types We Create")
+                .font(AppTheme.headline())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.bold)
+            
+            VStack(spacing: AppTheme.spacingMD) {
+                ContractTypeCard(
+                    icon: "dollarsign.circle.fill",
+                    title: "Payment & Refund Agreements",
+                    description: "Contracts for disputed payments, refunds, or money owed",
+                    examples: ["Purchase refunds", "Service payment disputes", "Loan agreements", "Freelance payment issues"],
+                    color: AppTheme.success
+                )
+                
+                ContractTypeCard(
+                    icon: "house.fill",
+                    title: "Property & Rental Disputes",
+                    description: "Agreements for property damage, rental issues, or ownership disputes",
+                    examples: ["Security deposit returns", "Property damage claims", "Rental agreement violations", "Neighbor disputes"],
+                    color: AppTheme.info
+                )
+                
+                ContractTypeCard(
+                    icon: "handshake.fill",
+                    title: "Service & Contract Disputes",
+                    description: "Resolution agreements for failed services or broken contracts",
+                    examples: ["Contractor disputes", "Service quality issues", "Delivery problems", "Warranty claims"],
+                    color: AppTheme.warning
+                )
+                
+                ContractTypeCard(
+                    icon: "person.2.fill",
+                    title: "Personal & Family Agreements",
+                    description: "Contracts for personal disputes and family matters",
+                    examples: ["Shared expense disputes", "Personal loan agreements", "Family property division", "Pet custody arrangements"],
+                    color: AppTheme.accent
+                )
+                
+                ContractTypeCard(
+                    icon: "briefcase.fill",
+                    title: "Business & Employment",
+                    description: "Professional dispute resolution contracts",
+                    examples: ["Partnership dissolution", "Employment disputes", "Vendor agreements", "Intellectual property issues"],
+                    color: AppTheme.primary
+                )
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .background(AppTheme.glassPrimary)
+        .cornerRadius(AppTheme.radiusLG)
+    }
+    
     private var howItWorksSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
-            Text("How It Works")
+            Text("How AI Contract Creation Works")
                 .font(AppTheme.headline())
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
@@ -102,30 +162,37 @@ struct ContractView: View {
             VStack(spacing: AppTheme.spacingMD) {
                 StepCard(
                     number: "1",
-                    title: "Create Dispute",
-                    description: "Check 'Create Contract' when creating your dispute",
-                    icon: "plus.circle.fill"
-                )
-                
-                StepCard(
-                    number: "2",
-                    title: "AI Analysis",
-                    description: "Our AI analyzes the dispute and creates a fair contract framework",
+                    title: "Dispute Analysis",
+                    description: "AI analyzes your dispute details, evidence, and both parties' positions",
                     icon: "brain.head.profile"
                 )
                 
                 StepCard(
+                    number: "2",
+                    title: "Legal Research",
+                    description: "AI researches applicable laws and precedents for your specific situation",
+                    icon: "book.fill"
+                )
+                
+                StepCard(
                     number: "3",
-                    title: "Review & Sign",
-                    description: "Both parties review the contract and sign digitally if desired",
-                    icon: "signature"
+                    title: "Contract Generation",
+                    description: "AI creates a balanced contract with fair terms for both parties",
+                    icon: "doc.text.fill"
                 )
                 
                 StepCard(
                     number: "4",
-                    title: "Legal Binding",
-                    description: "Signed contracts are legally enforceable in court",
-                    icon: "scale.3d"
+                    title: "Review & Revision",
+                    description: "Both parties can review and request modifications before signing",
+                    icon: "pencil.circle.fill"
+                )
+                
+                StepCard(
+                    number: "5",
+                    title: "Digital Execution",
+                    description: "Secure digital signatures make the contract legally binding",
+                    icon: "signature"
                 )
             }
         }
@@ -136,34 +203,46 @@ struct ContractView: View {
     
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
-            Text("Contract Features")
+            Text("Advanced Contract Features")
                 .font(AppTheme.headline())
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
             VStack(spacing: AppTheme.spacingMD) {
                 FeatureRow(
+                    icon: "scale.3d",
+                    title: "Balanced Terms",
+                    description: "AI ensures fair terms that protect both parties equally"
+                )
+                
+                FeatureRow(
                     icon: "checkmark.shield.fill",
-                    title: "Fair Terms",
-                    description: "AI ensures balanced terms for all parties"
+                    title: "Legal Compliance",
+                    description: "All contracts comply with local and federal laws"
                 )
                 
                 FeatureRow(
                     icon: "doc.text.magnifyingglass",
-                    title: "Legal Language",
-                    description: "Proper legal terminology and structure"
+                    title: "Plain Language",
+                    description: "Complex legal terms explained in simple language"
                 )
                 
                 FeatureRow(
-                    icon: "signature",
-                    title: "Digital Signatures",
-                    description: "Secure electronic signing process"
+                    icon: "arrow.triangle.2.circlepath",
+                    title: "Revision Tracking",
+                    description: "Complete history of changes and negotiations"
+                )
+                
+                FeatureRow(
+                    icon: "clock.arrow.circlepath",
+                    title: "Automatic Updates",
+                    description: "Contracts updated for new laws and regulations"
                 )
                 
                 FeatureRow(
                     icon: "lock.shield",
                     title: "Secure Storage",
-                    description: "Encrypted contract storage and access"
+                    description: "Encrypted storage with blockchain verification"
                 )
             }
         }
@@ -174,7 +253,7 @@ struct ContractView: View {
     
     private var legalStandingSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
-            Text("Legal Standing")
+            Text("Legal Standing & Enforceability")
                 .font(AppTheme.headline())
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
@@ -191,7 +270,7 @@ struct ContractView: View {
                             .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                         
-                        Text("Contracts created by our AI follow legal standards and are enforceable in court when signed by both parties.")
+                        Text("All AI-generated contracts are legally binding and enforceable in court when properly executed with digital signatures from both parties.")
                             .font(AppTheme.caption())
                             .foregroundColor(AppTheme.textSecondary)
                     }
@@ -203,29 +282,29 @@ struct ContractView: View {
                         .font(.title2)
                     
                     VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                        Text("Legally Compliant")
+                        Text("Jurisdiction Compliant")
                             .font(AppTheme.body())
                             .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                         
-                        Text("All contracts comply with applicable laws and regulations for dispute resolution agreements.")
+                        Text("Contracts automatically comply with laws in your jurisdiction and include proper venue and governing law clauses.")
                             .font(AppTheme.caption())
                             .foregroundColor(AppTheme.textSecondary)
                     }
                 }
                 
                 HStack(alignment: .top, spacing: AppTheme.spacingMD) {
-                    Image(systemName: "balance.scale")
+                    Image(systemName: "signature")
                         .foregroundColor(AppTheme.accent)
                         .font(.title2)
                     
                     VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                        Text("Fair & Balanced")
+                        Text("Digital Signature Validity")
                             .font(AppTheme.body())
                             .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
                         
-                        Text("AI ensures contracts are fair to both parties without favoring one side over another.")
+                        Text("Digital signatures are legally equivalent to handwritten signatures under the Electronic Signatures in Global and National Commerce Act (ESIGN).")
                             .font(AppTheme.caption())
                             .foregroundColor(AppTheme.textSecondary)
                     }
@@ -237,9 +316,59 @@ struct ContractView: View {
         .cornerRadius(AppTheme.radiusLG)
     }
     
+    private var aiAdvantagesSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
+            Text("Why Choose AI-Generated Contracts?")
+                .font(AppTheme.headline())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.bold)
+            
+            VStack(spacing: AppTheme.spacingMD) {
+                ComparisonCard(
+                    icon: "dollarsign.circle.fill",
+                    title: "Traditional Lawyers",
+                    subtitle: "$500-5000+ per contract",
+                    vsTitle: "AI Contracts",
+                    vsSubtitle: "Included with $1 dispute fee",
+                    color: AppTheme.success
+                )
+                
+                ComparisonCard(
+                    icon: "clock.fill",
+                    title: "Legal Firms",
+                    subtitle: "Days to weeks",
+                    vsTitle: "AI Generation",
+                    vsSubtitle: "Minutes to hours",
+                    color: AppTheme.info
+                )
+                
+                ComparisonCard(
+                    icon: "person.fill",
+                    title: "Human Bias",
+                    subtitle: "Favors paying client",
+                    vsTitle: "AI Fairness",
+                    vsSubtitle: "Neutral to both parties",
+                    color: AppTheme.accent
+                )
+                
+                ComparisonCard(
+                    icon: "doc.text.fill",
+                    title: "Standard Templates",
+                    subtitle: "Generic language",
+                    vsTitle: "Custom AI",
+                    vsSubtitle: "Tailored to your case",
+                    color: AppTheme.warning
+                )
+            }
+        }
+        .padding(AppTheme.spacingLG)
+        .background(AppTheme.glassPrimary)
+        .cornerRadius(AppTheme.radiusLG)
+    }
+    
     private var footerSection: some View {
         VStack(spacing: AppTheme.spacingMD) {
-            Text("Ready to Create a Contract?")
+            Text("Ready to Create Your Contract?")
                 .font(AppTheme.headline())
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
@@ -256,6 +385,58 @@ struct ContractView: View {
                 .padding(.top, AppTheme.spacingLG)
         }
         .padding(.horizontal, AppTheme.spacingLG)
+    }
+}
+
+struct ContractTypeCard: View {
+    let icon: String
+    let title: String
+    let description: String
+    let examples: [String]
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+            HStack(spacing: AppTheme.spacingMD) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+                    .frame(width: 30)
+                
+                VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                    Text(title)
+                        .font(AppTheme.body())
+                        .foregroundColor(AppTheme.textPrimary)
+                        .fontWeight(.semibold)
+                    
+                    Text(description)
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                Text("Examples:")
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .fontWeight(.medium)
+                
+                ForEach(examples, id: \.self) { example in
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(color)
+                        
+                        Text(example)
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                    }
+                }
+            }
+        }
+        .padding(AppTheme.spacingMD)
+        .background(AppTheme.card)
+        .cornerRadius(AppTheme.radiusMD)
     }
 }
 
@@ -325,6 +506,69 @@ struct FeatureRow: View {
             
             Spacer()
         }
+    }
+}
+
+struct ComparisonCard: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let vsTitle: String
+    let vsSubtitle: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: AppTheme.spacingLG) {
+            // Traditional side
+            VStack(spacing: AppTheme.spacingSM) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(AppTheme.textSecondary)
+                
+                Text(title)
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .fontWeight(.medium)
+                
+                Text(subtitle)
+                    .font(AppTheme.caption2())
+                    .foregroundColor(AppTheme.textTertiary)
+            }
+            .frame(maxWidth: .infinity)
+            
+            // VS divider
+            VStack {
+                Text("VS")
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textSecondary)
+                    .fontWeight(.bold)
+                    .padding(.horizontal, AppTheme.spacingSM)
+                    .padding(.vertical, AppTheme.spacingXS)
+                    .background(AppTheme.glassSecondary)
+                    .cornerRadius(AppTheme.radiusXS)
+            }
+            
+            // AI side
+            VStack(spacing: AppTheme.spacingSM) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+                
+                Text(vsTitle)
+                    .font(AppTheme.caption())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.medium)
+                
+                Text(vsSubtitle)
+                    .font(AppTheme.caption2())
+                    .foregroundColor(color)
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(AppTheme.spacingMD)
+        .background(AppTheme.card)
+        .cornerRadius(AppTheme.radiusMD)
     }
 }
 
