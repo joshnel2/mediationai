@@ -345,19 +345,20 @@ struct BalancedScaleView: View {
             AppTheme.backgroundGradient
                 .ignoresSafeArea()
             
-            VStack(spacing: AppTheme.spacingXXL) {
+            VStack(spacing: AppTheme.spacingLG) {
                 Spacer()
                 
                 // Balanced Scale Section
-                VStack(spacing: AppTheme.spacingXL) {
-                    // Title
+                VStack(spacing: AppTheme.spacingMD) {
+                    // Title with fade effect
                     Text("MediationAI Brings Balance")
                         .font(AppTheme.largeTitle())
                         .fontWeight(.bold)
                         .foregroundColor(AppTheme.textPrimary)
                         .multilineTextAlignment(.center)
                         .scaleEffect(animateElements ? 1.0 : 0.8)
-                        .opacity(animateElements ? 1.0 : 0.0)
+                        .opacity(animateElements ? 0.9 : 0.0)
+                        .animation(.easeInOut(duration: 1.2), value: animateElements)
                     
                     // Balanced Scale
                     ScaleView(
@@ -365,16 +366,17 @@ struct BalancedScaleView: View {
                         rightWeight: 0.5,
                         rotation: scaleRotation
                     )
-                    .frame(height: 200)
+                    .frame(height: 160)
                     
-                    // Subtitle
+                    // Subtitle with fade effect
                     Text("Fair, Fast, and Affordable Dispute Resolution")
                         .font(AppTheme.title3())
                         .foregroundColor(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, AppTheme.spacingXL)
                         .scaleEffect(animateElements ? 1.0 : 0.8)
-                        .opacity(animateElements ? 1.0 : 0.0)
+                        .opacity(animateElements ? 0.8 : 0.0)
+                        .animation(.easeInOut(duration: 1.4), value: animateElements)
                 }
                 
                 // Features Section
