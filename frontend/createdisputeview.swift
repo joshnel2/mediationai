@@ -11,7 +11,7 @@ struct CreateDisputeView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
-    @StateObject private var purchaseService = InAppPurchaseService()
+
     @State private var title = ""
     @State private var description = ""
     @State private var error: String?
