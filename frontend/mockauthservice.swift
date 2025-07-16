@@ -69,9 +69,15 @@ class MockAuthService: ObservableObject {
                     user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
                     user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
                     user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
-                    user.preferences.faceIDEnabled = userData["faceIDEnabled"] as? Bool ?? false
-                    user.preferences.autoLoginEnabled = userData["autoLoginEnabled"] as? Bool ?? true
                     user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
+                    
+                    // These are stored in the auth service, not user preferences
+                    if let faceIDEnabled = userData["faceIDEnabled"] as? Bool {
+                        self.isFaceIDEnabled = faceIDEnabled
+                    }
+                    if let autoLoginEnabled = userData["autoLoginEnabled"] as? Bool {
+                        self.isAutoLoginEnabled = autoLoginEnabled
+                    }
                     
                     await MainActor.run {
                         currentUser = user
@@ -127,9 +133,15 @@ class MockAuthService: ObservableObject {
                     user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
                     user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
                     user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
-                    user.preferences.faceIDEnabled = userData["faceIDEnabled"] as? Bool ?? false
-                    user.preferences.autoLoginEnabled = userData["autoLoginEnabled"] as? Bool ?? true
                     user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
+                    
+                    // These are stored in the auth service, not user preferences
+                    if let faceIDEnabled = userData["faceIDEnabled"] as? Bool {
+                        self.isFaceIDEnabled = faceIDEnabled
+                    }
+                    if let autoLoginEnabled = userData["autoLoginEnabled"] as? Bool {
+                        self.isAutoLoginEnabled = autoLoginEnabled
+                    }
                     
                     await MainActor.run {
                         currentUser = user
