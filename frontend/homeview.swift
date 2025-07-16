@@ -272,7 +272,7 @@ struct HomeView: View {
                 Image(systemName: "info.circle.fill")
                     .foregroundColor(AppTheme.info)
                 
-                Text("First dispute FREE • $1 per party when truth is created • AI-powered resolution")
+                                    Text("FREE dispute resolution • AI-powered mediation • No hidden fees")
                     .font(AppTheme.caption())
                     .foregroundColor(AppTheme.textTertiary)
                 
