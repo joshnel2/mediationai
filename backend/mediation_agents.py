@@ -22,8 +22,30 @@ class BaseMediationAgent:
         self.agent_type = agent_type
         self.model = model
         self.conversation_history = []
-        self.openai_client = openai.OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
-        self.anthropic_client = anthropic.Anthropic(api_key=settings.anthropic_api_key) if settings.anthropic_api_key else None
+        self._openai_client = None
+        self._anthropic_client = None
+    
+    @property
+    def openai_client(self):
+        """Lazy initialization of OpenAI client"""
+        if self._openai_client is None and settings.openai_api_key:
+            try:
+                self._openai_client = openai.OpenAI(api_key=settings.openai_api_key)
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
+                return None
+        return self._openai_client
+    
+    @property
+    def anthropic_client(self):
+        """Lazy initialization of Anthropic client"""
+        if self._anthropic_client is None and settings.anthropic_api_key:
+            try:
+                self._anthropic_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+            except Exception as e:
+                logger.error(f"Failed to initialize Anthropic client: {e}")
+                return None
+        return self._anthropic_client
     
     async def generate_response(self, prompt: str, context: str = None, dispute_data: Dict = None) -> str:
         """Generate response using AI model"""
@@ -754,4 +776,18 @@ class MediationOrchestrator:
         return False
 
 # Global orchestrator instance
-mediation_orchestrator = MediationOrchestrator()
+_mediation_orchestrator = None
+
+def get_mediation_orchestrator():
+    """Get the global mediation orchestrator instance (lazy initialization)"""
+    global _mediation_orchestrator
+    if _mediation_orchestrator is None:
+        _mediation_orchestrator = MediationOrchestrator()
+    return _mediation_orchestrator
+
+# Create a property-like object for backwards compatibility
+class MediationOrchestratorProxy:
+    def __getattr__(self, name):
+        return getattr(get_mediation_orchestrator(), name)
+
+mediation_orchestrator = MediationOrchestratorProxy()
