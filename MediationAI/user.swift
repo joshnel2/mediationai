@@ -241,6 +241,11 @@ struct Dispute: Identifiable, Codable {
     var expertReviewRequested: Bool
     var urgencyLevel: UrgencyLevel
     var satisfactionRatings: [SatisfactionRating]
+    var requiresContract: Bool
+    var requiresSignature: Bool
+    var requiresEscrow: Bool
+    var partyASignature: DigitalSignature?
+    var partyBSignature: DigitalSignature?
     
     var isResolved: Bool {
         resolution != nil
