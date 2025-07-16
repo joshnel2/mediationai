@@ -187,32 +187,17 @@ iOS App → HTTP/HTTPS → Vercel Backend → OpenAI/Anthropic → Harvard Law A
 
 ### **Step 2: Deploy Backend to Vercel**
 
-#### **2.1 Install Vercel CLI**
-```bash
-# Install Vercel CLI globally
-npm install -g vercel
+#### **2.1 Create Vercel Account**
+1. **Visit**: https://vercel.com
+2. **Sign up** for a free account (GitHub login recommended)
+3. **Verify your email** if prompted
+4. **Complete setup** - you're ready to deploy!
 
-# Login to Vercel (creates free account if needed)
-vercel login
-```
+#### **2.2 Prepare Your Project**
+1. **Fork or download** this repository to your computer
+2. **Navigate** to the `backend/` folder
+3. **Create a `.env` file** with your API keys:
 
-#### **2.2 Clone and Setup Project**
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/mediationai.git
-cd mediationai/backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Copy environment template (if available)
-cp .env.example .env
-
-# Edit .env file with your API keys
-nano .env
-```
-
-#### **2.3 Edit .env File**
 ```bash
 # Required - Add your OpenAI key
 OPENAI_API_KEY=sk-your-actual-openai-key-here
@@ -233,81 +218,76 @@ AI_COOLDOWN_MINUTES=10
 AI_MODEL_PREFERENCE=gpt-3.5-turbo
 ```
 
-#### **2.4 Deploy to Vercel**
-```bash
-# Deploy from backend directory
-vercel
+#### **2.3 Deploy Using Vercel Website**
+1. **Go to** https://vercel.com/dashboard
+2. **Click** "Add New..." → "Project"
+3. **Import** your project:
+   - If from GitHub: Click "Import Git Repository" and select your repo
+   - If from computer: Click "Deploy" and drag your `backend/` folder
+4. **Configure project**:
+   - Project Name: `mediation-ai-backend`
+   - Framework: `Other` (for Python)
+   - Root Directory: `./` (if you uploaded just the backend folder)
+5. **Click** "Deploy"
+6. **Wait** for deployment (usually 1-2 minutes)
 
-# Follow prompts:
-# ? Set up and deploy "~/mediationai/backend"? [Y/n] y
-# ? Which scope do you want to deploy to? [Your Username]
-# ? Link to existing project? [y/N] n
-# ? What's your project's name? mediation-ai-backend
-# ? In which directory is your code located? ./
-# ? Want to override the settings? [y/N] n
+📱 **Vercel will automatically detect your Python app and deploy it!**
 
-# Wait for deployment (usually takes 1-2 minutes)
-```
+#### **2.4 Set Environment Variables in Vercel Dashboard**
+1. **Go to** https://vercel.com/dashboard
+2. **Click** your deployed project (`mediation-ai-backend`)
+3. **Go to** **Settings** → **Environment Variables**
+4. **Add each variable** by clicking "Add New":
 
-#### **2.5 Set Environment Variables in Vercel**
-```bash
-# Add environment variables via CLI
-vercel env add OPENAI_API_KEY
-# Paste your OpenAI key when prompted
+| Variable Name | Value | Environment |
+|---------------|-------|-------------|
+| `OPENAI_API_KEY` | `sk-your-actual-openai-key-here` | Production |
+| `HARVARD_CASELAW_API_KEY` | `your-harvard-key-here` | Production |
+| `ANTHROPIC_API_KEY` | `your-anthropic-key-here` | Production |
+| `SECRET_KEY` | `your-secure-secret-key` | Production |
+| `DEBUG` | `false` | Production |
+| `ENABLE_AI_COST_OPTIMIZATION` | `true` | Production |
+| `MAX_AI_INTERVENTIONS` | `3` | Production |
+| `MAX_AI_TOKENS` | `300` | Production |
+| `AI_COOLDOWN_MINUTES` | `10` | Production |
+| `AI_MODEL_PREFERENCE` | `gpt-3.5-turbo` | Production |
 
-vercel env add HARVARD_CASELAW_API_KEY
-# Paste your Harvard Law key when prompted
+5. **Click** "Save" after adding each variable
+6. **Redeploy** your project (Vercel will do this automatically)
 
-vercel env add SECRET_KEY
-# Enter a secure secret key
-
-vercel env add DEBUG
-# Enter: false
-
-vercel env add ENABLE_AI_COST_OPTIMIZATION
-# Enter: true
-
-vercel env add MAX_AI_INTERVENTIONS
-# Enter: 3
-
-vercel env add MAX_AI_TOKENS
-# Enter: 300
-
-vercel env add AI_COOLDOWN_MINUTES
-# Enter: 10
-
-vercel env add AI_MODEL_PREFERENCE
-# Enter: gpt-3.5-turbo
-```
-
-**Alternative: Set via Vercel Dashboard**
-1. Go to https://vercel.com/dashboard
-2. Click your project
-3. Go to **Settings** → **Environment Variables**
-4. Add each variable manually
-
-#### **2.6 Get Your API URL**
-After deployment, Vercel will show you a URL like:
-```
-✅ Production: https://mediation-ai-backend-abc123.vercel.app
-```
+#### **2.5 Get Your API URL**
+1. **After deployment** completes, go to your project dashboard
+2. **Copy the Production URL** (looks like: `https://mediation-ai-backend-abc123.vercel.app`)
+3. **Or click** "Visit" to see your live backend
 
 **🔥 SAVE THIS URL - You need it for the iOS app!**
 
 ### **Step 3: Test Your Backend**
 
-```bash
-# Test API documentation
-curl https://your-vercel-url.vercel.app/docs
+#### **3.1 Test API Documentation**
+1. **Visit** `https://your-vercel-url.vercel.app/docs` in your browser
+2. **You should see** the FastAPI documentation interface
+3. **This confirms** your backend is working correctly
 
-# Test health check
-curl https://your-vercel-url.vercel.app/api/health
-
-# Test cost settings
-curl https://your-vercel-url.vercel.app/api/cost-settings
+#### **3.2 Test Health Check**
+1. **Visit** `https://your-vercel-url.vercel.app/api/health` in your browser
+2. **You should see** a JSON response like:
+```json
+{
+  "status": "healthy",
+  "service": "MediationAI API",
+  "features": {
+    "ai_mediation": true,
+    "legal_research": true,
+    "contract_generation": true,
+    "cost_optimization": true
+  }
+}
 ```
 
-**Expected Response:**
+#### **3.3 Test Cost Settings**
+1. **Visit** `https://your-vercel-url.vercel.app/api/cost-settings` in your browser
+2. **You should see** cost optimization settings:
 ```json
 {
   "cost_optimization_enabled": true,
@@ -316,6 +296,8 @@ curl https://your-vercel-url.vercel.app/api/cost-settings
   "ai_model": "gpt-3.5-turbo"
 }
 ```
+
+**✅ If all tests pass, your backend is ready!**
 
 ### **Step 4: Configure iOS App**
 
