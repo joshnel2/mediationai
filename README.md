@@ -237,6 +237,8 @@ iOS App → HTTP/HTTPS → Vercel Backend → OpenAI/Anthropic → Harvard Law A
 
 **🔥 SAVE THIS URL - You need it for the iOS app!**
 
+https://mediationai-3ueg.vercel.app
+
 ### **Step 3: Test Your Backend**
 
 #### **3.1 Test API Documentation**
