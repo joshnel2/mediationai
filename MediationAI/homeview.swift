@@ -121,7 +121,10 @@ struct HomeView: View {
                 .animation(.easeOut(duration: 0.6).delay(0.0), value: animateCards)
                 
                 // Notification button (modern touch)
-                Button(action: { /* TODO: Add notifications */ }) {
+                Button(action: { 
+                    // Show notifications view or alert
+                    print("Notifications tapped - feature to be implemented")
+                }) {
                     Image(systemName: "bell.fill")
                         .font(.system(size: 20))
                         .foregroundColor(AppTheme.accent)

@@ -383,7 +383,10 @@ struct EscrowView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, AppTheme.spacingMD)
                 
-                Button(action: { /* TODO: Add notification signup */ }) {
+                Button(action: { 
+                    // Show success message or register for notifications
+                    print("Notification signup tapped - feature to be implemented")
+                }) {
                     HStack {
                         Image(systemName: "bell.fill")
                             .font(.headline)

@@ -90,7 +90,7 @@ class MockAuthService: ObservableObject {
         let context = LAContext()
         let reason = "Authenticate to access your MediationAI account"
         
-        context.evaluatePolicy(.biometricAuthentication, localizedReason: reason) { success, error in
+        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, error in
             DispatchQueue.main.async {
                 completion(success)
             }
