@@ -9,6 +9,7 @@
 
 ## 📋 Table of Contents
 
+- [📁 Project Organization](#-project-organization)
 - [🌟 Features](#-features)
 - [🏗️ Architecture](#️-architecture)
 - [🚀 Quick Start](#-quick-start)
@@ -57,25 +58,41 @@
 
 ### **Backend** (Python FastAPI)
 ```
-Backend/
+backend/
 ├── mediation_api.py        # Main API endpoints
 ├── mediation_agents.py     # AI mediation agents
 ├── ai_cost_controller.py   # Cost optimization
 ├── contract_generator.py   # Legal contract creation
 ├── legal_research.py       # Harvard Law API integration
 ├── dispute_models.py       # Data models
-└── config.py              # Configuration settings
+├── config.py              # Configuration settings
+├── requirements.txt        # Python dependencies
+└── vercel.json            # Vercel deployment config
 ```
 
 ### **Frontend** (Swift iOS)
 ```
-Frontend/
+frontend/
 ├── MediationAIApp.swift    # Main app entry point
-├── HomeView.swift          # Dashboard
-├── DisputeRoomView.swift   # Dispute interface
-├── CreateDisputeView.swift # Create new disputes
+├── homeview.swift          # Dashboard
+├── disputeroomview.swift   # Dispute interface
+├── createdisputeview.swift # Create new disputes
 ├── RealDisputeService.swift # API communication
-└── APIConfig.swift         # Backend connection
+├── APIConfig.swift         # Backend connection
+└── Info.plist            # iOS app configuration
+```
+
+### **Guides** (Documentation)
+```
+guides/
+├── API_SETUP_GUIDE.md             # API setup instructions
+├── DEPLOYMENT_GUIDE.md            # Deployment instructions
+├── COST_OPTIMIZATION_GUIDE.md     # Cost management
+├── DISPUTE_FLOW_ANALYSIS.md       # Dispute flow analysis
+├── iOS_Deployment_Guide.md        # iOS deployment guide
+├── iPhone_UI_Improvements_Summary.md # UI improvements
+├── MediationAI_Revisions_Summary.md # Recent revisions
+└── NEXT_ESCROW_FEATURES.md        # Upcoming features
 ```
 
 ### **Communication Flow**
@@ -141,7 +158,7 @@ cd mediationai/backend
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Copy environment template
+# Copy environment template (if available)
 cp .env.example .env
 
 # Edit .env file with your API keys
@@ -786,7 +803,9 @@ python main.py
 ## 📧 Support
 
 For questions or issues:
-- 📖 **Documentation**: Check `API_SETUP_GUIDE.md`
+- 📖 **Documentation**: Check `guides/API_SETUP_GUIDE.md`
+- 🚀 **Deployment**: See `guides/DEPLOYMENT_GUIDE.md`
+- 💰 **Cost Management**: See `guides/COST_OPTIMIZATION_GUIDE.md`
 - 🐛 **Issues**: Create GitHub issue
 - 💡 **Feature Requests**: Open GitHub discussion
 
