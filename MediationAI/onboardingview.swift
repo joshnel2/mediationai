@@ -379,9 +379,9 @@ struct BalancedScaleView: View {
                         .animation(.easeInOut(duration: 1.4), value: animateElements)
                 }
                 
-                // Features Section
+                // Features Section with fade effects
                 if showFeatures {
-                    VStack(spacing: AppTheme.spacingLG) {
+                    VStack(spacing: AppTheme.spacingMD) {
                         ComparisonCard(
                             icon: "dollarsign.circle.fill",
                             title: "Traditional Lawyers",
@@ -390,6 +390,8 @@ struct BalancedScaleView: View {
                             vsSubtitle: "$1 per party",
                             color: AppTheme.success
                         )
+                        .opacity(showFeatures ? 0.9 : 0.0)
+                        .animation(.easeInOut(duration: 0.8).delay(0.2), value: showFeatures)
                         
                         ComparisonCard(
                             icon: "clock.fill",
@@ -399,6 +401,8 @@ struct BalancedScaleView: View {
                             vsSubtitle: "Minutes",
                             color: AppTheme.info
                         )
+                        .opacity(showFeatures ? 0.9 : 0.0)
+                        .animation(.easeInOut(duration: 0.8).delay(0.4), value: showFeatures)
                         
                         ComparisonCard(
                             icon: "shield.checkered",
@@ -408,13 +412,15 @@ struct BalancedScaleView: View {
                             vsSubtitle: "Fair AI",
                             color: AppTheme.accent
                         )
+                        .opacity(showFeatures ? 0.9 : 0.0)
+                        .animation(.easeInOut(duration: 0.8).delay(0.6), value: showFeatures)
                     }
                     .padding(.horizontal, AppTheme.spacingLG)
                 }
                 
-                Spacer()
+                Spacer(minLength: AppTheme.spacingLG)
                 
-                // Get Started Button
+                // Get Started Button - Raised position
                 Button(action: onGetStarted) {
                     HStack {
                         Text("Get Started")
@@ -427,8 +433,10 @@ struct BalancedScaleView: View {
                 }
                 .primaryButton()
                 .padding(.horizontal, AppTheme.spacingXL)
-                .padding(.bottom, AppTheme.spacingXXL)
+                .padding(.bottom, AppTheme.spacingLG)
                 .pulseEffect()
+                .opacity(showFeatures ? 1.0 : 0.0)
+                .animation(.easeInOut(duration: 1.0).delay(1.0), value: showFeatures)
             }
         }
         .onAppear {

@@ -219,6 +219,11 @@ struct HomeView: View {
                             Text("Coming soon")
                                 .font(AppTheme.caption())
                                 .opacity(0.8)
+                            
+                            Text("Learn More")
+                                .font(.system(size: 11))
+                                .foregroundColor(AppTheme.primary)
+                                .fontWeight(.medium)
                         }
                         
                         Spacer()
