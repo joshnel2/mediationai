@@ -147,16 +147,22 @@ struct AuthView: View {
         }
         
         if isSignUp {
-            if authService.signUp(email: email, password: password) {
-                // Success
-            } else {
-                error = "Email already exists. Try signing in instead."
+            Task {
+                let success = await authService.signUp(email: email, password: password)
+                await MainActor.run {
+                    if !success {
+                        error = "Email already exists. Try signing in instead."
+                    }
+                }
             }
         } else {
-            if authService.signIn(email: email, password: password) {
-                // Success
-            } else {
-                error = "Invalid email or password."
+            Task {
+                let success = await authService.signIn(email: email, password: password)
+                await MainActor.run {
+                    if !success {
+                        error = "Invalid email or password."
+                    }
+                }
             }
         }
     }

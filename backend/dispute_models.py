@@ -41,13 +41,30 @@ class MediationTone(str, Enum):
     NEUTRAL = "neutral"
     CONCILIATORY = "conciliatory"
 
+# Authentication Models
+class UserRegistrationRequest(BaseModel):
+    email: str
+    password: str
+    display_name: Optional[str] = None
+
+class UserLoginRequest(BaseModel):
+    email: str
+    password: str
+
 # Core Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    username: str
     email: str
-    full_name: Optional[str] = None
-    phone: Optional[str] = None
+    displayName: Optional[str] = None
+    hasUsedFreeDispute: bool = False
+    totalDisputes: int = 0
+    disputesWon: int = 0
+    disputesLost: int = 0
+    createdAt: str
+    updatedAt: str
+    faceIDEnabled: bool = False
+    autoLoginEnabled: bool = True
+    notificationsEnabled: bool = True
     created_at: datetime = Field(default_factory=datetime.now)
     is_verified: bool = False
 

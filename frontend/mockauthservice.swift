@@ -19,6 +19,7 @@ class MockAuthService: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let userKey = "mediationAI_currentUser"
+    private let tokenKey = "mediationAI_access_token"
     private let faceIDKey = "mediationAI_faceID_enabled"
     private let autoLoginKey = "mediationAI_autoLogin_enabled"
     
@@ -27,25 +28,123 @@ class MockAuthService: ObservableObject {
         attemptAutoLogin()
     }
     
-    func signUp(email: String, password: String) -> Bool {
-        guard !users.contains(where: { $0.email == email }) else { return false }
-        let user = User(id: UUID(), email: email, password: password)
-        users.append(user)
-        currentUser = user
-        saveUserSettings()
-        return true
+    func signUp(email: String, password: String) async -> Bool {
+        guard !email.isEmpty, !password.isEmpty else { return false }
+        
+        let url = URL(string: "\(APIConfig.baseURL)/api/register")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody = [
+            "email": email,
+            "password": password
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                
+                if let userData = json?["user"] as? [String: Any],
+                   let accessToken = json?["access_token"] as? String {
+                    
+                    // Parse user data
+                    let user = User(
+                        id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
+                        email: userData["email"] as? String ?? email,
+                        displayName: userData["displayName"] as? String ?? email.components(separatedBy: "@")[0],
+                        hasUsedFreeDispute: userData["hasUsedFreeDispute"] as? Bool ?? false,
+                        totalDisputes: userData["totalDisputes"] as? Int ?? 0,
+                        disputesWon: userData["disputesWon"] as? Int ?? 0,
+                        disputesLost: userData["disputesLost"] as? Int ?? 0,
+                        faceIDEnabled: userData["faceIDEnabled"] as? Bool ?? false,
+                        autoLoginEnabled: userData["autoLoginEnabled"] as? Bool ?? true,
+                        notificationsEnabled: userData["notificationsEnabled"] as? Bool ?? true
+                    )
+                    
+                    await MainActor.run {
+                        currentUser = user
+                        users.append(user)
+                        
+                        // Save token and user data
+                        userDefaults.set(accessToken, forKey: tokenKey)
+                        saveUserSettings()
+                    }
+                    
+                    return true
+                }
+            }
+        } catch {
+            print("❌ SignUp Error: \(error)")
+        }
+        
+        return false
     }
     
-    func signIn(email: String, password: String) -> Bool {
-        guard let user = users.first(where: { $0.email == email && $0.password == password }) else { return false }
-        currentUser = user
-        saveUserSettings()
-        return true
+    func signIn(email: String, password: String) async -> Bool {
+        guard !email.isEmpty, !password.isEmpty else { return false }
+        
+        let url = URL(string: "\(APIConfig.baseURL)/api/login")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody = [
+            "email": email,
+            "password": password
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                
+                if let userData = json?["user"] as? [String: Any],
+                   let accessToken = json?["access_token"] as? String {
+                    
+                    // Parse user data
+                    let user = User(
+                        id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
+                        email: userData["email"] as? String ?? email,
+                        displayName: userData["displayName"] as? String ?? email.components(separatedBy: "@")[0],
+                        hasUsedFreeDispute: userData["hasUsedFreeDispute"] as? Bool ?? false,
+                        totalDisputes: userData["totalDisputes"] as? Int ?? 0,
+                        disputesWon: userData["disputesWon"] as? Int ?? 0,
+                        disputesLost: userData["disputesLost"] as? Int ?? 0,
+                        faceIDEnabled: userData["faceIDEnabled"] as? Bool ?? false,
+                        autoLoginEnabled: userData["autoLoginEnabled"] as? Bool ?? true,
+                        notificationsEnabled: userData["notificationsEnabled"] as? Bool ?? true
+                    )
+                    
+                    await MainActor.run {
+                        currentUser = user
+                        
+                        // Save token and user data
+                        userDefaults.set(accessToken, forKey: tokenKey)
+                        saveUserSettings()
+                    }
+                    
+                    return true
+                }
+            }
+        } catch {
+            print("❌ SignIn Error: \(error)")
+        }
+        
+        return false
     }
     
     func signOut() {
         currentUser = nil
         userDefaults.removeObject(forKey: userKey)
+        userDefaults.removeObject(forKey: tokenKey)
         userDefaults.removeObject(forKey: autoLoginKey)
     }
     
@@ -114,18 +213,53 @@ class MockAuthService: ObservableObject {
         guard isAutoLoginEnabled else { return }
         
         if let savedUserData = userDefaults.data(forKey: userKey),
-           let user = try? JSONDecoder().decode(User.self, from: savedUserData) {
+           let user = try? JSONDecoder().decode(User.self, from: savedUserData),
+           let accessToken = userDefaults.string(forKey: tokenKey) {
             
-            if isFaceIDEnabled {
-                authenticateWithFaceID { [weak self] success in
-                    if success {
-                        self?.currentUser = user
-                        self?.users.append(user)
+            // Verify token is still valid by making a request to the backend
+            Task {
+                await verifyTokenAndLogin(user: user, token: accessToken)
+            }
+        }
+    }
+    
+    private func verifyTokenAndLogin(user: User, token: String) async {
+        let url = URL(string: "\(APIConfig.baseURL)/api/me")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                // Token is valid, proceed with auto-login
+                await MainActor.run {
+                    if isFaceIDEnabled {
+                        authenticateWithFaceID { [weak self] success in
+                            if success {
+                                self?.currentUser = user
+                                self?.users.append(user)
+                            }
+                        }
+                    } else {
+                        currentUser = user
+                        users.append(user)
                     }
                 }
             } else {
-                currentUser = user
-                users.append(user)
+                // Token is invalid, clear stored data
+                await MainActor.run {
+                    userDefaults.removeObject(forKey: userKey)
+                    userDefaults.removeObject(forKey: tokenKey)
+                }
+            }
+        } catch {
+            // Network error, try to use cached user data
+            await MainActor.run {
+                if !isFaceIDEnabled {
+                    currentUser = user
+                    users.append(user)
+                }
             }
         }
     }

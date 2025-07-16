@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Dict, Optional
 import json
 import logging
@@ -7,6 +8,7 @@ from datetime import datetime
 import asyncio
 import uuid
 import os
+from sqlalchemy.orm import Session
 
 # Import our modules
 from config import settings
@@ -14,6 +16,8 @@ from dispute_models import *
 from mediation_agents import mediation_orchestrator
 from contract_generator import contract_generator
 from ai_cost_controller import ai_cost_controller
+from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage
+from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_current_user_optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,9 +39,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage (in production, use a proper database)
-disputes_db: Dict[str, Dispute] = {}
-users_db: Dict[str, User] = {}
+# Initialize database
+init_db()
+
+# WebSocket connections
 websocket_connections: Dict[str, WebSocket] = {}
 
 # ==============================================================================
@@ -64,58 +69,99 @@ async def health_check():
 # USER MANAGEMENT ENDPOINTS
 # ==============================================================================
 
-@app.post("/api/users/register")
-async def register_user(user_data: Dict[str, str]):
-    """Register a new user (simplified for demo)"""
+@app.post("/api/register")
+async def register_user(request: UserRegistrationRequest, db: Session = Depends(get_db)):
+    """Register a new user"""
     try:
-        user = User(
-            username=user_data["username"],
-            email=user_data["email"],
-            full_name=user_data.get("full_name"),
-            phone=user_data.get("phone")
+        # Check if user already exists
+        existing_user = db.query(DBUser).filter(DBUser.email == request.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user
+        hashed_password = get_password_hash(request.password)
+        db_user = DBUser(
+            email=request.email,
+            password_hash=hashed_password,
+            display_name=request.display_name or request.email.split('@')[0]
         )
         
-        users_db[user.id] = user
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
         
-        logger.info(f"User registered: {user.username}")
+        # Create access token
+        access_token = create_access_token(data={"sub": db_user.id})
+        
+        # Convert to response format
+        user_response = User(
+            id=db_user.id,
+            email=db_user.email,
+            displayName=db_user.display_name,
+            hasUsedFreeDispute=db_user.has_used_free_dispute,
+            totalDisputes=db_user.total_disputes,
+            disputesWon=db_user.disputes_won,
+            disputesLost=db_user.disputes_lost,
+            createdAt=db_user.created_at.isoformat(),
+            updatedAt=db_user.updated_at.isoformat(),
+            faceIDEnabled=db_user.face_id_enabled,
+            autoLoginEnabled=db_user.auto_login_enabled,
+            notificationsEnabled=db_user.notifications_enabled
+        )
         
         return {
-            "status": "success",
-            "message": "User registered successfully",
-            "user_id": user.id,
-            "user": user
+            "user": user_response,
+            "access_token": access_token,
+            "token_type": "bearer"
         }
         
     except Exception as e:
-        logger.error(f"Error registering user: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Registration failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Registration failed")
 
-@app.post("/api/users/login")
-async def login_user(credentials: Dict[str, str]):
-    """Simple login (for demo - implement proper auth in production)"""
+@app.post("/api/login")
+async def login_user(request: UserLoginRequest, db: Session = Depends(get_db)):
+    """Login user"""
     try:
-        username = credentials["username"]
+        # Find user by email
+        db_user = db.query(DBUser).filter(DBUser.email == request.email).first()
+        if not db_user:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         
-        # Find user by username
-        user = None
-        for u in users_db.values():
-            if u.username == username:
-                user = u
-                break
+        # Verify password
+        if not verify_password(request.password, db_user.password_hash):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        # Create access token
+        access_token = create_access_token(data={"sub": db_user.id})
+        
+        # Convert to response format
+        user_response = User(
+            id=db_user.id,
+            email=db_user.email,
+            displayName=db_user.display_name,
+            hasUsedFreeDispute=db_user.has_used_free_dispute,
+            totalDisputes=db_user.total_disputes,
+            disputesWon=db_user.disputes_won,
+            disputesLost=db_user.disputes_lost,
+            createdAt=db_user.created_at.isoformat(),
+            updatedAt=db_user.updated_at.isoformat(),
+            faceIDEnabled=db_user.face_id_enabled,
+            autoLoginEnabled=db_user.auto_login_enabled,
+            notificationsEnabled=db_user.notifications_enabled
+        )
         
         return {
-            "status": "success",
-            "message": "Login successful",
-            "user_id": user.id,
-            "user": user
+            "user": user_response,
+            "access_token": access_token,
+            "token_type": "bearer"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error logging in user: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Login failed: {str(e)}")
+        raise HTTPException(status_code=401, detail="Login failed")
 
 @app.get("/api/users/{user_id}")
 async def get_user(user_id: str):

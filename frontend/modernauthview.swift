@@ -168,22 +168,28 @@ struct ModernAuthView: View {
     
     private func handleSignUp() {
         error = nil
-        if authService.signUp(email: email, password: password) {
-            // Success - will automatically navigate to home
-        } else {
-            error = "Email already exists. Try signing in instead."
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                currentStep = .email
+        Task {
+            let success = await authService.signUp(email: email, password: password)
+            await MainActor.run {
+                if !success {
+                    error = "Email already exists. Try signing in instead."
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        currentStep = .email
+                    }
+                }
             }
         }
     }
     
     private func handleSignIn() {
         error = nil
-        if authService.signIn(email: email, password: password) {
-            // Success - will automatically navigate to home
-        } else {
-            error = "Invalid email or password."
+        Task {
+            let success = await authService.signIn(email: email, password: password)
+            await MainActor.run {
+                if !success {
+                    error = "Invalid email or password."
+                }
+            }
         }
     }
 }
