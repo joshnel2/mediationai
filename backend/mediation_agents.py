@@ -3,6 +3,7 @@ import anthropic
 from typing import List, Dict, Any, Optional
 from config import settings
 from dispute_models import *
+from legal_research import legal_research_service
 import logging
 import json
 import asyncio
@@ -271,7 +272,18 @@ Decision-Making Framework:
 Your decisions are final and binding on all parties."""
     
     async def render_arbitration_decision(self, dispute: Dispute) -> ResolutionProposal:
-        """Render a binding arbitration decision"""
+        """Render a binding arbitration decision with legal research"""
+        
+        # Conduct legal research if available
+        legal_research = None
+        try:
+            evidence_summary = [e.description for e in dispute.evidence]
+            legal_research = await legal_research_service.research_dispute(
+                dispute.title, dispute.category, evidence_summary
+            )
+        except Exception as e:
+            logger.warning(f"Legal research failed: {str(e)}")
+        
         dispute_data = {
             "title": dispute.title,
             "description": dispute.description,
@@ -279,15 +291,27 @@ Your decisions are final and binding on all parties."""
             "participants": [{"role": p.role, "username": p.username} for p in dispute.participants],
             "evidence": [{"title": e.title, "type": e.evidence_type, "description": e.description, "content": e.content[:200]} for e in dispute.evidence],
             "messages": [{"sender_type": m.sender_type, "content": m.content} for m in dispute.messages],
-            "previous_proposals": [{"title": p.title, "terms": p.terms} for p in dispute.proposals]
+            "previous_proposals": [{"title": p.title, "terms": p.terms} for p in dispute.proposals],
+            "legal_research": legal_research
         }
+        
+        legal_precedents_text = ""
+        if legal_research and legal_research.get('precedents'):
+            legal_precedents_text = f"""
+
+LEGAL PRECEDENTS FROM HARVARD LAW DATABASE:
+{json.dumps(legal_research['precedents'], indent=2)}
+
+LEGAL RECOMMENDATIONS:
+{json.dumps(legal_research['recommendations'], indent=2)}
+"""
         
         prompt = f"""As an arbitrator, render a final, binding decision for this dispute.
 
 Your decision should include:
 1. Summary of the dispute and key issues
 2. Analysis of the evidence presented
-3. Applicable standards or precedents
+3. Applicable standards or precedents (including legal precedents below)
 4. Reasoning for your decision
 5. Specific terms of resolution
 6. Implementation timeline and requirements
@@ -299,8 +323,11 @@ Consider:
 - Prevention of future disputes
 - Industry standards and best practices
 - Legal principles relevant to this type of dispute
+- Relevant legal precedents and case law
 
-Make a clear, definitive decision that resolves all issues."""
+{legal_precedents_text}
+
+Make a clear, definitive decision that resolves all issues, considering the legal precedents and recommendations above."""
         
         response = await self.generate_response(prompt, dispute_data=dispute_data)
         

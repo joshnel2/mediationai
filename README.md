@@ -108,10 +108,18 @@ cd frontend
 
 Create `backend/.env` with your API keys:
 ```bash
+# Required (choose one or both)
 OPENAI_API_KEY=sk-your-openai-key-here
 ANTHROPIC_API_KEY=your-anthropic-key-here
+
+# Optional (free Harvard Law API for legal precedents)
+HARVARD_CASELAW_API_KEY=your-free-harvard-key-here
+
+# System
 SECRET_KEY=your-secret-key-here
 ```
+
+**📖 See `API_SETUP_GUIDE.md` for detailed API setup instructions**
 
 ## 🧪 Testing
 
