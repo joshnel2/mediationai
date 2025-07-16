@@ -2,10 +2,9 @@ import Foundation
 
 struct APIConfig {
     // MARK: - Backend Configuration
-    // Update this URL to your deployed Vercel backend
-    static let baseURL = "https://your-vercel-backend.vercel.app"
+    static let baseURL = "https://mediationai-3ueg.vercel.app"
     
-    // For local development, uncomment this line instead:
+    // For local development, uncomment this line:
     // static let baseURL = "http://localhost:8000"
     
     // MARK: - API Endpoints
