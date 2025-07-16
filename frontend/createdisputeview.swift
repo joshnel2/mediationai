@@ -11,11 +11,13 @@ struct CreateDisputeView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
+    @EnvironmentObject var purchaseService: InAppPurchaseService
 
     @State private var title = ""
     @State private var description = ""
     @State private var error: String?
     @State private var createdDispute: Dispute?
+    @State private var isProcessingPayment = false
 
     @State private var showTermsOfService = false
     @State private var animateElements = false
@@ -167,6 +169,17 @@ struct CreateDisputeView: View {
                 }
                 
                 Spacer()
+                
+                VStack(alignment: .trailing, spacing: AppTheme.spacingSM) {
+                    Text("$0.00")
+                        .font(AppTheme.title())
+                        .foregroundColor(AppTheme.success)
+                        .fontWeight(.bold)
+                    
+                    Text("per party")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
+                }
             }
             .padding(AppTheme.spacingLG)
             .background(AppTheme.success.opacity(0.1))
@@ -175,22 +188,6 @@ struct CreateDisputeView: View {
                 RoundedRectangle(cornerRadius: AppTheme.radiusLG)
                     .stroke(AppTheme.success.opacity(0.3), lineWidth: 1)
             )
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: AppTheme.spacingSM) {
-                        Text("$1.00")
-                            .font(AppTheme.title())
-                            .foregroundColor(AppTheme.success)
-                            .fontWeight(.bold)
-                        
-                        Text("per party")
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
-                    }
-                }
-            }
             
             // 2x2 grid layout for better iPhone display
             VStack(spacing: AppTheme.spacingSM) {
@@ -328,8 +325,6 @@ struct CreateDisputeView: View {
                 .background(AppTheme.error.opacity(0.1))
                 .cornerRadius(AppTheme.radiusSM)
             }
-            
-
         }
         .padding(AppTheme.spacingLG)
         .glassCard()
