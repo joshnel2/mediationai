@@ -53,18 +53,20 @@ class MockAuthService: ObservableObject {
                    let accessToken = json?["access_token"] as? String {
                     
                     // Parse user data
-                    let user = User(
+                    var user = User(
                         id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
-                        email: userData["email"] as? String ?? email,
-                        displayName: userData["displayName"] as? String ?? email.components(separatedBy: "@")[0],
-                        hasUsedFreeDispute: userData["hasUsedFreeDispute"] as? Bool ?? false,
-                        totalDisputes: userData["totalDisputes"] as? Int ?? 0,
-                        disputesWon: userData["disputesWon"] as? Int ?? 0,
-                        disputesLost: userData["disputesLost"] as? Int ?? 0,
-                        faceIDEnabled: userData["faceIDEnabled"] as? Bool ?? false,
-                        autoLoginEnabled: userData["autoLoginEnabled"] as? Bool ?? true,
-                        notificationsEnabled: userData["notificationsEnabled"] as? Bool ?? true
+                        email: userData["email"] as? String ?? email
                     )
+                    
+                    // Update user properties from API response
+                    user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
+                    user.hasUsedFreeDispute = userData["hasUsedFreeDispute"] as? Bool ?? false
+                    user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
+                    user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
+                    user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
+                    user.preferences.faceIDEnabled = userData["faceIDEnabled"] as? Bool ?? false
+                    user.preferences.autoLoginEnabled = userData["autoLoginEnabled"] as? Bool ?? true
+                    user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
                     
                     await MainActor.run {
                         currentUser = user
@@ -110,18 +112,20 @@ class MockAuthService: ObservableObject {
                    let accessToken = json?["access_token"] as? String {
                     
                     // Parse user data
-                    let user = User(
+                    var user = User(
                         id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
-                        email: userData["email"] as? String ?? email,
-                        displayName: userData["displayName"] as? String ?? email.components(separatedBy: "@")[0],
-                        hasUsedFreeDispute: userData["hasUsedFreeDispute"] as? Bool ?? false,
-                        totalDisputes: userData["totalDisputes"] as? Int ?? 0,
-                        disputesWon: userData["disputesWon"] as? Int ?? 0,
-                        disputesLost: userData["disputesLost"] as? Int ?? 0,
-                        faceIDEnabled: userData["faceIDEnabled"] as? Bool ?? false,
-                        autoLoginEnabled: userData["autoLoginEnabled"] as? Bool ?? true,
-                        notificationsEnabled: userData["notificationsEnabled"] as? Bool ?? true
+                        email: userData["email"] as? String ?? email
                     )
+                    
+                    // Update user properties from API response
+                    user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
+                    user.hasUsedFreeDispute = userData["hasUsedFreeDispute"] as? Bool ?? false
+                    user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
+                    user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
+                    user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
+                    user.preferences.faceIDEnabled = userData["faceIDEnabled"] as? Bool ?? false
+                    user.preferences.autoLoginEnabled = userData["autoLoginEnabled"] as? Bool ?? true
+                    user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
                     
                     await MainActor.run {
                         currentUser = user
