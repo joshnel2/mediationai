@@ -149,45 +149,32 @@ struct CreateDisputeView: View {
     
     private var pricingCard: some View {
         VStack(spacing: AppTheme.spacingLG) {
-            if authService.currentUser?.hasUsedFreeDispute == false {
-                // First dispute free banner
-                HStack {
-                    Image(systemName: "gift.fill")
-                        .font(.title2)
-                        .foregroundColor(AppTheme.accent)
+            // Free service banner
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(AppTheme.success)
+                
+                VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
+                    Text("✅ Always FREE!")
+                        .font(AppTheme.headline())
+                        .foregroundColor(AppTheme.success)
+                        .fontWeight(.bold)
                     
-                    VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                        Text("🎉 Your First Dispute is FREE!")
-                            .font(AppTheme.headline())
-                            .foregroundColor(AppTheme.accent)
-                            .fontWeight(.bold)
-                        
-                        Text("Start your first dispute at no cost. Future disputes are just $1 per party when truth is created.")
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
-                    }
-                    
-                    Spacer()
+                    Text("Create disputes at no cost during beta testing!")
+                        .font(AppTheme.caption())
+                        .foregroundColor(AppTheme.textSecondary)
                 }
-                .padding(AppTheme.spacingLG)
-                .background(AppTheme.accentGradient.opacity(0.1))
-                .cornerRadius(AppTheme.radiusLG)
-                .overlay(
-                    RoundedRectangle(cornerRadius: AppTheme.radiusLG)
-                        .stroke(AppTheme.accent.opacity(0.3), lineWidth: 1)
-                )
-            } else {
-                // Regular pricing
-                HStack {
-                    VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                        Text("💰 Simple Pricing")
-                            .font(AppTheme.headline())
-                            .foregroundColor(AppTheme.textPrimary)
-                            .fontWeight(.semibold)
-                        
-                        Text("$1 per party when truth is created - pay only for results")
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
+                
+                Spacer()
+            }
+            .padding(AppTheme.spacingLG)
+            .background(AppTheme.success.opacity(0.1))
+            .cornerRadius(AppTheme.radiusLG)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.radiusLG)
+                    .stroke(AppTheme.success.opacity(0.3), lineWidth: 1)
+            )
                     }
                     
                     Spacer()
@@ -342,21 +329,7 @@ struct CreateDisputeView: View {
                 .cornerRadius(AppTheme.radiusSM)
             }
             
-            if let purchaseError = purchaseService.purchaseError {
-                HStack {
-                    Image(systemName: "creditcard.trianglebadge.exclamationmark")
-                        .foregroundColor(AppTheme.error)
-                    
-                    Text(purchaseError)
-                        .font(AppTheme.caption())
-                        .foregroundColor(AppTheme.error)
-                    
-                    Spacer()
-                }
-                .padding(AppTheme.spacingMD)
-                .background(AppTheme.error.opacity(0.1))
-                .cornerRadius(AppTheme.radiusSM)
-            }
+
         }
         .padding(AppTheme.spacingLG)
         .glassCard()
@@ -389,14 +362,14 @@ struct CreateDisputeView: View {
                 .cornerRadius(AppTheme.radiusLG)
                 .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .disabled(isProcessingPayment || purchaseService.isLoading || title.isEmpty || description.isEmpty)
-            .opacity((isProcessingPayment || purchaseService.isLoading || title.isEmpty || description.isEmpty) ? 0.6 : 1.0)
+            .disabled(title.isEmpty || description.isEmpty)
+            .opacity((title.isEmpty || description.isEmpty) ? 0.6 : 1.0)
             
             HStack {
                 Image(systemName: "shield.checkered")
                     .foregroundColor(AppTheme.success)
                 
-                Text("Payment processed securely through Apple")
+                Text("Free dispute resolution service")
                     .font(AppTheme.caption2())
                     .foregroundColor(AppTheme.textTertiary)
                 

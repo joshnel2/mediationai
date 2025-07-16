@@ -97,41 +97,22 @@ struct JoinDisputeView: View {
                                 .font(.caption)
                         }
                         
-                        if let purchaseError = purchaseService.purchaseError {
-                            Text(purchaseError)
-                                .foregroundColor(.red)
-                                .font(.caption)
-                        }
+
                         
                         Button(action: handleJoinWithPayment) {
                             HStack {
-                                if isProcessingPayment || purchaseService.isLoading {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                        .foregroundColor(.white)
-                                } else {
-                                    if authService.currentUser?.hasUsedFreeDispute == false {
-                                        Image(systemName: "gift.fill")
-                                            .font(.headline)
-                                        Text("Join FREE Dispute")
-                                            .font(AppTheme.headline())
-                                            .fontWeight(.semibold)
-                                    } else {
-                                        Image(systemName: "link.circle.fill")
-                                            .font(.headline)
-                                        Text("Join Dispute")
-                                            .font(AppTheme.headline())
-                                            .fontWeight(.semibold)
-                                    }
-                                }
+                                Image(systemName: "link.circle.fill")
+                                    .font(.headline)
+                                Text("Join Dispute")
+                                    .font(AppTheme.headline())
+                                    .fontWeight(.semibold)
                             }
                         }
                         .primaryButton()
-                        .disabled(isProcessingPayment || purchaseService.isLoading)
                         
-                        // Payment compliance notice
+                        // Free service notice
                         VStack(spacing: 8) {
-                            Text("Payment processed securely through Apple")
+                            Text("Free dispute resolution service")
                                 .font(.caption2)
                                 .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
@@ -190,18 +171,9 @@ struct JoinDisputeView: View {
             return
         }
         
-        isProcessingPayment = true
-        
+        // Beta version - all disputes are free, no payment processing needed
         Task {
-            var paymentSuccess = false
-            
-            // Beta version - all disputes are free
-            paymentSuccess = true
-            
             await MainActor.run {
-                isProcessingPayment = false
-                
-                if paymentSuccess {
                     var dispute: Dispute?
                     
                     if selectedInputType == .link {
@@ -222,9 +194,6 @@ struct JoinDisputeView: View {
                     } else {
                         error = "Invalid or expired \(selectedInputType.rawValue.lowercased())."
                     }
-                } else {
-                    error = "Failed to join dispute. Please try again."
-                }
             }
         }
     }
