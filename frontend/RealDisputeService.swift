@@ -116,13 +116,18 @@ class RealDisputeService: ObservableObject {
     // MARK: - Mock Data for Development
     func loadMockDisputes() {
         // This provides mock data while you're setting up the backend
+        guard let user = currentUser else {
+            print("⚠️ Cannot load mock disputes: currentUser is nil")
+            return
+        }
+        
         let mockDispute = Dispute(
             id: UUID(),
             title: "Test Dispute",
             description: "This is a test dispute",
             category: .services,
             disputeValue: 100.0,
-            user: currentUser
+            user: user
         )
         
         disputes = [mockDispute]
