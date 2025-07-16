@@ -9,6 +9,20 @@ class RealDisputeService: ObservableObject {
     
     private let apiService = DisputeAPIService()
     
+    init() {
+        // Initialize with proper memory management
+        self.disputes = []
+        self.isLoading = false
+        self.errorMessage = nil
+        self.currentUser = nil
+    }
+    
+    deinit {
+        // Clean up resources
+        disputes.removeAll()
+        currentUser = nil
+    }
+    
     // MARK: - Authentication
     func signUp(email: String, password: String) async -> Bool {
         await MainActor.run { isLoading = true }
@@ -115,18 +129,36 @@ class RealDisputeService: ObservableObject {
     
     // MARK: - Mock Data for Development
     func loadMockDisputes() {
-        // This provides mock data while you're setting up the backend
-        let mockDispute = Dispute(
-            id: UUID(),
-            title: "Test Dispute",
-            description: "This is a test dispute",
-            category: .service,
-            partyA: currentUser,
-            partyB: nil,
-            requiresContract: false
-        )
-        
-        disputes = [mockDispute]
+        do {
+            // Ensure we have a current user for mock data
+            if currentUser == nil {
+                currentUser = User(email: "demo@example.com", password: "")
+                print("✅ Created demo user for mock data")
+            }
+            
+            guard let user = currentUser else { 
+                print("❌ Failed to create currentUser for mock data")
+                return 
+            }
+            
+            // This provides mock data while you're setting up the backend
+            let mockDispute = Dispute(
+                id: UUID(),
+                title: "Test Dispute",
+                description: "This is a test dispute",
+                category: .services,
+                disputeValue: 100.0,
+                user: user
+            )
+            
+            disputes = [mockDispute]
+            print("✅ Mock dispute loaded successfully")
+            print("🔄 Connecting to Vercel backend: \(APIConfig.baseURL)")
+            
+        } catch {
+            print("❌ Error loading mock disputes: \(error)")
+            errorMessage = "Failed to load mock data: \(error.localizedDescription)"
+        }
     }
     
     // MARK: - Helper Methods
