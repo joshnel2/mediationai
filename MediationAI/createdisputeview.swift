@@ -19,6 +19,9 @@ struct CreateDisputeView: View {
     @State private var isProcessingPayment = false
     @State private var showTermsOfService = false
     @State private var animateElements = false
+    @State private var createContract = false
+    @State private var requestSignature = false
+    @State private var useEscrow = false
     
     var body: some View {
         ZStack {
@@ -47,6 +50,12 @@ struct CreateDisputeView: View {
                         
                         // Compliance notice
                         complianceSection
+                        
+                        // Footer
+                        Text("Decentralized Technology Solutions 2025")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                            .padding(.top, AppTheme.spacingXL)
                         
                         Spacer(minLength: AppTheme.spacingXXL)
                     }
@@ -227,6 +236,76 @@ struct CreateDisputeView: View {
                         TextField("Describe the situation in detail...", text: $description, axis: .vertical)
                             .modernTextField()
                             .frame(minHeight: 100)
+                    }
+                    
+                    // Additional Options
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Additional Options")
+                            .font(AppTheme.caption())
+                            .foregroundColor(AppTheme.textSecondary)
+                            .fontWeight(.medium)
+                        
+                        VStack(spacing: AppTheme.spacingSM) {
+                            HStack {
+                                Button(action: { createContract.toggle() }) {
+                                    Image(systemName: createContract ? "checkmark.square.fill" : "square")
+                                        .font(.title2)
+                                        .foregroundColor(createContract ? AppTheme.success : AppTheme.textSecondary)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Create Contract")
+                                        .font(AppTheme.caption())
+                                        .foregroundColor(AppTheme.textPrimary)
+                                    
+                                    Text("AI will create a fair contract for this dispute")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Button(action: { requestSignature.toggle() }) {
+                                    Image(systemName: requestSignature ? "checkmark.square.fill" : "square")
+                                        .font(.title2)
+                                        .foregroundColor(requestSignature ? AppTheme.success : AppTheme.textSecondary)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Request Signatures")
+                                        .font(AppTheme.caption())
+                                        .foregroundColor(AppTheme.textPrimary)
+                                    
+                                    Text("Contract will be legally binding in court")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            HStack {
+                                Button(action: { /* Coming soon */ }) {
+                                    Image(systemName: "square")
+                                        .font(.title2)
+                                        .foregroundColor(AppTheme.textSecondary.opacity(0.5))
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Escrow Service")
+                                        .font(AppTheme.caption())
+                                        .foregroundColor(AppTheme.textSecondary.opacity(0.5))
+                                    
+                                    Text("Coming soon - AI mediated money holding")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.textSecondary.opacity(0.5))
+                                }
+                                
+                                Spacer()
+                            }
+                        }
                     }
                 }
             }

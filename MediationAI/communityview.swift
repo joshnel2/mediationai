@@ -48,6 +48,12 @@ struct CommunityView: View {
                             learningContent
                         }
                         
+                        // Footer
+                        Text("Decentralized Technology Solutions 2025")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                            .padding(.top, AppTheme.spacingXL)
+                        
                         Spacer(minLength: AppTheme.spacingXXL)
                     }
                     .padding(.horizontal, AppTheme.spacingLG)

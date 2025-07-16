@@ -12,7 +12,12 @@ struct PrivacyPolicyView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
+            ZStack {
+                // Background gradient
+                AppTheme.backgroundGradient
+                    .ignoresSafeArea()
+                
+                ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Privacy Policy")
                         .font(.largeTitle)
@@ -22,7 +27,7 @@ struct PrivacyPolicyView: View {
                     
                     Text("Last Updated: \(Date().formatted(date: .abbreviated, time: .omitted))")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppTheme.textSecondary)
                         .padding(.bottom, 20)
                     
                     VStack(alignment: .leading, spacing: 16) {
@@ -140,15 +145,22 @@ struct PrivacyPolicyView: View {
                             """
                         )
                     }
+                    
+                    // Footer
+                    Text("Decentralized Technology Solutions 2025")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                        .padding(.top, AppTheme.spacingXL)
+                        .padding(.bottom, 100)
                 }
                 .padding()
             }
-            .background(AppTheme.background.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+            }
             }
         }
     }
@@ -167,7 +179,7 @@ struct PolicySection: View {
             
             Text(content)
                 .font(.body)
-                .foregroundColor(.primary)
+                .foregroundColor(AppTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding()

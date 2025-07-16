@@ -26,7 +26,13 @@ struct JoinDisputeView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 24) {
+            ZStack {
+                // Background gradient
+                AppTheme.backgroundGradient
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
                 Text("Join a Dispute")
                     .font(AppTheme.titleFont())
                     .foregroundColor(AppTheme.primary)
@@ -155,10 +161,16 @@ struct JoinDisputeView: View {
                 }
                 .padding(.horizontal)
                 
+                // Footer
+                Text("Decentralized Technology Solutions 2025")
+                    .font(.system(size: 12))
+                    .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                    .padding(.top, AppTheme.spacingXL)
+                
                 Spacer()
             }
             .padding()
-            .background(AppTheme.background.ignoresSafeArea())
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

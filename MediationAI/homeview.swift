@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showJoin = false
     @State private var showSettings = false
     @State private var showCommunity = false
+    @State private var showContract = false
 
     @State private var selectedDispute: Dispute?
     @State private var animateCards = false
@@ -47,6 +48,12 @@ struct HomeView: View {
                     // Disputes section
                     disputesSection
                     
+                    // Footer
+                    Text("Decentralized Technology Solutions 2025")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                        .padding(.top, AppTheme.spacingXL)
+                    
                     Spacer(minLength: AppTheme.spacingXXL)
                 }
                 .padding(.horizontal, AppTheme.spacingLG)
@@ -68,6 +75,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showCommunity) {
             CommunityView()
+        }
+        .sheet(isPresented: $showContract) {
+            ContractView()
         }
 
         .onAppear {
@@ -167,17 +177,17 @@ struct HomeView: View {
     private var quickAccessSection: some View {
         VStack(spacing: AppTheme.spacingMD) {
             HStack(spacing: AppTheme.spacingMD) {
-                Button(action: { showCommunity = true }) {
+                Button(action: { showContract = true }) {
                     HStack {
-                        Image(systemName: "person.3.fill")
+                        Image(systemName: "doc.text.fill")
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Community")
+                            Text("Contract")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                            Text("Connect with other users")
+                            Text("AI creates fair contracts")
                                 .font(AppTheme.caption())
                                 .opacity(0.8)
                         }
@@ -192,17 +202,17 @@ struct HomeView: View {
                     .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 
-                Button(action: { showCommunity = true }) {
+                Button(action: { /* Coming soon */ }) {
                     HStack {
-                        Image(systemName: "person.3.fill")
+                        Image(systemName: "lock.shield.fill")
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Community")
+                            Text("Escrow")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                            Text("Connect with users")
+                            Text("Coming soon")
                                 .font(AppTheme.caption())
                                 .opacity(0.8)
                         }

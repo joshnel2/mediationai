@@ -383,7 +383,7 @@ struct BalancedScaleView: View {
                         ComparisonCard(
                             icon: "dollarsign.circle.fill",
                             title: "Traditional Lawyers",
-                            subtitle: "Thousands of dollars",
+                            subtitle: "Thousands",
                             vsTitle: "MediationAI",
                             vsSubtitle: "$1 per party",
                             color: AppTheme.success
@@ -392,18 +392,18 @@ struct BalancedScaleView: View {
                         ComparisonCard(
                             icon: "clock.fill",
                             title: "Court System",
-                            subtitle: "Months to years",
+                            subtitle: "Years",
                             vsTitle: "Our AI",
-                            vsSubtitle: "Minutes to hours",
+                            vsSubtitle: "Minutes",
                             color: AppTheme.info
                         )
                         
                         ComparisonCard(
                             icon: "shield.checkered",
-                            title: "Biased Process",
+                            title: "Biased",
                             subtitle: "Favors resources",
-                            vsTitle: "Fair AI",
-                            vsSubtitle: "Unbiased analysis",
+                            vsTitle: "Unbiased",
+                            vsSubtitle: "Fair AI",
                             color: AppTheme.accent
                         )
                     }

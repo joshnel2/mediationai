@@ -178,6 +178,12 @@ struct SettingsView: View {
                     }
                     .secondaryButton()
                     
+                    // Footer
+                    Text("Decentralized Technology Solutions 2025")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                        .padding(.top, AppTheme.spacingXL)
+                    
                     Spacer(minLength: AppTheme.spacingXXL)
                 }
                 .padding(AppTheme.spacingLG)
@@ -188,7 +194,7 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Done") { dismissView() }
+                Button("Home") { dismissView() }
             }
         }
         .sheet(isPresented: $showPrivacyPolicy) {
@@ -284,12 +290,12 @@ struct SettingsRow: View {
                     Text(title)
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundColor(destructive ? .red : .primary)
+                        .foregroundColor(destructive ? .red : AppTheme.textPrimary)
                     
                     if !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppTheme.textSecondary)
                     }
                 }
                 
