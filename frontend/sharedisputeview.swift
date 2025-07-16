@@ -76,7 +76,7 @@ struct ShareDisputeView: View {
             }
             
             VStack(spacing: 8) {
-                Text("The other party will pay $1 when they join.")
+                Text("The other party can join for FREE.")
                     .font(.footnote)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)

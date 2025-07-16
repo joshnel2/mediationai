@@ -337,10 +337,10 @@ struct DisputeRoomView: View {
                     
                     Button(action: handleSend) {
                         HStack {
-                            if authService.currentUser?.hasUsedFreeDispute == true && !hasUserPaidForThisDispute() {
+                            if false { // Payment removed for beta
                                 Image(systemName: "creditcard.fill")
                                     .font(.headline)
-                                Text("Pay $1 & Submit Truth")
+                                Text("Submit Truth")
                                     .font(AppTheme.headline())
                                     .fontWeight(.semibold)
                             } else {
@@ -414,21 +414,8 @@ struct DisputeRoomView: View {
             return
         }
         
-        // Check if user needs to pay for truth submission
-        let needsPayment = user.hasUsedFreeDispute && !hasUserPaidForThisDispute()
-        
-        if needsPayment {
-            // Show payment required
-            processTruthPayment { success in
-                if success {
-                    submitTruth()
-                } else {
-                    error = "Payment failed. Please try again."
-                }
-            }
-        } else {
-            submitTruth()
-        }
+        // Payment removed for beta - all users can submit truths for free
+        submitTruth()
     }
     
     private func hasUserPaidForThisDispute() -> Bool {

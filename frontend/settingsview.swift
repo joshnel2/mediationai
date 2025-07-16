@@ -15,6 +15,8 @@ struct SettingsView: View {
     @State private var showTermsOfService = false
     @State private var showSupport = false
     @State private var showDeleteAccountAlert = false
+    @State private var showNewPrivacyPolicy = false
+    @State private var showNewTermsOfService = false
     
     var body: some View {
         NavigationView {
@@ -194,6 +196,20 @@ struct SettingsView: View {
                             )
                             
                             SettingsRow(
+                                icon: "doc.text",
+                                title: "Privacy Policy",
+                                subtitle: "How we handle your data",
+                                action: { showNewPrivacyPolicy = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "doc.text",
+                                title: "Terms of Service",
+                                subtitle: "Legal terms and conditions",
+                                action: { showNewTermsOfService = true }
+                            )
+                            
+                            SettingsRow(
                                 icon: "trash",
                                 title: "Delete Account",
                                 subtitle: "Permanently remove your account",
@@ -244,6 +260,12 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showSupport) {
             SupportView()
+        }
+        .sheet(isPresented: $showNewPrivacyPolicy) {
+            PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showNewTermsOfService) {
+            TermsOfServiceView()
         }
         .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
             Button("Cancel", role: .cancel) { }

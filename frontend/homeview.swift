@@ -298,7 +298,7 @@ struct HomeView: View {
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                                                Text(authService.currentUser?.hasUsedFreeDispute == false ? "FREE for first dispute" : "Start new mediation")
+                                                Text("Start new mediation")
                         .font(AppTheme.caption())
                         .opacity(0.8)
                         }

@@ -18,7 +18,7 @@ struct User: Identifiable, Codable {
     var verification: VerificationStatus
     var stats: UserStats
     var preferences: UserPreferences
-    var hasUsedFreeDispute: Bool = false
+
     
     init(id: UUID = UUID(), email: String, password: String = "") {
         self.id = id
@@ -29,7 +29,7 @@ struct User: Identifiable, Codable {
         self.verification = VerificationStatus()
         self.stats = UserStats()
         self.preferences = UserPreferences()
-        self.hasUsedFreeDispute = false
+
     }
 }
 

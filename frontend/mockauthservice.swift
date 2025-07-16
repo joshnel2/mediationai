@@ -66,7 +66,6 @@ class MockAuthService: ObservableObject {
                     
                     // Update user properties from API response
                     user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
-                    user.hasUsedFreeDispute = userData["hasUsedFreeDispute"] as? Bool ?? false
                     user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
                     user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
                     user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
@@ -125,7 +124,6 @@ class MockAuthService: ObservableObject {
                     
                     // Update user properties from API response
                     user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
-                    user.hasUsedFreeDispute = userData["hasUsedFreeDispute"] as? Bool ?? false
                     user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
                     user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
                     user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0

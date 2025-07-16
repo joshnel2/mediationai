@@ -175,7 +175,7 @@ struct SplashScreen: View {
                             .multilineTextAlignment(.center)
                             .opacity(textOpacity)
                         
-                        Text("$1 per party • First dispute FREE")
+                        Text("FREE dispute resolution • No hidden fees")
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(AppTheme.success)
                             .multilineTextAlignment(.center)

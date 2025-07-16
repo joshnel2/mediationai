@@ -41,31 +41,17 @@ struct JoinDisputeView: View {
                             .foregroundColor(AppTheme.primary)
                         
                         VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
-                            if authService.currentUser?.hasUsedFreeDispute == false {
-                                HStack {
-                                    Image(systemName: "gift.fill")
-                                        .foregroundColor(AppTheme.accent)
-                                    Text("🎉 Join for FREE!")
-                                        .font(AppTheme.headline())
-                                        .foregroundColor(AppTheme.accent)
-                                        .fontWeight(.bold)
-                                }
-                                Text("This is your first dispute - join at no cost!")
-                                    .font(AppTheme.caption())
-                                    .foregroundColor(AppTheme.textSecondary)
-                            } else {
-                                HStack {
-                                    Image(systemName: "dollarsign.circle.fill")
-                                        .foregroundColor(AppTheme.success)
-                                    Text("💰 Simple Pricing")
-                                        .font(AppTheme.headline())
-                                        .foregroundColor(AppTheme.textPrimary)
-                                        .fontWeight(.semibold)
-                                }
-                                Text("$1 when you submit your truth - pay only for results")
-                                    .font(AppTheme.caption())
-                                    .foregroundColor(AppTheme.textSecondary)
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(AppTheme.success)
+                                Text("✅ Always FREE")
+                                    .font(AppTheme.headline())
+                                    .foregroundColor(AppTheme.textPrimary)
+                                    .fontWeight(.semibold)
                             }
+                            Text("FREE to join - no payment required")
+                                .font(AppTheme.caption())
+                                .foregroundColor(AppTheme.textSecondary)
                         }
                         .modernCard()
                         
@@ -209,16 +195,8 @@ struct JoinDisputeView: View {
         Task {
             var paymentSuccess = false
             
-            // Check if this is the user's first dispute (free)
-            if !user.hasUsedFreeDispute {
-                // First dispute is free - mark as used
-                paymentSuccess = true
-                user.hasUsedFreeDispute = true
-                authService.updateUser(user)
-            } else {
-                // Regular payment processing - will be handled when truth is submitted
-                paymentSuccess = true
-            }
+            // Beta version - all disputes are free
+            paymentSuccess = true
             
             await MainActor.run {
                 isProcessingPayment = false
