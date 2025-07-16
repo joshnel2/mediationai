@@ -12,6 +12,7 @@ import os
 from config import settings
 from dispute_models import *
 from mediation_agents import mediation_orchestrator
+from contract_generator import contract_generator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -556,6 +557,173 @@ async def get_process_guidance(dispute_id: str):
     guidance = await mediation_orchestrator.get_process_guidance(dispute)
     
     return guidance
+
+# ==============================================================================
+# CONTRACT GENERATION ENDPOINTS
+# ==============================================================================
+
+@app.post("/api/disputes/{dispute_id}/contract/generate")
+async def generate_contract(dispute_id: str, background_tasks: BackgroundTasks):
+    """Generate a legally binding contract for the dispute resolution"""
+    if dispute_id not in disputes_db:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    
+    dispute = disputes_db[dispute_id]
+    
+    # Check if dispute has a final resolution
+    if not dispute.final_resolution:
+        raise HTTPException(status_code=400, detail="Dispute must be resolved before generating contract")
+    
+    # Check if contract generation was requested
+    if not getattr(dispute, 'requires_contract', False):
+        raise HTTPException(status_code=400, detail="Contract generation not requested for this dispute")
+    
+    try:
+        # Generate contract in background
+        background_tasks.add_task(create_contract_task, dispute_id)
+        
+        return {
+            "status": "success",
+            "message": "Contract generation started",
+            "dispute_id": dispute_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Contract generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Contract generation failed")
+
+async def create_contract_task(dispute_id: str):
+    """Background task to generate contract"""
+    try:
+        dispute = disputes_db[dispute_id]
+        resolution = dispute.final_resolution
+        
+        # Generate contract
+        contract_text = await contract_generator.generate_contract(dispute, resolution)
+        
+        # Store contract in dispute
+        dispute.contract_text = contract_text
+        dispute.contract_generated_at = datetime.now()
+        
+        # Notify participants
+        await notify_participants(dispute, "Legal contract has been generated and is ready for signature")
+        
+        logger.info(f"Contract generated for dispute {dispute_id}")
+        
+    except Exception as e:
+        logger.error(f"Contract generation task failed: {str(e)}")
+
+@app.get("/api/disputes/{dispute_id}/contract")
+async def get_contract(dispute_id: str):
+    """Get the generated contract for a dispute"""
+    if dispute_id not in disputes_db:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    
+    dispute = disputes_db[dispute_id]
+    
+    if not hasattr(dispute, 'contract_text') or not dispute.contract_text:
+        raise HTTPException(status_code=404, detail="Contract not generated yet")
+    
+    return {
+        "dispute_id": dispute_id,
+        "contract_text": dispute.contract_text,
+        "generated_at": dispute.contract_generated_at,
+        "status": "ready_for_signature"
+    }
+
+@app.post("/api/disputes/{dispute_id}/contract/sign")
+async def sign_contract(dispute_id: str, request: SignContractRequest):
+    """Sign the generated contract"""
+    if dispute_id not in disputes_db:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    
+    dispute = disputes_db[dispute_id]
+    
+    if not hasattr(dispute, 'contract_text') or not dispute.contract_text:
+        raise HTTPException(status_code=404, detail="Contract not generated yet")
+    
+    # Verify user is a participant
+    is_participant = any(p.user_id == request.user_id for p in dispute.participants)
+    if not is_participant:
+        raise HTTPException(status_code=403, detail="User is not a participant in this dispute")
+    
+    # Add signature
+    if not hasattr(dispute, 'contract_signatures'):
+        dispute.contract_signatures = []
+    
+    signature = {
+        "user_id": request.user_id,
+        "signature": request.signature,
+        "signed_at": datetime.now(),
+        "ip_address": request.ip_address
+    }
+    
+    dispute.contract_signatures.append(signature)
+    
+    # Check if all participants have signed
+    if len(dispute.contract_signatures) >= len(dispute.participants):
+        dispute.contract_fully_executed = True
+        dispute.contract_execution_date = datetime.now()
+        
+        await notify_participants(dispute, "Contract has been fully executed by all parties")
+    
+    return {
+        "status": "success",
+        "message": "Contract signed successfully",
+        "signatures_received": len(dispute.contract_signatures),
+        "signatures_required": len(dispute.participants),
+        "fully_executed": getattr(dispute, 'contract_fully_executed', False)
+    }
+
+# ==============================================================================
+# ENHANCED RESOLUTION ENDPOINTS
+# ==============================================================================
+
+@app.post("/api/disputes/{dispute_id}/resolve")
+async def resolve_dispute_with_contract(dispute_id: str, background_tasks: BackgroundTasks):
+    """Resolve dispute and optionally generate contract"""
+    if dispute_id not in disputes_db:
+        raise HTTPException(status_code=404, detail="Dispute not found")
+    
+    dispute = disputes_db[dispute_id]
+    
+    # Check if both parties have submitted evidence/truth
+    if len(dispute.evidence) < 2:
+        raise HTTPException(status_code=400, detail="Both parties must submit evidence before resolution")
+    
+    # Generate AI resolution
+    try:
+        if dispute.category in ["contract", "business", "payment"]:
+            # Use arbitrator for formal disputes
+            resolution = await mediation_orchestrator.escalate_to_arbitration(dispute)
+        else:
+            # Use mediator for general disputes
+            resolution = await mediation_orchestrator.mediator.suggest_resolution(dispute)
+        
+        # Set as final resolution
+        dispute.final_resolution = resolution
+        dispute.status = DisputeStatus.RESOLVED
+        dispute.resolved_at = datetime.now()
+        
+        # Generate contract if requested
+        if getattr(dispute, 'requires_contract', False):
+            background_tasks.add_task(create_contract_task, dispute_id)
+            message = "Dispute resolved! Legal contract is being generated."
+        else:
+            message = "Dispute resolved successfully!"
+        
+        await notify_participants(dispute, message)
+        
+        return {
+            "status": "success",
+            "message": message,
+            "resolution": resolution,
+            "contract_pending": getattr(dispute, 'requires_contract', False)
+        }
+        
+    except Exception as e:
+        logger.error(f"Resolution failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Resolution process failed")
 
 # ==============================================================================
 # WEBSOCKET ENDPOINTS

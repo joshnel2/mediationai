@@ -222,6 +222,11 @@ class AcceptProposalRequest(BaseModel):
     proposal_id: str
     accept: bool  # True for accept, False for reject
 
+class SignContractRequest(BaseModel):
+    user_id: str
+    signature: str
+    ip_address: Optional[str] = None
+
 # Response Models
 class DisputeResponse(BaseModel):
     dispute: Dispute
