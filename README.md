@@ -10,6 +10,7 @@
 ## 📋 Table of Contents
 
 - [📁 Project Organization](#-project-organization)
+- [🗄️ Data Storage](#️-data-storage)
 - [🌟 Features](#-features)
 - [🏗️ Architecture](#️-architecture)
 - [🚀 Quick Start](#-quick-start)
@@ -69,6 +70,112 @@
 ```
 
 **✅ All duplicates removed • ✅ Clean organization • ✅ Ready for development**
+
+---
+
+## 🗄️ Data Storage
+
+### **Production Data Architecture**
+
+```
+📊 Data Flow:
+iOS App → HTTPS → Vercel Backend → SQLite Database → Persistent Storage
+     ↓
+UserDefaults (JWT Token) → Auto-login on app restart
+```
+
+### **📍 Where Your Data Lives**
+
+#### **🔐 User Authentication Data**
+- **Location**: SQLite database on Vercel + iOS UserDefaults
+- **What's Stored**: 
+  - Email addresses (encrypted)
+  - Password hashes (bcrypt)
+  - JWT tokens (30-day expiration)
+  - User preferences (Face ID, notifications)
+  - Profile information (display name, bio)
+
+#### **⚖️ Dispute Data**
+- **Location**: SQLite database on Vercel
+- **What's Stored**:
+  - Dispute details (title, description, category)
+  - Party information (User A, User B)
+  - Truth statements from both parties
+  - Evidence files (photos, documents)
+  - AI mediation responses
+  - Resolution agreements
+  - Digital signatures
+
+#### **📱 Local iOS Storage**
+- **Location**: Device UserDefaults (secure)
+- **What's Stored**:
+  - JWT authentication tokens
+  - Auto-login preferences
+  - Face ID/Touch ID settings
+  - App preferences and settings
+
+### **🔍 How to Access Your Data**
+
+#### **📊 Database Access (Development)**
+```bash
+# View database tables
+sqlite3 backend/mediationai.db ".tables"
+
+# Check users
+sqlite3 backend/mediationai.db "SELECT id, email, created_at FROM users;"
+
+# Check disputes
+sqlite3 backend/mediationai.db "SELECT id, title, status, created_at FROM disputes;"
+
+# Check evidence
+sqlite3 backend/mediationai.db "SELECT id, filename, file_type FROM evidence;"
+```
+
+#### **🌐 API Access (Production)**
+```bash
+# Health check
+curl https://mediationai-3ueg.vercel.app/api/health
+
+# Get current user (requires JWT token)
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     https://mediationai-3ueg.vercel.app/api/me
+
+# Get user disputes
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     https://mediationai-3ueg.vercel.app/api/disputes
+```
+
+### **🔒 Data Security**
+
+#### **🛡️ Security Features**
+- **Password Hashing**: bcrypt with salt rounds
+- **JWT Tokens**: Secure authentication with expiration
+- **HTTPS Only**: All API communication encrypted
+- **Token Validation**: Server-side token verification
+- **Auto-Logout**: Expired tokens automatically cleared
+
+#### **📋 Data Retention**
+- **User Accounts**: Stored until account deletion
+- **Dispute Data**: Stored permanently for legal compliance
+- **JWT Tokens**: 30-day expiration, auto-refresh
+- **Evidence Files**: Stored with dispute for legal record
+- **AI Responses**: Cached for performance, stored for audit
+
+### **🔄 Data Persistence**
+
+#### **✅ What Persists**
+- User login state (stays signed in)
+- All dispute data across app restarts
+- Evidence files and attachments
+- Truth statements and responses
+- AI mediation history
+- Digital signatures and contracts
+
+#### **🔄 What Resets**
+- Temporary UI state
+- Form inputs (cleared after submission)
+- Error messages
+- Loading states
 
 ---
 

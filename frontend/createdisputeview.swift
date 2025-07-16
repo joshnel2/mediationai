@@ -466,12 +466,19 @@ struct CreateDisputeView: View {
                     requiresEscrow: useEscrow
                 )
                     
-                    // If signature is required, show signature view, otherwise show dispute
+                    // If signature is required, show signature view, otherwise smooth transition to home
                     if requestSignature {
                         showSignatureView = true
                         createdDispute = dispute
                     } else {
                         createdDispute = dispute
+                        // Smooth transition to home page after dispute creation
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                // This will trigger navigation back to home
+                                dismiss()
+                            }
+                        }
                     }
                 } else {
                     error = "Payment failed. Please try again."

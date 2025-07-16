@@ -49,6 +49,35 @@ struct HomeView: View {
                     // Disputes section
                     disputesSection
                     
+                    // Legal Disclaimer
+                    VStack(spacing: AppTheme.spacingSM) {
+                        HStack(spacing: AppTheme.spacingSM) {
+                            Image(systemName: "info.circle")
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("This app provides mediation services, not legal advice. For legal matters, consult a qualified attorney.")
+                                .font(AppTheme.caption2())
+                                .foregroundColor(AppTheme.textTertiary)
+                                .multilineTextAlignment(.leading)
+                        }
+                        
+                        HStack(spacing: AppTheme.spacingSM) {
+                            Image(systemName: "brain.head.profile")
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.textTertiary)
+                            
+                            Text("AI responses are suggestions based on mediation principles, not legal determinations.")
+                                .font(AppTheme.caption2())
+                                .foregroundColor(AppTheme.textTertiary)
+                                .multilineTextAlignment(.leading)
+                        }
+                    }
+                    .padding(AppTheme.spacingMD)
+                    .background(AppTheme.glassTertiary)
+                    .cornerRadius(AppTheme.radiusMD)
+                    .padding(.top, AppTheme.spacingLG)
+                    
                     // Footer
                     Text("Decentralized Technology Solutions 2025")
                         .font(.system(size: 12))

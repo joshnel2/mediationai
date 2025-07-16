@@ -182,7 +182,13 @@ struct SignatureView: View {
         }
         
         onSignatureComplete(image)
-        dismiss()
+        
+        // Smooth transition back to home after signature completion
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dismiss()
+            }
+        }
     }
 }
 

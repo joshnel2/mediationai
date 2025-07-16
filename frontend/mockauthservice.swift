@@ -25,6 +25,12 @@ class MockAuthService: ObservableObject {
     
     init() {
         loadUserSettings()
+        // Enable auto-login by default for better UX
+        if !userDefaults.bool(forKey: "hasSetAutoLogin") {
+            isAutoLoginEnabled = true
+            userDefaults.set(true, forKey: autoLoginKey)
+            userDefaults.set(true, forKey: "hasSetAutoLogin")
+        }
         attemptAutoLogin()
     }
     
@@ -172,6 +178,7 @@ class MockAuthService: ObservableObject {
         isAutoLoginEnabled = false
         userDefaults.set(false, forKey: autoLoginKey)
         userDefaults.removeObject(forKey: userKey)
+        userDefaults.removeObject(forKey: tokenKey)
     }
     
     func enableFaceID() {
