@@ -36,143 +36,144 @@ struct JoinDisputeView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                Text("Join a Dispute")
-                    .font(AppTheme.titleFont())
-                    .foregroundColor(AppTheme.primary)
-                
-                VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
-                    if authService.currentUser?.hasUsedFreeDispute == false {
-                        HStack {
-                            Image(systemName: "gift.fill")
-                                .foregroundColor(AppTheme.accent)
-                            Text("🎉 Join for FREE!")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.accent)
-                                .fontWeight(.bold)
-                        }
-                        Text("This is your first dispute - join at no cost!")
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
-                    } else {
-                        HStack {
-                            Image(systemName: "dollarsign.circle.fill")
-                                .foregroundColor(AppTheme.success)
-                            Text("💰 Simple Pricing")
-                                .font(AppTheme.headline())
-                                .foregroundColor(AppTheme.textPrimary)
-                                .fontWeight(.semibold)
-                        }
-                        Text("$1 when you submit your truth - pay only for results")
-                            .font(AppTheme.caption())
-                            .foregroundColor(AppTheme.textSecondary)
-                    }
-                }
-                .modernCard()
-                
-                // Input type selector
-                Picker("Input Type", selection: $selectedInputType) {
-                    ForEach(InputType.allCases, id: \.self) { type in
-                        Text(type.rawValue).tag(type)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.horizontal)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    if selectedInputType == .link {
-                        TextField("Paste dispute link here...", text: $linkOrCode)
-                            .padding()
-                            .background(AppTheme.card)
-                            .cornerRadius(12)
-                            .shadow(radius: 2)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    } else {
-                        TextField("Enter 6-digit code", text: $linkOrCode)
-                            .textCase(.uppercase)
-                            .padding()
-                            .background(AppTheme.card)
-                            .cornerRadius(12)
-                            .shadow(radius: 2)
-                            .textInputAutocapitalization(.characters)
-                    }
-                    
-                    Text(selectedInputType == .link ? 
-                         "Example: https://mediationai.app/join/..." : 
-                         "6-character code provided by the dispute creator")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                        .padding(.horizontal, 4)
-                }
-                
-                if let error = error {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                
-                if let purchaseError = purchaseService.purchaseError {
-                    Text(purchaseError)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                
-                Button(action: handleJoinWithPayment) {
-                    HStack {
-                        if isProcessingPayment || purchaseService.isLoading {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .foregroundColor(.white)
-                        } else {
+                        Text("Join a Dispute")
+                            .font(AppTheme.titleFont())
+                            .foregroundColor(AppTheme.primary)
+                        
+                        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                             if authService.currentUser?.hasUsedFreeDispute == false {
-                                Image(systemName: "gift.fill")
-                                    .font(.headline)
-                                Text("Join FREE Dispute")
-                                    .font(AppTheme.headline())
-                                    .fontWeight(.semibold)
+                                HStack {
+                                    Image(systemName: "gift.fill")
+                                        .foregroundColor(AppTheme.accent)
+                                    Text("🎉 Join for FREE!")
+                                        .font(AppTheme.headline())
+                                        .foregroundColor(AppTheme.accent)
+                                        .fontWeight(.bold)
+                                }
+                                Text("This is your first dispute - join at no cost!")
+                                    .font(AppTheme.caption())
+                                    .foregroundColor(AppTheme.textSecondary)
                             } else {
-                                Image(systemName: "link.circle.fill")
-                                    .font(.headline)
-                                Text("Join Dispute")
-                                    .font(AppTheme.headline())
-                                    .fontWeight(.semibold)
+                                HStack {
+                                    Image(systemName: "dollarsign.circle.fill")
+                                        .foregroundColor(AppTheme.success)
+                                    Text("💰 Simple Pricing")
+                                        .font(AppTheme.headline())
+                                        .foregroundColor(AppTheme.textPrimary)
+                                        .fontWeight(.semibold)
+                                }
+                                Text("$1 when you submit your truth - pay only for results")
+                                    .font(AppTheme.caption())
+                                    .foregroundColor(AppTheme.textSecondary)
                             }
                         }
-                    }
-                }
-                .primaryButton()
-                .disabled(isProcessingPayment || purchaseService.isLoading)
-                
-                // Payment compliance notice
-                VStack(spacing: 8) {
-                    Text("Payment processed securely through Apple")
-                        .font(.caption2)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                    
-                    HStack(spacing: 4) {
-                        Text("By proceeding, you agree to our")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
+                        .modernCard()
                         
-                        Button("Terms of Service") {
-                            showTermsOfService = true
+                        // Input type selector
+                        Picker("Input Type", selection: $selectedInputType) {
+                            ForEach(InputType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type)
+                            }
                         }
-                        .font(.caption2)
-                        .foregroundColor(AppTheme.primary)
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding(.horizontal)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            if selectedInputType == .link {
+                                TextField("Paste dispute link here...", text: $linkOrCode)
+                                    .padding()
+                                    .background(AppTheme.card)
+                                    .cornerRadius(12)
+                                    .shadow(radius: 2)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                            } else {
+                                TextField("Enter 6-digit code", text: $linkOrCode)
+                                    .textCase(.uppercase)
+                                    .padding()
+                                    .background(AppTheme.card)
+                                    .cornerRadius(12)
+                                    .shadow(radius: 2)
+                                    .textInputAutocapitalization(.characters)
+                            }
+                            
+                            Text(selectedInputType == .link ? 
+                                 "Example: https://mediationai.app/join/..." : 
+                                 "6-character code provided by the dispute creator")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 4)
+                        }
+                        
+                        if let error = error {
+                            Text(error)
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        
+                        if let purchaseError = purchaseService.purchaseError {
+                            Text(purchaseError)
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
+                        
+                        Button(action: handleJoinWithPayment) {
+                            HStack {
+                                if isProcessingPayment || purchaseService.isLoading {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                        .foregroundColor(.white)
+                                } else {
+                                    if authService.currentUser?.hasUsedFreeDispute == false {
+                                        Image(systemName: "gift.fill")
+                                            .font(.headline)
+                                        Text("Join FREE Dispute")
+                                            .font(AppTheme.headline())
+                                            .fontWeight(.semibold)
+                                    } else {
+                                        Image(systemName: "link.circle.fill")
+                                            .font(.headline)
+                                        Text("Join Dispute")
+                                            .font(AppTheme.headline())
+                                            .fontWeight(.semibold)
+                                    }
+                                }
+                            }
+                        }
+                        .primaryButton()
+                        .disabled(isProcessingPayment || purchaseService.isLoading)
+                        
+                        // Payment compliance notice
+                        VStack(spacing: 8) {
+                            Text("Payment processed securely through Apple")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                            
+                            HStack(spacing: 4) {
+                                Text("By proceeding, you agree to our")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                                
+                                Button("Terms of Service") {
+                                    showTermsOfService = true
+                                }
+                                .font(.caption2)
+                                .foregroundColor(AppTheme.primary)
+                            }
+                        }
+                        .padding(.horizontal)
+                
+                        // Footer
+                        Text("Decentralized Technology Solutions 2025")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppTheme.textSecondary.opacity(0.7))
+                            .padding(.top, AppTheme.spacingXL)
+                        
+                        Spacer()
                     }
+                    .padding()
                 }
-                .padding(.horizontal)
-                
-                // Footer
-                Text("Decentralized Technology Solutions 2025")
-                    .font(.system(size: 12))
-                    .foregroundColor(AppTheme.textSecondary.opacity(0.7))
-                    .padding(.top, AppTheme.spacingXL)
-                
-                Spacer()
-            }
-            .padding()
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -195,7 +196,7 @@ struct JoinDisputeView: View {
         }
     }
     
-    func handleJoinWithPayment() {
+    private func handleJoinWithPayment() {
         error = nil
         guard var user = authService.currentUser else { return }
         if linkOrCode.isEmpty {
