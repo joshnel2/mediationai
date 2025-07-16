@@ -75,7 +75,7 @@ class MockAuthService: ObservableObject {
         let context = LAContext()
         var error: NSError?
         
-        if context.canEvaluatePolicy(.biometricAuthentication, error: &error) {
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             isFaceIDEnabled = true
             userDefaults.set(true, forKey: faceIDKey)
         }
