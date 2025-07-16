@@ -260,7 +260,7 @@ struct JoinDisputeView: View {
         let digitalSignature = DigitalSignature(
             userId: user.id,
             signatureImageData: signatureData,
-            userName: user.displayName
+            userName: user.profile.displayName
         )
         
         disputeService.addJoinerSignature(to: dispute, signature: digitalSignature)

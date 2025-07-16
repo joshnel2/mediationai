@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PencilKit
+import UIKit
 
 struct SignatureView: View {
     @Environment(\.dismiss) var dismiss

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 struct User: Identifiable, Codable {
     let id: UUID

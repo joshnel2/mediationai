@@ -324,7 +324,7 @@ struct ContractView: View {
                 .fontWeight(.bold)
             
             VStack(spacing: AppTheme.spacingMD) {
-                ComparisonCard(
+                ContractComparisonCard(
                     icon: "dollarsign.circle.fill",
                     title: "Traditional Lawyers",
                     subtitle: "$500-5000+ per contract",
@@ -333,7 +333,7 @@ struct ContractView: View {
                     color: AppTheme.success
                 )
                 
-                ComparisonCard(
+                ContractComparisonCard(
                     icon: "clock.fill",
                     title: "Legal Firms",
                     subtitle: "Days to weeks",
@@ -342,7 +342,7 @@ struct ContractView: View {
                     color: AppTheme.info
                 )
                 
-                ComparisonCard(
+                ContractComparisonCard(
                     icon: "person.fill",
                     title: "Human Bias",
                     subtitle: "Favors paying client",
@@ -351,7 +351,7 @@ struct ContractView: View {
                     color: AppTheme.accent
                 )
                 
-                ComparisonCard(
+                ContractComparisonCard(
                     icon: "doc.text.fill",
                     title: "Standard Templates",
                     subtitle: "Generic language",
@@ -509,7 +509,7 @@ struct FeatureRow: View {
     }
 }
 
-struct ComparisonCard: View {
+struct ContractComparisonCard: View {
     let icon: String
     let title: String
     let subtitle: String

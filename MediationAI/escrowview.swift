@@ -217,7 +217,7 @@ struct EscrowView: View {
                 .fontWeight(.bold)
             
             VStack(spacing: AppTheme.spacingMD) {
-                ComparisonCard(
+                EscrowComparisonCard(
                     icon: "person.fill",
                     title: "Traditional Escrow",
                     subtitle: "Human intermediary",
@@ -226,7 +226,7 @@ struct EscrowView: View {
                     color: AppTheme.success
                 )
                 
-                ComparisonCard(
+                EscrowComparisonCard(
                     icon: "clock.fill",
                     title: "Days to Release",
                     subtitle: "Manual processing",
@@ -235,7 +235,7 @@ struct EscrowView: View {
                     color: AppTheme.info
                 )
                 
-                ComparisonCard(
+                EscrowComparisonCard(
                     icon: "dollarsign.circle.fill",
                     title: "High Fees",
                     subtitle: "3-5% of amount",
@@ -244,7 +244,7 @@ struct EscrowView: View {
                     color: AppTheme.warning
                 )
                 
-                ComparisonCard(
+                EscrowComparisonCard(
                     icon: "shield.fill",
                     title: "Risk of Bias",
                     subtitle: "Human judgment",
@@ -568,7 +568,7 @@ struct SecurityFeatureRow: View {
     }
 }
 
-struct ComparisonCard: View {
+struct EscrowComparisonCard: View {
     let icon: String
     let title: String
     let subtitle: String

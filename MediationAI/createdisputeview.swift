@@ -485,7 +485,7 @@ struct CreateDisputeView: View {
         let digitalSignature = DigitalSignature(
             userId: user.id,
             signatureImageData: signatureData,
-            userName: user.displayName
+            userName: user.profile.displayName
         )
         
         disputeService.addCreatorSignature(to: dispute, signature: digitalSignature)
