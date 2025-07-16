@@ -41,6 +41,26 @@ users_db: Dict[str, User] = {}
 websocket_connections: Dict[str, WebSocket] = {}
 
 # ==============================================================================
+# HEALTH CHECK ENDPOINT
+# ==============================================================================
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint to verify API is running"""
+    return {
+        "status": "healthy",
+        "service": "MediationAI API",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "features": {
+            "ai_mediation": True,
+            "legal_research": bool(settings.harvard_caselaw_api_key),
+            "contract_generation": True,
+            "cost_optimization": settings.enable_ai_cost_optimization
+        }
+    }
+
+# ==============================================================================
 # USER MANAGEMENT ENDPOINTS
 # ==============================================================================
 

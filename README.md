@@ -87,65 +87,272 @@ iOS App → HTTP/HTTPS → Vercel Backend → OpenAI/Anthropic → Harvard Law A
 
 ## 🚀 Quick Start
 
-### **1. Get API Keys**
+### **Step 1: Get API Keys**
 
-#### **Required (Choose One):**
-- **OpenAI**: https://platform.openai.com/api-keys ($5-20/month)
-- **Anthropic**: https://console.anthropic.com/ ($5-20/month)
+#### **1.1 OpenAI API Key (Required)**
+1. **Visit**: https://platform.openai.com/api-keys
+2. **Sign up** for an OpenAI account (if you don't have one)
+3. **Click** "Create new secret key"
+4. **Name it**: "MediationAI"
+5. **Copy the key** (starts with `sk-`)
+6. **Save it** - you'll need it for deployment
 
-#### **Optional (Free):**
-- **Harvard Law**: https://case.law/api/ (FREE - legal precedents)
+**Cost**: ~$5-20/month for typical usage
 
-### **2. Deploy Backend**
+#### **1.2 Harvard Law API Key (Optional but Recommended - FREE)**
+1. **Visit**: https://case.law/api/
+2. **Click** "Register for API Access"
+3. **Fill out form** with:
+   - Name: Your name
+   - Email: Your email
+   - Project: "MediationAI - AI-powered dispute resolution"
+   - Use case: "Legal precedent research for dispute mediation"
+4. **Submit** and wait for approval email (usually instant)
+5. **Copy your API key** from the email
 
+**Cost**: Completely FREE!
+
+#### **1.3 Anthropic API Key (Optional)**
+1. **Visit**: https://console.anthropic.com/
+2. **Sign up** for Anthropic account
+3. **Go to** API Keys section
+4. **Create new key**
+5. **Copy the key**
+
+**Cost**: ~$5-20/month (only if you want both OpenAI and Anthropic)
+
+### **Step 2: Deploy Backend to Vercel**
+
+#### **2.1 Install Vercel CLI**
 ```bash
-# Clone repository
+# Install Vercel CLI globally
+npm install -g vercel
+
+# Login to Vercel (creates free account if needed)
+vercel login
+```
+
+#### **2.2 Clone and Setup Project**
+```bash
+# Clone the repository
 git clone https://github.com/yourusername/mediationai.git
 cd mediationai/backend
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# Copy environment template
 cp .env.example .env
-# Edit .env with your API keys
 
-# Deploy to Vercel
-npm install -g vercel
-vercel login
+# Edit .env file with your API keys
+nano .env
+```
+
+#### **2.3 Edit .env File**
+```bash
+# Required - Add your OpenAI key
+OPENAI_API_KEY=sk-your-actual-openai-key-here
+
+# Optional - Add Harvard Law key (free)
+HARVARD_CASELAW_API_KEY=your-harvard-key-here
+
+# Optional - Add Anthropic key
+ANTHROPIC_API_KEY=your-anthropic-key-here
+
+# System settings (keep as is)
+SECRET_KEY=your-secret-key-change-in-production
+DEBUG=False
+ENABLE_AI_COST_OPTIMIZATION=True
+MAX_AI_INTERVENTIONS=3
+MAX_AI_TOKENS=300
+AI_COOLDOWN_MINUTES=10
+AI_MODEL_PREFERENCE=gpt-3.5-turbo
+```
+
+#### **2.4 Deploy to Vercel**
+```bash
+# Deploy from backend directory
 vercel
 
-# Set environment variables in Vercel dashboard
-# Settings → Environment Variables
+# Follow prompts:
+# ? Set up and deploy "~/mediationai/backend"? [Y/n] y
+# ? Which scope do you want to deploy to? [Your Username]
+# ? Link to existing project? [y/N] n
+# ? What's your project's name? mediation-ai-backend
+# ? In which directory is your code located? ./
+# ? Want to override the settings? [y/N] n
+
+# Wait for deployment (usually takes 1-2 minutes)
 ```
 
-### **3. Configure iOS App**
+#### **2.5 Set Environment Variables in Vercel**
+```bash
+# Add environment variables via CLI
+vercel env add OPENAI_API_KEY
+# Paste your OpenAI key when prompted
+
+vercel env add HARVARD_CASELAW_API_KEY
+# Paste your Harvard Law key when prompted
+
+vercel env add SECRET_KEY
+# Enter a secure secret key
+
+vercel env add DEBUG
+# Enter: false
+
+vercel env add ENABLE_AI_COST_OPTIMIZATION
+# Enter: true
+
+vercel env add MAX_AI_INTERVENTIONS
+# Enter: 3
+
+vercel env add MAX_AI_TOKENS
+# Enter: 300
+
+vercel env add AI_COOLDOWN_MINUTES
+# Enter: 10
+
+vercel env add AI_MODEL_PREFERENCE
+# Enter: gpt-3.5-turbo
+```
+
+**Alternative: Set via Vercel Dashboard**
+1. Go to https://vercel.com/dashboard
+2. Click your project
+3. Go to **Settings** → **Environment Variables**
+4. Add each variable manually
+
+#### **2.6 Get Your API URL**
+After deployment, Vercel will show you a URL like:
+```
+✅ Production: https://mediation-ai-backend-abc123.vercel.app
+```
+
+**🔥 SAVE THIS URL - You need it for the iOS app!**
+
+### **Step 3: Test Your Backend**
 
 ```bash
-# Update APIConfig.swift with your Vercel URL
-static let baseURL = "https://your-vercel-backend.vercel.app"
+# Test API documentation
+curl https://your-vercel-url.vercel.app/docs
 
-# In Xcode, replace MockAuthService with RealDisputeService
-@StateObject private var disputeService = RealDisputeService()
+# Test health check
+curl https://your-vercel-url.vercel.app/api/health
+
+# Test cost settings
+curl https://your-vercel-url.vercel.app/api/cost-settings
 ```
 
-### **4. Test the Flow**
+**Expected Response:**
+```json
+{
+  "cost_optimization_enabled": true,
+  "max_interventions_per_dispute": 3,
+  "max_tokens_per_response": 300,
+  "ai_model": "gpt-3.5-turbo"
+}
+```
 
-```swift
-// Create dispute with contract
-let disputeId = await disputeService.createDispute(
-    title: "Test Dispute",
-    description: "Testing the system",
-    category: "contract",
-    createContract: true  // ✅ Enables contract generation
-)
+### **Step 4: Configure iOS App**
 
-// Submit evidence
-await disputeService.submitTruth(
-    disputeId: disputeId,
-    content: "My side of the story with evidence...",
-    attachments: []
-)
+#### **4.1 Create Xcode Project**
+1. **Open Xcode**
+2. **File** → **New** → **Project**
+3. **iOS** → **App**
+4. **Settings:**
+   - Product Name: `MediationAI`
+   - Interface: `SwiftUI`
+   - Language: `Swift`
+   - Bundle Identifier: `com.yourname.mediationai`
+5. **Save** to your desired location
+
+#### **4.2 Import Frontend Files**
+1. **Delete default files** from Xcode:
+   - Right-click `ContentView.swift` → Delete
+   - Right-click `MediationAIApp.swift` → Delete
+
+2. **Add all Swift files** from `frontend/` folder:
+   - Drag all `.swift` files into Xcode project
+   - ✅ Check **"Copy items if needed"**
+   - ✅ Check **"Add to target: MediationAI"**
+
+3. **Replace Info.plist**:
+   - Replace default `Info.plist` with the one from `frontend/` folder
+
+#### **4.3 Update API Configuration**
+1. **Open `APIConfig.swift`** in Xcode
+2. **Replace the baseURL** with your Vercel URL:
+   ```swift
+   // Replace this line:
+   static let baseURL = "https://your-vercel-backend.vercel.app"
+   
+   // With your actual Vercel URL:
+   static let baseURL = "https://mediation-ai-backend-abc123.vercel.app"
+   ```
+
+#### **4.4 Replace Mock Services**
+1. **Find your main app file** (usually `MediationAIApp.swift`)
+2. **Replace MockAuthService** with RealDisputeService:
+   ```swift
+   // OLD (remove this):
+   @StateObject private var authService = MockAuthService()
+   
+   // NEW (add this):
+   @StateObject private var disputeService = RealDisputeService()
+   ```
+
+#### **4.5 Build and Test**
+1. **Connect your iPhone** via USB
+2. **Trust the computer** on your iPhone if prompted
+3. **Enable Developer Mode** on iPhone:
+   - Settings → Privacy & Security → Developer Mode → Enable
+4. **Select your iPhone** as the run destination in Xcode
+5. **Build and run**: Press `Cmd+R` or click ▶️
+
+### **Step 5: Test the Complete Flow**
+
+#### **5.1 Test Backend Connection**
+```bash
+# Test from terminal
+curl https://your-vercel-url.vercel.app/api/health
+
+# Expected response:
+{
+  "status": "healthy",
+  "service": "MediationAI API",
+  "features": {
+    "ai_mediation": true,
+    "legal_research": true,
+    "contract_generation": true,
+    "cost_optimization": true
+  }
+}
+```
+
+#### **5.2 Test iOS App Flow**
+1. **Open app** on iPhone
+2. **Register new user** (test registration)
+3. **Create dispute** with these settings:
+   - Title: "Test Contract Dispute"
+   - Description: "Testing the AI mediation system"
+   - Category: "Contract"
+   - ✅ **Check "Create Contract"** checkbox
+4. **Submit evidence** from both parties
+5. **Watch AI analyze** and generate resolution
+6. **View generated contract** (if checkbox was checked)
+
+#### **5.3 Monitor Costs**
+```bash
+# Check cost settings
+curl https://your-vercel-url.vercel.app/api/cost-settings
+
+# Expected response shows cost optimization is enabled
+{
+  "cost_optimization_enabled": true,
+  "max_interventions_per_dispute": 3,
+  "max_tokens_per_response": 300,
+  "ai_model": "gpt-3.5-turbo"
+}
 ```
 
 ---
@@ -278,6 +485,117 @@ curl -X POST https://your-vercel-url.vercel.app/api/disputes \
 3. Create dispute with contract checkbox
 4. Submit evidence from both parties
 5. Verify AI generates resolution + contract
+
+## 🔧 Troubleshooting
+
+### **Common Backend Issues**
+
+#### **❌ "OpenAI API key not found"**
+```bash
+# Check if environment variables are set
+vercel env ls
+
+# Add missing OpenAI key
+vercel env add OPENAI_API_KEY
+```
+
+#### **❌ "Build failed on Vercel"**
+```bash
+# Check your requirements.txt
+cat requirements.txt
+
+# Redeploy with verbose output
+vercel --debug
+```
+
+#### **❌ "API timeout errors"**
+```bash
+# Check cost optimization settings
+curl https://your-vercel-url.vercel.app/api/cost-settings
+
+# Verify MAX_AI_TOKENS is set to 300 or less
+vercel env add MAX_AI_TOKENS
+# Enter: 300
+```
+
+### **Common Frontend Issues**
+
+#### **❌ "Cannot connect to backend"**
+1. **Check APIConfig.swift** has correct Vercel URL
+2. **Test backend** in browser: `https://your-vercel-url.vercel.app/api/health`
+3. **Check network permissions** in iOS app
+
+#### **❌ "App won't build in Xcode"**
+1. **Clean build folder**: Product → Clean Build Folder
+2. **Check iOS deployment target**: iOS 15.0+
+3. **Ensure all Swift files** are added to target
+
+#### **❌ "iPhone not recognized"**
+1. **Trust computer** on iPhone
+2. **Enable Developer Mode**: Settings → Privacy & Security → Developer Mode
+3. **Try different USB cable**
+
+### **Performance Issues**
+
+#### **❌ "AI responses are slow"**
+```bash
+# Check if you're using GPT-4 (expensive and slow)
+vercel env add AI_MODEL_PREFERENCE
+# Enter: gpt-3.5-turbo
+
+# Reduce token limit
+vercel env add MAX_AI_TOKENS
+# Enter: 200
+```
+
+#### **❌ "High API costs"**
+```bash
+# Enable cost optimization
+vercel env add ENABLE_AI_COST_OPTIMIZATION
+# Enter: true
+
+# Reduce interventions
+vercel env add MAX_AI_INTERVENTIONS
+# Enter: 2
+```
+
+### **Getting Help**
+
+#### **Check Logs**
+```bash
+# View Vercel deployment logs
+vercel logs
+
+# Check function logs
+vercel logs --follow
+```
+
+#### **Test Individual Components**
+```bash
+# Test OpenAI connection
+curl -X POST https://your-vercel-url.vercel.app/api/test-openai
+
+# Test Harvard Law API
+curl https://your-vercel-url.vercel.app/api/test-harvard
+
+# Test cost controller
+curl https://your-vercel-url.vercel.app/api/cost-settings
+```
+
+### **Success Indicators**
+
+#### **✅ Backend is Working**
+- Health check returns status "healthy"
+- API docs accessible at `/docs`
+- Cost settings show optimization enabled
+- No errors in Vercel logs
+
+#### **✅ Frontend is Working**
+- App builds without errors
+- Can register and login users
+- Can create disputes with contract checkbox
+- AI responds to evidence submissions
+- Contracts are generated when requested
 
 ### **Cost Monitoring**
 ```python
@@ -477,6 +795,54 @@ For questions or issues:
 ## 📝 License
 
 This project is available under the MIT License.
+
+---
+
+## ✅ Deployment Checklist
+
+### **Pre-Deployment**
+- [ ] **OpenAI API key** obtained from platform.openai.com
+- [ ] **Harvard Law API key** obtained from case.law/api (optional but recommended)
+- [ ] **Vercel account** created (free)
+- [ ] **Xcode installed** (for iOS app)
+- [ ] **iPhone** for testing (iOS 15.0+)
+
+### **Backend Deployment**
+- [ ] **Vercel CLI installed**: `npm install -g vercel`
+- [ ] **Repository cloned**: `git clone https://github.com/yourusername/mediationai.git`
+- [ ] **Dependencies installed**: `pip install -r requirements.txt`
+- [ ] **Environment variables set** in `.env` file
+- [ ] **Deployed to Vercel**: `vercel`
+- [ ] **Environment variables added** to Vercel dashboard
+- [ ] **API URL saved** from Vercel output
+- [ ] **Health check passes**: `curl https://your-url.vercel.app/api/health`
+
+### **Frontend Deployment**
+- [ ] **Xcode project created** (iOS App, SwiftUI)
+- [ ] **Swift files imported** from frontend/ folder
+- [ ] **APIConfig.swift updated** with Vercel URL
+- [ ] **MockAuthService replaced** with RealDisputeService
+- [ ] **App builds successfully** in Xcode
+- [ ] **iPhone connected** and recognized
+- [ ] **Developer Mode enabled** on iPhone
+- [ ] **App runs on iPhone**
+
+### **Testing**
+- [ ] **Backend API accessible** at /docs endpoint
+- [ ] **User registration works** in iOS app
+- [ ] **Dispute creation works** with contract checkbox
+- [ ] **Evidence submission works** from both parties
+- [ ] **AI generates resolution** automatically
+- [ ] **Contract generation works** when checkbox selected
+- [ ] **Cost optimization active** (check /api/cost-settings)
+
+### **Production Ready**
+- [ ] **Cost limits configured** (MAX_AI_INTERVENTIONS=3)
+- [ ] **Token limits set** (MAX_AI_TOKENS=300)
+- [ ] **Caching enabled** (ENABLE_AI_CACHING=true)
+- [ ] **Monitoring setup** for costs and usage
+- [ ] **Error handling tested**
+- [ ] **User acceptance testing** completed
 
 ---
 
