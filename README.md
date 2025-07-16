@@ -161,6 +161,8 @@ iOS App → HTTP/HTTPS → Vercel Backend → OpenAI/Anthropic → Harvard Law A
 5. **Copy the key** (starts with `sk-`)
 6. **Save it** - you'll need it for deployment
 
+   Api key - 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
+
 **Cost**: ~$5-20/month for typical usage
 
 #### **1.2 Harvard Law API Key (Optional but Recommended - FREE)**
