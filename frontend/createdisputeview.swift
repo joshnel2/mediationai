@@ -16,7 +16,7 @@ struct CreateDisputeView: View {
     @State private var description = ""
     @State private var error: String?
     @State private var createdDispute: Dispute?
-    @State private var isProcessingPayment = false
+
     @State private var showTermsOfService = false
     @State private var animateElements = false
     @State private var createContract = false
@@ -378,7 +378,7 @@ struct CreateDisputeView: View {
                             .font(.title3)
                     }
                     
-                    Text(isProcessingPayment ? "Processing..." : (authService.currentUser?.hasUsedFreeDispute == false ? "Create Your FREE Dispute" : "Pay $1 & Create Dispute"))
+                    Text("Create Dispute")
                         .font(AppTheme.headline())
                         .fontWeight(.semibold)
                 }
@@ -430,58 +430,33 @@ struct CreateDisputeView: View {
     
     private func handleCreateWithPayment() {
         error = nil
-        guard var user = authService.currentUser else { return }
+        guard let user = authService.currentUser else { return }
         
         if title.isEmpty || description.isEmpty {
             error = "Please fill in all fields."
             return
         }
         
-        isProcessingPayment = true
+        let dispute = disputeService.createDispute(
+            title: title, 
+            description: description, 
+            user: user,
+            requiresContract: createContract,
+            requiresSignature: requestSignature,
+            requiresEscrow: useEscrow
+        )
         
-        Task {
-            var paymentSuccess = false
-            
-            // Check if this is the user's first dispute (free)
-            if !user.hasUsedFreeDispute {
-                // First dispute is free
-                paymentSuccess = true
-                user.hasUsedFreeDispute = true
-                authService.updateUser(user)
-            } else {
-                // Regular payment processing
-                paymentSuccess = await purchaseService.mockPurchase()
-            }
-            
-            await MainActor.run {
-                isProcessingPayment = false
-                
-                if paymentSuccess {
-                    let dispute = disputeService.createDispute(
-                    title: title, 
-                    description: description, 
-                    user: user,
-                    requiresContract: createContract,
-                    requiresSignature: requestSignature,
-                    requiresEscrow: useEscrow
-                )
-                    
-                    // If signature is required, show signature view, otherwise smooth transition to home
-                    if requestSignature {
-                        showSignatureView = true
-                        createdDispute = dispute
-                    } else {
-                        createdDispute = dispute
-                        // Smooth transition to home page after dispute creation
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                // This will trigger navigation back to home
-                                dismiss()
-                            }
-                        }
-                    }
-                } else {
-                    error = "Payment failed. Please try again."
+        // If signature is required, show signature view, otherwise smooth transition to home
+        if requestSignature {
+            showSignatureView = true
+            createdDispute = dispute
+        } else {
+            createdDispute = dispute
+            // Smooth transition to home page after dispute creation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    // This will trigger navigation back to home
+                    dismiss()
                 }
             }
         }

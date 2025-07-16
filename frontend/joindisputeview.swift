@@ -11,11 +11,11 @@ struct JoinDisputeView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
-    @StateObject private var purchaseService = InAppPurchaseService()
+
     @State private var linkOrCode = ""
     @State private var error: String?
     @State private var joinedDispute: Dispute?
-    @State private var isProcessingPayment = false
+
     @State private var selectedInputType: InputType = .link
     @State private var showTermsOfService = false
     @State private var showSignatureView = false
