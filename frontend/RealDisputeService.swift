@@ -120,10 +120,9 @@ class RealDisputeService: ObservableObject {
             id: UUID(),
             title: "Test Dispute",
             description: "This is a test dispute",
-            category: .service,
-            partyA: currentUser,
-            partyB: nil,
-            requiresContract: false
+            category: .services,
+            disputeValue: 100.0,
+            user: currentUser
         )
         
         disputes = [mockDispute]
