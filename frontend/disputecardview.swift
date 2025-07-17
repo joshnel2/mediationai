@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct DisputeCardView: View {
     let dispute: Dispute
