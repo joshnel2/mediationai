@@ -445,7 +445,7 @@ struct ContractTypeCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
@@ -487,7 +487,7 @@ struct StepCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
@@ -579,7 +579,7 @@ struct ContractComparisonCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 
