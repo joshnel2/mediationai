@@ -13,7 +13,7 @@ struct DisputeCardView: View {
     private var statusColor: Color {
         switch dispute.status {
         case .inviteSent: return AppTheme.warning
-        case .inProgress: return AppTheme.info
+        case .inProgress: return AppTheme.success
         case .aiAnalyzing: return AppTheme.secondary
         case .expertReview: return AppTheme.accent
         case .resolved: return AppTheme.success
