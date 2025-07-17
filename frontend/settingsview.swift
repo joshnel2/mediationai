@@ -126,17 +126,17 @@ struct SettingsView: View {
                         
                         VStack(spacing: 0) {
                             SettingsRow(
-                                icon: "shield.checkerboard",
-                                title: "Privacy Policy",
-                                subtitle: "How we protect your data",
-                                action: { showPrivacyPolicy = true }
+                                icon: "doc.text.fill",
+                                title: "Contract Generation",
+                                subtitle: "Legal framework & enforceability",
+                                action: { showContractGeneration = true }
                             )
                             
                             SettingsRow(
-                                icon: "doc.text",
-                                title: "Terms of Service",
-                                subtitle: "Service agreement",
-                                action: { showTermsOfService = true }
+                                icon: "creditcard.and.123",
+                                title: "Escrow Mediation",
+                                subtitle: "Fund protection & security",
+                                action: { showEscrowMediation = true }
                             )
                             
                             SettingsRow(
