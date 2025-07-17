@@ -496,7 +496,7 @@ struct EscrowStepCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
@@ -548,7 +548,7 @@ struct UseCaseCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
@@ -640,7 +640,7 @@ struct EscrowComparisonCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
