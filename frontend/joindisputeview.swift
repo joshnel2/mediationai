@@ -191,6 +191,9 @@ struct JoinDisputeView: View {
                     }
                     
                     if let joinedDispute = dispute {
+                        // Re-enable auto-login so the user is signed in automatically next launch
+                        authService.enableAutoLogin()
+
                         // Check if signature is required
                         if joinedDispute.requiresSignature {
                             disputeToJoin = joinedDispute

@@ -84,12 +84,18 @@
 </head>
 <body>
   <header>
+    <nav style="display:flex;justify-content:center;gap:2rem;margin-bottom:1.5rem;font-weight:600;font-size:.9rem;">
+      <a href="#features" style="color:var(--text-primary);text-decoration:none;">Features</a>
+      <a href="#how" style="color:var(--text-primary);text-decoration:none;">How&nbsp;It&nbsp;Works</a>
+      <a href="#escrow" style="color:var(--text-primary);text-decoration:none;">Escrow</a>
+      <a href="#beta" style="color:var(--text-primary);text-decoration:none;">Beta&nbsp;App</a>
+    </nav>
     <h1>MediationAI</h1>
-    <p class="subtitle">AI-Powered, Fair &amp; Fast Dispute Resolution</p>
+    <p class="subtitle">AI-Powered, Fair&nbsp;&amp;&nbsp;Fast Dispute Resolution</p>
     <span class="badge">iOS Beta App – coming soon</span>
   </header>
 
-  <section class="cards">
+  <section id="features" class="cards">
     <div class="card">
       <h3>Skip Legal Fees</h3>
       <p>Resolve disputes for a fraction of traditional lawyer costs &mdash; just $2 per party during beta.</p>
@@ -106,6 +112,24 @@
       <h3>Contracts &amp; Escrow</h3>
       <p>One-tap AI-generated contracts and smart escrow coming Q2&nbsp;2025.</p>
     </div>
+  </section>
+
+  <section id="how" style="padding:3rem 1.5rem;text-align:center;max-width:800px;margin:0 auto;line-height:1.6;">
+    <h2 style="font-size:2rem;margin-bottom:1rem;">How It Works</h2>
+    <p style="color:var(--text-secondary);">1&nbsp;—&nbsp;Tell us your side of the story. <br/>2&nbsp;—&nbsp;Invite the other party with a secure link. <br/>3&nbsp;—&nbsp;Our AI Mediator analyzes evidence, proposes fair terms, and (optionally) generates a court-enforceable contract.</p>
+  </section>
+
+  <section id="escrow" class="cards" style="margin-top:0;">
+    <div class="card" style="grid-column:1/-1;">
+      <h3>AI Escrow &mdash; Coming&nbsp;Soon</h3>
+      <p>Funds are held in a smart escrow until the dispute is resolved. Once both parties sign, the AI releases payment automatically, eliminating chargebacks and fraud.</p>
+    </div>
+  </section>
+
+  <section id="beta" style="padding:3rem 1.5rem;text-align:center;">
+    <h2 style="font-size:2rem;margin-bottom:1rem;">Join the Beta</h2>
+    <p class="subtitle" style="margin-bottom:2rem;">The iOS app is in private beta and launching on TestFlight shortly.</p>
+    <a href="mailto:beta@mediationai.app" style="display:inline-block;padding:1rem 2.5rem;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:600;text-decoration:none;">Request Early Access</a>
   </section>
 
   <footer>
