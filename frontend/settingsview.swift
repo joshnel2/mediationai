@@ -350,7 +350,7 @@ struct SettingsView: View {
     }
     
     private func openWebsite() {
-        if let websiteURL = URL(string: "https://mediationai.app") {
+        if let websiteURL = URL(string: "https://www.mediationai.app") {
             UIApplication.shared.open(websiteURL)
         }
     }

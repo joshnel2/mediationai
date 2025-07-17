@@ -36,7 +36,7 @@ struct APIConfig {
     // MARK: - App Configuration
     static let appDomain = "mediationai.app"
     static let appStoreURL = "https://apps.apple.com/app/id123456789"
-    static let websiteURL = "https://mediationai.app"
+    static let websiteURL = "https://www.mediationai.app"
     
     // MARK: - Request Configuration
     static let requestTimeout: TimeInterval = 30.0
