@@ -105,7 +105,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingSM) {
+            VStack(spacing: AppTheme.spacingXS) {
                 ContractTypeCard(
                     icon: "dollarsign.circle.fill",
                     title: "Payment & Refund Agreements",
@@ -167,7 +167,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingSM) {
+            VStack(spacing: AppTheme.spacingXS) {
                 StepCard(
                     number: "1",
                     title: "Dispute Analysis",
@@ -216,7 +216,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingSM) {
+            VStack(spacing: AppTheme.spacingXS) {
                 FeatureRow(
                     icon: "scale.3d",
                     title: "Balanced Terms",
@@ -331,7 +331,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingSM) {
+            VStack(spacing: AppTheme.spacingXS) {
                 ContractComparisonCard(
                     icon: "dollarsign.circle.fill",
                     title: "Traditional Lawyers",
@@ -445,7 +445,7 @@ struct ContractTypeCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, height: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
@@ -487,7 +487,7 @@ struct StepCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, height: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
@@ -579,7 +579,7 @@ struct ContractComparisonCard: View {
         .padding(AppTheme.spacingMD)
         .background(AppTheme.card)
         .cornerRadius(AppTheme.radiusMD)
-        .frame(maxWidth: .infinity, minHeight: AppTheme.uniformCardHeight, alignment: .topLeading)
+        .frame(maxWidth: .infinity, height: AppTheme.uniformCardHeight, alignment: .topLeading)
     }
 }
 
