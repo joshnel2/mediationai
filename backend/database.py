@@ -9,6 +9,10 @@ import os
 # Database URL - will use SQLite for development, PostgreSQL for production
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mediationai.db")
 
+# Ensure SSL for Supabase/Postgres deployments
+if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
+    DATABASE_URL += "?sslmode=require"
+
 # Create SQLAlchemy engine
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
