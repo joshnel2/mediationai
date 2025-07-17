@@ -13,7 +13,7 @@ struct OnboardingView: View {
     
     var body: some View {
         if showAuth {
-            ModernAuthView()
+            ModernAuthView(startMode: .signUp)
         } else if showMain {
             BalancedScaleView(onGetStarted: { showAuth = true })
         } else {

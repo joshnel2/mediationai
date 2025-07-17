@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct ModernAuthView: View {
+    enum StartMode { case welcome, signUp }
+    // Allow parent views to specify whether we begin directly at sign-up
+    init(startMode: StartMode = .welcome) {
+        _currentStep = State(initialValue: startMode == .signUp ? .email : .welcome)
+        _isSignUp    = State(initialValue: startMode == .signUp)
+    }
     @EnvironmentObject var authService: MockAuthService
     @State private var currentStep: AuthStep = .welcome
     @State private var email = ""
