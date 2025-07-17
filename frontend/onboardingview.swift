@@ -387,7 +387,7 @@ struct BalancedScaleView: View {
                             title: "Traditional Lawyers",
                             subtitle: "Thousands",
                             vsTitle: "MediationAI",
-                            vsSubtitle: "FREE during beta",
+                            vsSubtitle: "FREE",
                             color: AppTheme.success
                         )
                         .opacity(showFeatures ? 0.9 : 0.0)

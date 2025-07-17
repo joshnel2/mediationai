@@ -91,14 +91,17 @@ class MockAuthService: ObservableObject {
                     return true
                 }
             }
+            
+            // If we get here, the API call didn't succeed, so fall back to mock
+            print("🔄 API call unsuccessful, falling back to mock registration...")
+            return await mockSignUp(email: email, password: password)
+            
         } catch {
             print("❌ SignUp Error: \(error)")
             print("🔄 Falling back to mock registration...")
             // Fallback to mock registration for development
             return await mockSignUp(email: email, password: password)
         }
-        
-        return false
     }
     
     private func mockSignUp(email: String, password: String) async -> Bool {
