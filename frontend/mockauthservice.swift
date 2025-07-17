@@ -36,8 +36,22 @@ class MockAuthService: ObservableObject {
     
     func signUp(email: String, password: String) async -> Bool {
         guard !email.isEmpty, !password.isEmpty else { return false }
-        
-        // Use mock authentication for development
+
+        // Attempt real backend registration first
+        if let url = URL(string: "\(APIConfig.baseURL)/api/register"),
+           let body = try? JSONSerialization.data(withJSONObject: ["email": email, "password": password]),
+           let (data, response) = try? await URLSession.shared.upload(for: urlRequest(url: url, body: body), from: body),
+           let http = response as? HTTPURLResponse, 200...299 ~= http.statusCode,
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let userDict = json["user"] as? [String: Any],
+           let idStr = userDict["id"] as? String, let uuid = UUID(uuidString: idStr) {
+
+            let newUser = User(id: uuid, email: email)
+            await MainActor.run { self.currentUser = newUser }
+            return true
+        }
+
+        // Fallback to mock when backend not reachable
         return await mockSignUp(email: email, password: password)
     }
     
@@ -87,12 +101,33 @@ class MockAuthService: ObservableObject {
         
         return true
     }
-    
+
     func signIn(email: String, password: String) async -> Bool {
         guard !email.isEmpty, !password.isEmpty else { return false }
-        
-        // Use mock authentication for development
+
+        if let url = URL(string: "\(APIConfig.baseURL)/api/login"),
+           let body = try? JSONSerialization.data(withJSONObject: ["email": email, "password": password]),
+           let (data, response) = try? await URLSession.shared.upload(for: urlRequest(url: url, body: body), from: body),
+           let http = response as? HTTPURLResponse, 200...299 ~= http.statusCode,
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let userDict = json["user"] as? [String: Any],
+           let idStr = userDict["id"] as? String, let uuid = UUID(uuidString: idStr) {
+
+            let user = User(id: uuid, email: email)
+            await MainActor.run { self.currentUser = user }
+            return true
+        }
+
         return await mockSignIn(email: email, password: password)
+    }
+
+    // Helper to build URLRequest
+    private func urlRequest(url: URL, body: Data) -> URLRequest {
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = body
+        return req
     }
     
     func signOut() {
