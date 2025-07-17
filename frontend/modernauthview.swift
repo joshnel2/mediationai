@@ -109,6 +109,12 @@ struct ModernAuthView: View {
                                     confirmPassword = ""
                                     error = nil
                                 }
+                            },
+                            onSignInExisting: {
+                                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                    isSignUp = false
+                                    currentStep = .signIn
+                                }
                             }
                         )
                         
@@ -384,6 +390,7 @@ struct EmailStepView: View {
     @Binding var error: String?
     let onNext: () -> Void
     let onBack: () -> Void
+    let onSignInExisting: () -> Void
     @State private var animateIn = false
     @FocusState private var isEmailFocused: Bool
     
@@ -470,6 +477,16 @@ struct EmailStepView: View {
                             .font(.body)
                     }
                     .foregroundColor(.white.opacity(0.8))
+                }
+                .scaleEffect(animateIn ? 1.0 : 0.95)
+                .opacity(animateIn ? 1.0 : 0.0)
+
+                // Already have account
+                Button(action: onSignInExisting) {
+                    Text("I already have an account")
+                        .font(.body)
+                        .foregroundColor(.white.opacity(0.85))
+                        .underline()
                 }
                 .scaleEffect(animateIn ? 1.0 : 0.95)
                 .opacity(animateIn ? 1.0 : 0.0)
