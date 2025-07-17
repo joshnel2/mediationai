@@ -173,43 +173,37 @@ class MockAuthService: ObservableObject {
     }
     
     private func verifyTokenAndLogin(user: User, token: String) async {
+        // If we're using a mock token, skip remote validation and accept it.
+        if token.hasPrefix("mock_token") {
+            await MainActor.run {
+                self.currentUser = user
+                if !self.users.contains(where: { $0.id == user.id }) {
+                    self.users.append(user)
+                }
+            }
+            return
+        }
+
+        // For real tokens, hit the backend verification endpoint
         let url = URL(string: "\(APIConfig.baseURL)/api/me")!
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
+
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
-            
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                // Token is valid, proceed with auto-login
                 await MainActor.run {
-                    if isFaceIDEnabled {
-                        authenticateWithFaceID { [weak self] success in
-                            if success {
-                                self?.currentUser = user
-                                self?.users.append(user)
-                            }
-                        }
-                    } else {
-                        currentUser = user
-                        users.append(user)
-                    }
+                    self.currentUser = user
                 }
             } else {
-                // Token is invalid, clear stored data
                 await MainActor.run {
                     userDefaults.removeObject(forKey: userKey)
                     userDefaults.removeObject(forKey: tokenKey)
                 }
             }
         } catch {
-            // Network error, try to use cached user data
-            await MainActor.run {
-                if !isFaceIDEnabled {
-                    currentUser = user
-                    users.append(user)
-                }
-            }
+            // Network issue; fallback to local user data
+            await MainActor.run { self.currentUser = user }
         }
     }
 }
