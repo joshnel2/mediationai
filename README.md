@@ -21,6 +21,7 @@
 - [🚢 Deployment](#-deployment)
 - [🏛️ Legal Research](#️-legal-research)
 - [📄 Contract Generation](#-contract-generation)
+- [📄 Legal Documents](#legal-documents)
 - [🔄 API Endpoints](#-api-endpoints)
 - [🤝 Contributing](#-contributing)
 
@@ -981,3 +982,10 @@ This project is available under the MIT License.
 **🎉 Ready to resolve disputes with AI! Your cost-optimized mediation system is ready for production.**
 
 **Next up: Escrow system for secure payment handling** 💰🔐
+
+## Legal Documents
+
+Publicly accessible versions (required for App Store Connect):
+
+* **Privacy Policy** – https://mediationai-3ueg.vercel.app/privacy-policy.html
+* **Terms of Service** – https://mediationai-3ueg.vercel.app/terms-of-service.html
