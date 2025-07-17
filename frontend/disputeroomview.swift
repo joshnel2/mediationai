@@ -131,20 +131,39 @@ struct DisputeRoomView: View {
     }
     
     private var statusIndicator: some View {
-        HStack(spacing: AppTheme.spacingSM) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-            
-            Text(dispute.status.rawValue)
-                .font(AppTheme.caption())
-                .foregroundColor(statusColor)
-                .fontWeight(.medium)
+        Group {
+            if dispute.status == .inviteSent, let url = URL(string: dispute.shareLink) {
+                ShareLink(item: url) {
+                    HStack(spacing: AppTheme.spacingSM) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.warning)
+                        Text("Share Invite Link")
+                            .font(AppTheme.caption())
+                            .fontWeight(.medium)
+                            .foregroundColor(AppTheme.warning)
+                    }
+                }
+                .padding(.horizontal, AppTheme.spacingMD)
+                .padding(.vertical, AppTheme.spacingSM)
+                .background(AppTheme.warning.opacity(0.1))
+                .cornerRadius(AppTheme.radiusMD)
+            } else {
+                HStack(spacing: AppTheme.spacingSM) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 8, height: 8)
+                    Text(dispute.status.rawValue)
+                        .font(AppTheme.caption())
+                        .foregroundColor(statusColor)
+                        .fontWeight(.medium)
+                }
+                .padding(.horizontal, AppTheme.spacingMD)
+                .padding(.vertical, AppTheme.spacingSM)
+                .background(statusColor.opacity(0.1))
+                .cornerRadius(AppTheme.radiusMD)
+            }
         }
-        .padding(.horizontal, AppTheme.spacingMD)
-        .padding(.vertical, AppTheme.spacingSM)
-        .background(statusColor.opacity(0.1))
-        .cornerRadius(AppTheme.radiusMD)
     }
     
     private var statusColor: Color {
