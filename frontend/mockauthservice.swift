@@ -37,78 +37,11 @@ class MockAuthService: ObservableObject {
     func signUp(email: String, password: String) async -> Bool {
         guard !email.isEmpty, !password.isEmpty else { return false }
         
-        let url = URL(string: "\(APIConfig.baseURL)/api/register")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let requestBody = [
-            "email": email,
-            "password": password
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-                
-                if let userData = json?["user"] as? [String: Any],
-                   let accessToken = json?["access_token"] as? String {
-                    
-                    // Parse user data
-                    var user = User(
-                        id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
-                        email: userData["email"] as? String ?? email
-                    )
-                    
-                    // Update user properties from API response
-                    user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
-                    user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
-                    user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
-                    user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
-                    user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
-                    
-                    // These are stored in the auth service, not user preferences
-                    if let faceIDEnabled = userData["faceIDEnabled"] as? Bool {
-                        self.isFaceIDEnabled = faceIDEnabled
-                    }
-                    if let autoLoginEnabled = userData["autoLoginEnabled"] as? Bool {
-                        self.isAutoLoginEnabled = autoLoginEnabled
-                    }
-                    
-                    await MainActor.run {
-                        currentUser = user
-                        users.append(user)
-                        
-                        // Save token and user data
-                        userDefaults.set(accessToken, forKey: tokenKey)
-                        saveUserSettings()
-                    }
-                    
-                    return true
-                }
-            }
-            
-            // If we get here, the API call didn't succeed, so fall back to mock
-            print("🔄 API call unsuccessful, falling back to mock registration...")
-            return await mockSignUp(email: email, password: password)
-            
-        } catch {
-            print("❌ SignUp Error: \(error)")
-            print("🔄 Falling back to mock registration...")
-            // Fallback to mock registration for development
-            return await mockSignUp(email: email, password: password)
-        }
+        // Use mock authentication for development
+        return await mockSignUp(email: email, password: password)
     }
     
     private func mockSignUp(email: String, password: String) async -> Bool {
-        print("🔧 MockSignUp called for email: \(email)")
-        // For development/testing, allow sign-up even if email "exists" in mock
-        // In a real app, this would be handled by the backend
-        
         // Create new mock user
         let newUser = User(
             id: UUID(),
@@ -127,7 +60,6 @@ class MockAuthService: ObservableObject {
             saveUserSettings()
         }
         
-        print("✅ MockSignUp successful for email: \(email)")
         return true
     }
     
@@ -153,66 +85,8 @@ class MockAuthService: ObservableObject {
     func signIn(email: String, password: String) async -> Bool {
         guard !email.isEmpty, !password.isEmpty else { return false }
         
-        let url = URL(string: "\(APIConfig.baseURL)/api/login")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let requestBody = [
-            "email": email,
-            "password": password
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-                
-                if let userData = json?["user"] as? [String: Any],
-                   let accessToken = json?["access_token"] as? String {
-                    
-                    // Parse user data
-                    var user = User(
-                        id: UUID(uuidString: userData["id"] as? String ?? "") ?? UUID(),
-                        email: userData["email"] as? String ?? email
-                    )
-                    
-                    // Update user properties from API response
-                    user.profile.displayName = userData["displayName"] as? String ?? email.components(separatedBy: "@")[0]
-                    user.stats.totalDisputes = userData["totalDisputes"] as? Int ?? 0
-                    user.stats.disputesWon = userData["disputesWon"] as? Int ?? 0
-                    user.stats.disputesLost = userData["disputesLost"] as? Int ?? 0
-                    user.preferences.notificationsEnabled = userData["notificationsEnabled"] as? Bool ?? true
-                    
-                    // These are stored in the auth service, not user preferences
-                    if let faceIDEnabled = userData["faceIDEnabled"] as? Bool {
-                        self.isFaceIDEnabled = faceIDEnabled
-                    }
-                    if let autoLoginEnabled = userData["autoLoginEnabled"] as? Bool {
-                        self.isAutoLoginEnabled = autoLoginEnabled
-                    }
-                    
-                    await MainActor.run {
-                        currentUser = user
-                        
-                        // Save token and user data
-                        userDefaults.set(accessToken, forKey: tokenKey)
-                        saveUserSettings()
-                    }
-                    
-                    return true
-                }
-            }
-        } catch {
-            print("❌ SignIn Error: \(error)")
-            // Fallback to mock sign-in for development
-            return await mockSignIn(email: email, password: password)
-        }
-        
-        return false
+        // Use mock authentication for development
+        return await mockSignIn(email: email, password: password)
     }
     
     func signOut() {
