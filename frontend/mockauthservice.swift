@@ -57,6 +57,9 @@ class MockAuthService: ObservableObject {
             
             // Save mock token and user data
             userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+            // Automatically enable auto-login
+            enableAutoLogin()
             saveUserSettings()
         }
         
@@ -76,6 +79,9 @@ class MockAuthService: ObservableObject {
             
             // Save mock token and user data
             userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+            // Ensure auto-login remains active
+            enableAutoLogin()
             saveUserSettings()
         }
         
@@ -115,8 +121,8 @@ class MockAuthService: ObservableObject {
     func disableAutoLogin() {
         isAutoLoginEnabled = false
         userDefaults.set(false, forKey: autoLoginKey)
-        userDefaults.removeObject(forKey: userKey)
-        userDefaults.removeObject(forKey: tokenKey)
+        // We intentionally keep the cached credentials so Face ID (if enabled)
+        // can still retrieve them and unlock the session next launch.
     }
     
     func enableFaceID() {

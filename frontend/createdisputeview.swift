@@ -71,6 +71,8 @@ struct CreateDisputeView: View {
         .navigationBarHidden(true)
         .sheet(item: $createdDispute) { dispute in
             ShareDisputeView(dispute: dispute)
+        } onDismiss: {
+            dismiss()
         }
         .sheet(isPresented: $showTermsOfService) {
             TermsOfServiceView()
@@ -420,13 +422,6 @@ struct CreateDisputeView: View {
             createdDispute = dispute
         } else {
             createdDispute = dispute
-            // Smooth transition to home page after dispute creation
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    // This will trigger navigation back to home
-                    dismiss()
-                }
-            }
         }
     }
     

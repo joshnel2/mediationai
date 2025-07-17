@@ -428,15 +428,29 @@ async def send_message(dispute_id: str, request: SendMessageRequest):
     }
 
 @app.get("/api/disputes/{dispute_id}/messages")
-async def get_dispute_messages(dispute_id: str, limit: int = 50):
-    """Get messages for a dispute"""
+async def get_dispute_messages(dispute_id: str, limit: int = 50, for_user_id: str | None = None):
+    """Return dispute messages visible to a specific user.
+
+    Visibility rules:
+    • Public messages (`is_private == False`) are always returned.
+    • Private messages are returned *only* if the caller is the sender **or** the designated recipient.
+    If `for_user_id` is not supplied the behaviour is unchanged (admin/debug use-case).
+    """
     if dispute_id not in disputes_db:
         raise HTTPException(status_code=404, detail="Dispute not found")
-    
-    messages = disputes_db[dispute_id].messages
-    
-    # Return most recent messages
-    return messages[-limit:] if len(messages) > limit else messages
+
+    all_messages = disputes_db[dispute_id].messages
+
+    if for_user_id:
+        visible = [
+            m for m in all_messages
+            if (not m.is_private) or (m.sender_id == for_user_id) or (m.recipient_id == for_user_id)
+        ]
+    else:
+        visible = all_messages
+
+    # Return most recent `limit` messages
+    return visible[-limit:] if len(visible) > limit else visible
 
 # ==============================================================================
 # MEDIATION ENDPOINTS
@@ -1019,6 +1033,45 @@ async def health_check():
         "disputes_count": len(disputes_db),
         "users_count": len(users_db)
     }
+
+@app.get("/api/admin/users")
+async def admin_get_all_users(db: Session = Depends(get_db)):
+    """Return a summary of all registered users, their email, truths submitted, and dispute resolutions. This endpoint is intended for internal/admin use."""
+    users = db.query(DBUser).all()
+    response = []
+    for user in users:
+        # Fetch user truths
+        truths = db.query(DBTruth).filter(DBTruth.user_id == user.id).all()
+        # Fetch disputes where user is a participant
+        created = db.query(DBDispute).filter(DBDispute.party_a_id == user.id).all()
+        joined = db.query(DBDispute).filter(DBDispute.party_b_id == user.id).all()
+
+        def dispute_summary(d):
+            return {
+                "id": d.id,
+                "title": d.title,
+                "role": "creator" if d.party_a_id == user.id else "joiner",
+                "status": d.status,
+                "resolution": d.resolution_text,
+            }
+
+        user_data = {
+            "id": user.id,
+            "email": user.email,
+            "display_name": user.display_name,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            "truths": [{
+                "id": t.id,
+                "dispute_id": t.dispute_id,
+                "content": t.content,
+                "timestamp": t.timestamp.isoformat() if t.timestamp else None,
+            } for t in truths],
+            "disputes": [dispute_summary(d) for d in created + joined],
+        }
+        response.append(user_data)
+
+    return {"users": response}
 
 # ==============================================================================
 # STARTUP EVENTS

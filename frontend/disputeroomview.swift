@@ -100,56 +100,76 @@ struct DisputeRoomView: View {
     }
     
     private var headerSection: some View {
-        VStack(spacing: AppTheme.spacingMD) {
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(AppTheme.textPrimary)
-                        .frame(width: 32, height: 32)
-                        .background(AppTheme.glassPrimary)
-                        .cornerRadius(AppTheme.radiusSM)
-                }
-                
-                Spacer()
-                
-                Text("Dispute Room")
-                    .font(AppTheme.title3())
+        HStack {
+            // Back button – larger touch target
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.title2)
+                    .fontWeight(.medium)
                     .foregroundColor(AppTheme.textPrimary)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                // Status indicator
-                statusIndicator
+                    .frame(width: 44, height: 44)
+                    .background(AppTheme.glassPrimary)
+                    .cornerRadius(AppTheme.radiusLG)
             }
+
+            Spacer()
+
+            Text("Dispute Room")
+                .font(AppTheme.title2())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.bold)
+                .lineLimit(1)
+
+            Spacer()
+
+            // Status indicator pill
+            statusIndicator
         }
         .padding(.horizontal, AppTheme.spacingLG)
-        .padding(.top, AppTheme.spacingSM)
+        .padding(.top, (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.safeAreaInsets.top ?? 20)
+        .padding(.bottom, AppTheme.spacingSM)
     }
     
     private var statusIndicator: some View {
-        HStack(spacing: AppTheme.spacingSM) {
-            Circle()
-                .fill(statusColor)
-                .frame(width: 8, height: 8)
-            
-            Text(dispute.status.rawValue)
-                .font(AppTheme.caption())
-                .foregroundColor(statusColor)
-                .fontWeight(.medium)
+        Group {
+            if dispute.status == .inviteSent, let url = URL(string: dispute.shareLink) {
+                ShareLink(item: url) {
+                    HStack(spacing: AppTheme.spacingSM) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.warning)
+                        Text("Share Invite Link")
+                            .font(AppTheme.caption())
+                            .fontWeight(.medium)
+                            .foregroundColor(AppTheme.warning)
+                    }
+                }
+                .padding(.horizontal, AppTheme.spacingMD)
+                .padding(.vertical, AppTheme.spacingSM)
+                .background(AppTheme.warning.opacity(0.1))
+                .cornerRadius(AppTheme.radiusMD)
+            } else {
+                HStack(spacing: AppTheme.spacingSM) {
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 8, height: 8)
+                    Text(dispute.status.rawValue)
+                        .font(AppTheme.caption())
+                        .foregroundColor(statusColor)
+                        .fontWeight(.medium)
+                }
+                .padding(.horizontal, AppTheme.spacingMD)
+                .padding(.vertical, AppTheme.spacingSM)
+                .background(statusColor.opacity(0.1))
+                .cornerRadius(AppTheme.radiusMD)
+            }
         }
-        .padding(.horizontal, AppTheme.spacingMD)
-        .padding(.vertical, AppTheme.spacingSM)
-        .background(statusColor.opacity(0.1))
-        .cornerRadius(AppTheme.radiusMD)
     }
     
     private var statusColor: Color {
         switch dispute.status {
         case .inviteSent: return AppTheme.warning
-        case .inProgress: return AppTheme.info
+        case .inProgress: return AppTheme.success
         case .aiAnalyzing: return AppTheme.secondary
         case .expertReview: return AppTheme.accent
         case .resolved: return AppTheme.success

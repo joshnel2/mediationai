@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct DisputeCardView: View {
     let dispute: Dispute
@@ -13,7 +14,7 @@ struct DisputeCardView: View {
     private var statusColor: Color {
         switch dispute.status {
         case .inviteSent: return AppTheme.warning
-        case .inProgress: return AppTheme.info
+        case .inProgress: return AppTheme.success
         case .aiAnalyzing: return AppTheme.secondary
         case .expertReview: return AppTheme.accent
         case .resolved: return AppTheme.success
@@ -38,15 +39,33 @@ struct DisputeCardView: View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
             // Header with status
             HStack {
-                HStack(spacing: AppTheme.spacingSM) {
-                    Image(systemName: statusIcon)
-                        .font(.caption)
-                        .foregroundColor(statusColor)
-                    
-                    Text(dispute.status.rawValue)
-                        .font(AppTheme.caption())
-                        .fontWeight(.medium)
-                        .foregroundColor(statusColor)
+                Group {
+                    if dispute.status == .inviteSent {
+                        if let url = URL(string: dispute.shareLink) {
+                            ShareLink(item: url) {
+                                HStack(spacing: AppTheme.spacingSM) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.caption)
+                                        .foregroundColor(statusColor)
+                                    Text("Share Invite Link")
+                                        .font(AppTheme.caption())
+                                        .fontWeight(.medium)
+                                        .foregroundColor(statusColor)
+                                }
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    } else {
+                        HStack(spacing: AppTheme.spacingSM) {
+                            Image(systemName: statusIcon)
+                                .font(.caption)
+                                .foregroundColor(statusColor)
+                            Text(dispute.status.rawValue)
+                                .font(AppTheme.caption())
+                                .fontWeight(.medium)
+                                .foregroundColor(statusColor)
+                        }
+                    }
                 }
                 .padding(.horizontal, AppTheme.spacingMD)
                 .padding(.vertical, AppTheme.spacingSM)

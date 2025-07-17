@@ -165,6 +165,11 @@ struct AppTheme {
     static let spacingXL: CGFloat = 32
     static let spacingXXL: CGFloat = 48
     
+    // MARK: - Uniform Card Height (for consistent box sizes)
+    
+    /// Minimum height applied to informational cards so they render at the same visual size even when content length varies.
+    static let uniformCardHeight: CGFloat = 300
+    
     // MARK: - Corner Radius
     
     static let radiusXS: CGFloat = 6
