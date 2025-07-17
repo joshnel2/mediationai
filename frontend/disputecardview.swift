@@ -41,22 +41,20 @@ struct DisputeCardView: View {
             HStack {
                 Group {
                     if dispute.status == .inviteSent {
-                        Button(action: {
-                            #if canImport(UIKit)
-                            UIPasteboard.general.string = dispute.shareLink
-                            #endif
-                        }) {
-                            HStack(spacing: AppTheme.spacingSM) {
-                                Image(systemName: "link")
-                                    .font(.caption)
-                                    .foregroundColor(statusColor)
-                                Text("Copy Invite Link")
-                                    .font(AppTheme.caption())
-                                    .fontWeight(.medium)
-                                    .foregroundColor(statusColor)
+                        if let url = URL(string: dispute.shareLink) {
+                            ShareLink(item: url) {
+                                HStack(spacing: AppTheme.spacingSM) {
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.caption)
+                                        .foregroundColor(statusColor)
+                                    Text("Share Invite Link")
+                                        .font(AppTheme.caption())
+                                        .fontWeight(.medium)
+                                        .foregroundColor(statusColor)
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     } else {
                         HStack(spacing: AppTheme.spacingSM) {
                             Image(systemName: statusIcon)
