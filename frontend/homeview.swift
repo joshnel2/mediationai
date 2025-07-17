@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var showCommunity = false
     @State private var showContract = false
     @State private var showEscrow = false
+    @State private var showNotifications = false
 
     @State private var selectedDispute: Dispute?
     @State private var animateCards = false
