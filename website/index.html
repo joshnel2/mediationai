@@ -69,9 +69,30 @@
   <!-- Escrow Deep Dive -->
   <section id="escrow" class="reveal">
     <h2>Why Escrow Mediation Matters</h2>
-    <p style="max-width:700px;margin:0 auto 2rem;color:var(--text-secondary);font-size:1rem;line-height:1.6">
-      MediationAI pairs neutral AI dispute resolution with a secure, programmable escrow layer. Funds are locked in a smart contract the moment a case starts, giving both sides confidence that money can move instantly once a fair settlement is reached. No chasing invoices, no charge-backs, no middle-men. Our escrow engine integrates with on-chain and traditional rails, so whether you’re paying in USDC or USD ACH we can hold, verify and release safely. Automated compliance, risk scoring and multi-sig governance ensure assets stay protected at every step.
-    </p>
+    <div style="max-width:800px;margin:0 auto 2rem;color:var(--text-secondary);font-size:1rem;line-height:1.6;display:flex;flex-direction:column;gap:1.25rem">
+      <p>
+        Traditional escrow services rely on humans: escrow officers validate evidence, approve releases and manually wire funds. That means delays, bias and fees that can run 2–6&nbsp;% of the transaction value. MediationAI replaces that bottleneck with deterministic <strong>smart-contract escrow</strong> governed by a transparent AI mediation process. Once both parties upload evidence and the model proposes a settlement, the contract’s release conditions update on-chain in real time—usually in under five minutes.
+      </p>
+      <p>
+        The escrow vault itself is <em>asset-agnostic</em>: it can custody stablecoins, NFTs or conventional fiat held at our partner banks. An oracle layer keeps both worlds in sync, so payouts can jump seamlessly from USDC on Polygon to domestic ACH in the US or SEPA in Europe. Every movement is auditable and cryptographically signed, eliminating the “black box” nature of legacy processors.
+      </p>
+      <h3 style="margin:1.5rem 0 0.5rem;color:#fff;font-size:1.25rem">How It Works</h3>
+      <ol style="padding-left:1.25rem;display:flex;flex-direction:column;gap:0.75rem">
+        <li><strong>Case Initiation&nbsp;→&nbsp;Deposit</strong> – Each party deposits funds or assets into the escrow smart-contract as soon as the dispute is created.</li>
+        <li><strong>AI Mediation</strong> – Our GPT-4 legal agent reviews claims, evidence and governing law to draft a balanced resolution.</li>
+        <li><strong>Consensus &amp; Signature</strong> – Both sides e-sign the proposed terms directly in-app. The contract hash is written to the blockchain for permanence.</li>
+        <li><strong>Autonomous Release</strong> – The smart contract verifies signatures and instantly releases funds according to the agreed settlement schedule.</li>
+      </ol>
+      <h3 style="margin:1.5rem 0 0.5rem;color:#fff;font-size:1.25rem">The Value We Deliver</h3>
+      <ul style="padding-left:1.25rem;display:flex;flex-direction:column;gap:0.75rem">
+        <li><strong>Zero Charge-backs</strong> – Once funds are on-chain, they can’t be clawed back through card disputes or ACH reversals.</li>
+        <li><strong>Instant Finality</strong> – Settlements execute in seconds, not the 3–10 business days typical with banks.</li>
+        <li><strong>Global Reach</strong> – One integration handles 140+ fiat corridors &amp; every major EVM chain.</li>
+        <li><strong>Transparent Fees</strong> – Flat&nbsp;$2 per party during beta, with no hidden FX mark-ups or escrow percentages.</li>
+        <li><strong>Reg-Tech Compliance</strong> – Automated KYC/KYB, AML screening and real-time fraud scoring baked in.</li>
+        <li><strong>Developer-First</strong> – REST &amp; GraphQL APIs let marketplaces route payments into dispute escrow with 3 lines of code.</li>
+      </ul>
+    </div>
     <div class="cards">
       <div class="card"><h3>Smart-Contract Vault</h3><p>Funds are tokenised and held in auditable contracts—release conditions are encoded, not manually approved.</p></div>
       <div class="card"><h3>Risk-Weighted Monitoring</h3><p>ML models watch dispute timelines &amp; trigger alerts if parties stall or provide fraudulent evidence.</p></div>
