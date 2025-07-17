@@ -100,33 +100,34 @@ struct DisputeRoomView: View {
     }
     
     private var headerSection: some View {
-        VStack(spacing: AppTheme.spacingMD) {
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(AppTheme.textPrimary)
-                        .frame(width: 32, height: 32)
-                        .background(AppTheme.glassPrimary)
-                        .cornerRadius(AppTheme.radiusSM)
-                }
-                
-                Spacer()
-                
-                Text("Dispute Room")
-                    .font(AppTheme.title3())
+        HStack {
+            // Back button – larger touch target
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.title2)
+                    .fontWeight(.medium)
                     .foregroundColor(AppTheme.textPrimary)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                // Status indicator
-                statusIndicator
+                    .frame(width: 44, height: 44)
+                    .background(AppTheme.glassPrimary)
+                    .cornerRadius(AppTheme.radiusLG)
             }
+
+            Spacer()
+
+            Text("Dispute Room")
+                .font(AppTheme.title2())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.bold)
+                .lineLimit(1)
+
+            Spacer()
+
+            // Status indicator pill
+            statusIndicator
         }
         .padding(.horizontal, AppTheme.spacingLG)
-        .padding(.top, AppTheme.spacingSM)
+        .padding(.top, (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.safeAreaInsets.top ?? 20)
+        .padding(.bottom, AppTheme.spacingSM)
     }
     
     private var statusIndicator: some View {
