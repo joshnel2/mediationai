@@ -87,6 +87,10 @@ UserDefaults (JWT Token) → Auto-login on app restart
 
 ### **📍 Where Your Data Lives**
 
+Supabase API - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdmFjd21kZHZ6YXRzaGxpb3h5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3ODc0OTcsImV4cCI6MjA2ODM2MzQ5N30.hoecoakSQLvff7rYPWSNTi6RaTKq6WNshBnQutv8fn4
+
+Secret API - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdmFjd21kZHZ6YXRzaGxpb3h5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjc4NzQ5NywiZXhwIjoyMDY4MzYzNDk3fQ.t16cR8BxjxvGtq1b40_J8xk8Y_yFkmLEu0jXO3IE2c4
+
 #### **🔐 User Authentication Data**
 - **Location**: SQLite database on Vercel + iOS UserDefaults
 - **What's Stored**: 
