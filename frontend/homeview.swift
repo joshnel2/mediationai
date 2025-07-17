@@ -74,7 +74,7 @@ struct HomeView: View {
                         }
                     }
                     .padding(AppTheme.spacingMD)
-                    .background(AppTheme.glassTertiary)
+                    .background(AppTheme.glassSecondary)
                     .cornerRadius(AppTheme.radiusMD)
                     .padding(.top, AppTheme.spacingLG)
                     
