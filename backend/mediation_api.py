@@ -163,6 +163,25 @@ async def login_user(request: UserLoginRequest, db: Session = Depends(get_db)):
         logger.error(f"Login failed: {str(e)}")
         raise HTTPException(status_code=401, detail="Login failed")
 
+@app.get("/api/me")
+async def get_current_user_endpoint(current_user: DBUser = Depends(get_current_user)):
+    """Return the authenticated user's details—used by iOS auto-login check"""
+    user_response = User(
+        id=current_user.id,
+        email=current_user.email,
+        displayName=current_user.display_name,
+        hasUsedFreeDispute=current_user.has_used_free_dispute,
+        totalDisputes=current_user.total_disputes,
+        disputesWon=current_user.disputes_won,
+        disputesLost=current_user.disputes_lost,
+        createdAt=current_user.created_at.isoformat(),
+        updatedAt=current_user.updated_at.isoformat(),
+        faceIDEnabled=current_user.face_id_enabled,
+        autoLoginEnabled=current_user.auto_login_enabled,
+        notificationsEnabled=current_user.notifications_enabled
+    )
+    return {"user": user_response}
+
 @app.get("/api/users/{user_id}")
 async def get_user(user_id: str):
     """Get user details"""
