@@ -48,6 +48,40 @@
     </div>
   </section>
 
+  <!-- Mediation Deep Dive -->
+  <section id="mediation" class="reveal">
+    <h2>The Mediation Engine</h2>
+    <div class="cards">
+      <div class="card"><h3>NLP + Legal Ontology</h3><p>Our models parse claims, evidence and legal context to build structured arguments—no black-box magic.</p></div>
+      <div class="card"><h3>Transparent Reasoning</h3><p>Each resolution includes a step-by-step rationale mapped to precedent and governing law.</p></div>
+      <div class="card"><h3>Adaptive Negotiation</h3><p>Dynamic prompts adapt tone &amp; concessions based on live sentiment analysis to maximise voluntary agreements.</p></div>
+    </div>
+  </section>
+
+  <!-- Escrow Deep Dive -->
+  <section id="escrow" class="reveal">
+    <h2>AI-Driven Escrow</h2>
+    <div class="cards">
+      <div class="card"><h3>Smart-Contract Vault</h3><p>Funds are tokenised and held in auditable contracts—release conditions are encoded, not manually approved.</p></div>
+      <div class="card"><h3>Risk-Weighted Monitoring</h3><p>ML models watch dispute timelines &amp; trigger alerts if parties stall or provide fraudulent evidence.</p></div>
+      <div class="card"><h3>FDIC-Insured Ramp</h3><p>Fiat rails via partner banks keep consumer deposits federally protected.</p></div>
+    </div>
+  </section>
+
+  <!-- Investor Roadmap -->
+  <section id="investors" class="reveal">
+    <h2>Roadmap &amp; Traction</h2>
+    <div class="timeline">
+      <div class="timeline-item"><h4>Q1&nbsp;2025 &mdash; Beta Launch</h4><p>1k waitlist users, 120 live disputes, 92% satisfaction.</p></div>
+      <div class="timeline-item"><h4>Q3&nbsp;2025 &mdash; Escrow GA</h4><p>Smart-contract escrow with ACH on/off-ramp; regulatory sandbox in WY &amp; TX.</p></div>
+      <div class="timeline-item"><h4>Q1&nbsp;2026 &mdash; Multi-party &amp; API</h4><p>SaaS API for marketplaces (freelance, rentals) to plug in one-click dispute resolution.</p></div>
+      <div class="timeline-item"><h4>Q3&nbsp;2026 &mdash; Intl Expansion</h4><p>Localized legal models &amp; KYC in EU, LATAM &amp; APAC.</p></div>
+    </div>
+    <div class="cta" style="padding-top:1rem;">
+      <button onclick="window.location='mailto:invest@mediationai.app'">Request Investor Deck</button>
+    </div>
+  </section>
+
   <!-- Beta Waitlist -->
   <section class="cta" id="beta">
     <h2>Join the Beta Waitlist</h2>
@@ -62,5 +96,9 @@
   <footer>
     Decentralized Technology Solutions 2025
   </footer>
+  <script>
+  // scroll reveal
+  const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible')}})},{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+  </script>
 </body>
 </html>
