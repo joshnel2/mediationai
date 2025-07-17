@@ -67,8 +67,8 @@ struct TermsOfServiceView: View {
                         PolicySection(
                             title: "4. Payment Terms",
                             content: """
-                            • $1.00 fee to create a dispute
-                            • $1.00 fee to join a dispute
+                                                    • FREE to create a dispute during beta
+                        • FREE to join a dispute during beta
                             • All payments are processed through Apple's payment system
                             • Fees are non-refundable except as required by law
                             • You authorize us to charge your selected payment method

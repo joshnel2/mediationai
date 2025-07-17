@@ -515,7 +515,7 @@ struct AIHumanComparisonCard: View {
             
             VStack(spacing: AppTheme.spacingMD) {
                 ComparisonRow(title: "Resolution Time", aiValue: "2.4h", humanValue: "18.6h", aiWins: true)
-                ComparisonRow(title: "Cost", aiValue: "$1-2", humanValue: "$500+", aiWins: true)
+                                            ComparisonRow(title: "Cost", aiValue: "FREE (beta)", humanValue: "$500+", aiWins: true)
                 ComparisonRow(title: "Satisfaction", aiValue: "4.7★", humanValue: "4.9★", aiWins: false)
                 ComparisonRow(title: "Accuracy", aiValue: "94%", humanValue: "98%", aiWins: false)
             }

@@ -93,9 +93,54 @@ class MockAuthService: ObservableObject {
             }
         } catch {
             print("❌ SignUp Error: \(error)")
+            // Fallback to mock registration for development
+            return await mockSignUp(email: email, password: password)
         }
         
         return false
+    }
+    
+    private func mockSignUp(email: String, password: String) async -> Bool {
+        // Check if email already exists in mock users
+        if users.contains(where: { $0.email == email }) {
+            return false
+        }
+        
+        // Create new mock user
+        let newUser = User(
+            id: UUID(),
+            email: email
+        )
+        
+        await MainActor.run {
+            currentUser = newUser
+            users.append(newUser)
+            
+            // Save mock token and user data
+            userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+            saveUserSettings()
+        }
+        
+        return true
+    }
+    
+    private func mockSignIn(email: String, password: String) async -> Bool {
+        // Find existing user or create demo user
+        let existingUser = users.first(where: { $0.email == email })
+        let user = existingUser ?? User(id: UUID(), email: email)
+        
+        await MainActor.run {
+            currentUser = user
+            if existingUser == nil {
+                users.append(user)
+            }
+            
+            // Save mock token and user data
+            userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+            saveUserSettings()
+        }
+        
+        return true
     }
     
     func signIn(email: String, password: String) async -> Bool {
@@ -156,6 +201,8 @@ class MockAuthService: ObservableObject {
             }
         } catch {
             print("❌ SignIn Error: \(error)")
+            // Fallback to mock sign-in for development
+            return await mockSignIn(email: email, password: password)
         }
         
         return false

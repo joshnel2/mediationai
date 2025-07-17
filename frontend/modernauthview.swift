@@ -61,12 +61,22 @@ struct ModernAuthView: View {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                     isSignUp = true
                                     currentStep = .email
+                                    // Clear form data when switching modes
+                                    email = ""
+                                    password = ""
+                                    confirmPassword = ""
+                                    error = nil
                                 }
                             },
                             onSignIn: {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                     isSignUp = false
                                     currentStep = .signIn
+                                    // Clear form data when switching modes
+                                    email = ""
+                                    password = ""
+                                    confirmPassword = ""
+                                    error = nil
                                 }
                             }
                         )
@@ -87,6 +97,11 @@ struct ModernAuthView: View {
                             onBack: {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                     currentStep = .welcome
+                                    // Clear form data when going back to welcome
+                                    email = ""
+                                    password = ""
+                                    confirmPassword = ""
+                                    error = nil
                                 }
                             }
                         )
@@ -137,6 +152,11 @@ struct ModernAuthView: View {
                             onBack: {
                                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                                     currentStep = .welcome
+                                    // Clear form data when going back to welcome
+                                    email = ""
+                                    password = ""
+                                    confirmPassword = ""
+                                    error = nil
                                 }
                             },
                             onForgotPassword: { /* Handle forgot password */ }

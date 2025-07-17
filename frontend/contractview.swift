@@ -337,7 +337,7 @@ struct ContractView: View {
                     title: "Traditional Lawyers",
                     subtitle: "$500-5000+ per contract",
                     vsTitle: "AI Contracts",
-                    vsSubtitle: "Included with $1 dispute fee",
+                                                vsSubtitle: "FREE during beta",
                     color: AppTheme.success
                 )
                 

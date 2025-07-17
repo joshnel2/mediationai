@@ -74,7 +74,7 @@ struct SupportView: View {
                         
                         FAQItem(
                             question: "How does MediationAI work?",
-                            answer: "Create a dispute for $1, share the link with the other party who pays $1 to join, both submit evidence, and our AI provides a mediation recommendation."
+                            answer: "Create a dispute for FREE during beta, share the link with the other party who also joins for FREE, both submit evidence, and our AI provides a mediation recommendation."
                         )
                         
                         FAQItem(
