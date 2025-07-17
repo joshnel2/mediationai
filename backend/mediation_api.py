@@ -428,15 +428,29 @@ async def send_message(dispute_id: str, request: SendMessageRequest):
     }
 
 @app.get("/api/disputes/{dispute_id}/messages")
-async def get_dispute_messages(dispute_id: str, limit: int = 50):
-    """Get messages for a dispute"""
+async def get_dispute_messages(dispute_id: str, limit: int = 50, for_user_id: str | None = None):
+    """Return dispute messages visible to a specific user.
+
+    Visibility rules:
+    • Public messages (`is_private == False`) are always returned.
+    • Private messages are returned *only* if the caller is the sender **or** the designated recipient.
+    If `for_user_id` is not supplied the behaviour is unchanged (admin/debug use-case).
+    """
     if dispute_id not in disputes_db:
         raise HTTPException(status_code=404, detail="Dispute not found")
-    
-    messages = disputes_db[dispute_id].messages
-    
-    # Return most recent messages
-    return messages[-limit:] if len(messages) > limit else messages
+
+    all_messages = disputes_db[dispute_id].messages
+
+    if for_user_id:
+        visible = [
+            m for m in all_messages
+            if (not m.is_private) or (m.sender_id == for_user_id) or (m.recipient_id == for_user_id)
+        ]
+    else:
+        visible = all_messages
+
+    # Return most recent `limit` messages
+    return visible[-limit:] if len(visible) > limit else visible
 
 # ==============================================================================
 # MEDIATION ENDPOINTS
