@@ -115,8 +115,8 @@ class MockAuthService: ObservableObject {
     func disableAutoLogin() {
         isAutoLoginEnabled = false
         userDefaults.set(false, forKey: autoLoginKey)
-        userDefaults.removeObject(forKey: userKey)
-        userDefaults.removeObject(forKey: tokenKey)
+        // We intentionally keep the cached credentials so Face ID (if enabled)
+        // can still retrieve them and unlock the session next launch.
     }
     
     func enableFaceID() {
