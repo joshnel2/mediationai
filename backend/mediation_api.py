@@ -1020,6 +1020,45 @@ async def health_check():
         "users_count": len(users_db)
     }
 
+@app.get("/api/admin/users")
+async def admin_get_all_users(db: Session = Depends(get_db)):
+    """Return a summary of all registered users, their email, truths submitted, and dispute resolutions. This endpoint is intended for internal/admin use."""
+    users = db.query(DBUser).all()
+    response = []
+    for user in users:
+        # Fetch user truths
+        truths = db.query(DBTruth).filter(DBTruth.user_id == user.id).all()
+        # Fetch disputes where user is a participant
+        created = db.query(DBDispute).filter(DBDispute.party_a_id == user.id).all()
+        joined = db.query(DBDispute).filter(DBDispute.party_b_id == user.id).all()
+
+        def dispute_summary(d):
+            return {
+                "id": d.id,
+                "title": d.title,
+                "role": "creator" if d.party_a_id == user.id else "joiner",
+                "status": d.status,
+                "resolution": d.resolution_text,
+            }
+
+        user_data = {
+            "id": user.id,
+            "email": user.email,
+            "display_name": user.display_name,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            "truths": [{
+                "id": t.id,
+                "dispute_id": t.dispute_id,
+                "content": t.content,
+                "timestamp": t.timestamp.isoformat() if t.timestamp else None,
+            } for t in truths],
+            "disputes": [dispute_summary(d) for d in created + joined],
+        }
+        response.append(user_data)
+
+    return {"users": response}
+
 # ==============================================================================
 # STARTUP EVENTS
 # ==============================================================================
