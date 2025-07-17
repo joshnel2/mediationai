@@ -11,12 +11,13 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var authService: MockAuthService
-    @State private var showPrivacyPolicy = false
-    @State private var showTermsOfService = false
+    @State private var showContractGeneration = false
+    @State private var showEscrowMediation = false
     @State private var showSupport = false
     @State private var showDeleteAccountAlert = false
-    @State private var showNewPrivacyPolicy = false
-    @State private var showNewTermsOfService = false
+    @State private var showBasicGuide = false
+    @State private var showAdvancedFeatures = false
+    @State private var showTroubleshooting = false
     
     var body: some View {
         NavigationView {
