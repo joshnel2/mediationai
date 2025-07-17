@@ -3,7 +3,11 @@
  --primary:#7248f2;--secondary:#4080f2;--accent:#f24d99;--bg-start:#0d0d1e;--bg-end:#121220;--text-primary:#fff;--text-secondary:rgba(255,255,255,.85);
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Poppins",sans-serif}
-body{min-height:100vh;background:linear-gradient(135deg,var(--bg-start),var(--bg-end));color:var(--text-primary);display:flex;flex-direction:column;scroll-behavior:smooth;overflow-x:hidden}
+body{min-height:100vh;background:linear-gradient(270deg,var(--bg-start),var(--bg-end));background-size:400% 400%;animation:gradientShift 20s ease infinite;color:var(--text-primary);display:flex;flex-direction:column;scroll-behavior:smooth;overflow-x:hidden}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;text-align:center;margin-top:2rem}
+.stat h3{font-size:2rem;margin-bottom:.25rem;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat p{font-size:.9rem;color:var(--text-secondary)}
 /* ---- HERO ---- */
 .hero{padding:5rem 1.5rem;text-align:center}
 .hero h1{font-size:3rem;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.75rem}

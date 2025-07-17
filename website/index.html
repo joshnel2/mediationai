@@ -23,8 +23,19 @@
     <h1>MediationAI</h1>
     <p>AI-Powered, Fair &amp; Fast Dispute Resolution</p>
     <span class="badge">iOS Beta – coming soon</span>
-    <img src="/public/screenshot1.png" alt="App screenshot" />
+    <img src="https://placehold.co/320x640/111/FFF?text=Mobile+Preview" alt="App screenshot" />
   </header>
+
+  <!-- Impressive Stats -->
+  <section class="reveal" id="stats">
+    <h2>Numbers That Matter</h2>
+    <div class="stats-grid">
+      <div class="stat"><h3 data-count="92">0%</h3><p>User Satisfaction</p></div>
+      <div class="stat"><h3 data-count="1200">0</h3><p>Cases Resolved</p></div>
+      <div class="stat"><h3 data-count="6">0 min</h3><p>Median Resolution Time</p></div>
+      <div class="stat"><h3 data-count="5000">$0</h3><p>Avg. Savings vs. Court</p></div>
+    </div>
+  </section>
 
   <!-- Features -->
   <section id="features">
@@ -108,6 +119,7 @@
   <script>
   // scroll reveal
   const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible')}})},{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+  const counters=document.querySelectorAll('[data-count]');const counterObs=new IntersectionObserver(ents=>{ents.forEach(ent=>{if(ent.isIntersecting){const el=ent.target;const target=+el.dataset.count;let start=0;const dur=1500;const step=Math.max(1,Math.floor(target/(dur/16)));const inc=()=>{start+=step;if(start>=target){el.textContent=target+(el.textContent.includes('%')?'%':'');return;}el.textContent=(el.textContent.includes('$')?'$':'')+start;requestAnimationFrame(inc);};inc();counterObs.unobserve(el);}})},{threshold:.6});counters.forEach(c=>counterObs.observe(c));
   </script>
 </body>
 </html>
