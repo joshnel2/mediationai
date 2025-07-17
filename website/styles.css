@@ -3,7 +3,7 @@
  --primary:#7248f2;--secondary:#4080f2;--accent:#f24d99;--bg-start:#0d0d1e;--bg-end:#121220;--text-primary:#fff;--text-secondary:rgba(255,255,255,.85);
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Poppins",sans-serif}
-body{min-height:100vh;background:linear-gradient(135deg,var(--bg-start),var(--bg-end));color:var(--text-primary);display:flex;flex-direction:column;scroll-behavior:smooth}
+body{min-height:100vh;background:linear-gradient(135deg,var(--bg-start),var(--bg-end));color:var(--text-primary);display:flex;flex-direction:column;scroll-behavior:smooth;overflow-x:hidden}
 /* ---- HERO ---- */
 .hero{padding:5rem 1.5rem;text-align:center}
 .hero h1{font-size:3rem;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.75rem}
@@ -32,4 +32,11 @@ footer{margin-top:auto;text-align:center;padding:2rem 1.5rem;font-size:.8rem;col
 .timeline-item::before{content:'';position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--accent)}
 .timeline-item h4{margin-bottom:.25rem;font-size:1rem}
 .timeline-item p{font-size:.85rem;color:var(--text-secondary)}
+/* Additions */
+nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.25);backdrop-filter:blur(12px);padding:.75rem 1.5rem;display:flex;gap:2rem;justify-content:center}
+nav a{color:var(--text-primary);text-decoration:none;font-weight:600;font-size:.9rem;transition:opacity .2s}
+nav a:hover{opacity:.7}
+.card:hover{transform:translateY(-6px);box-shadow:0 14px 34px rgba(0,0,0,.4);transition:.3s}
+.section-dark{background:linear-gradient(135deg,#06060d,#0d0d1e);border-radius:1rem;padding:4rem 1.5rem;margin:4rem auto;}
+.parallax{background:radial-gradient(circle at center,var(--accent)10%,transparent 70%);opacity:.15;width:600px;height:600px;position:absolute;top:-200px;left:50%;transform:translateX(-50%);filter:blur(120px);pointer-events:none}
 @media(max-width:600px){.hero h1{font-size:2rem}.hero img{max-width:220px}}
