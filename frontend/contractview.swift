@@ -105,7 +105,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingXS) {
+            VStack(spacing: AppTheme.spacingSM) {
                 ContractTypeCard(
                     icon: "dollarsign.circle.fill",
                     title: "Payment & Refund Agreements",
@@ -167,7 +167,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingXS) {
+            VStack(spacing: AppTheme.spacingSM) {
                 StepCard(
                     number: "1",
                     title: "Dispute Analysis",
@@ -216,7 +216,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingXS) {
+            VStack(spacing: AppTheme.spacingSM) {
                 FeatureRow(
                     icon: "scale.3d",
                     title: "Balanced Terms",
@@ -331,7 +331,7 @@ struct ContractView: View {
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
             
-            VStack(spacing: AppTheme.spacingXS) {
+            VStack(spacing: AppTheme.spacingSM) {
                 ContractComparisonCard(
                     icon: "dollarsign.circle.fill",
                     title: "Traditional Lawyers",
