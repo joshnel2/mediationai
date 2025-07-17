@@ -4,6 +4,7 @@ class DisputeAPIService: ObservableObject {
     @Published var disputes: [Dispute] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    private var authToken: String?
     
     private let baseURL = APIConfig.baseURL
     
@@ -105,6 +106,11 @@ class DisputeAPIService: ObservableObject {
         }
     }
     
+    // Allow RealDisputeService to inject JWT so every request is authenticated
+    func setAuthToken(_ token: String?) {
+        self.authToken = token
+    }
+    
     // MARK: - Helper Methods
     private func makeRequest(to endpoint: String, method: String, body: [String: Any]? = nil) async throws -> Any {
         guard let url = URL(string: endpoint) else {
@@ -115,6 +121,9 @@ class DisputeAPIService: ObservableObject {
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let token = authToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
         request.timeoutInterval = APIConfig.requestTimeout
         
         if let body = body {

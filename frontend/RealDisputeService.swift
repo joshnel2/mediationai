@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Security
 
 class RealDisputeService: ObservableObject {
     @Published var disputes: [Dispute] = []
@@ -8,48 +9,124 @@ class RealDisputeService: ObservableObject {
     @Published var currentUser: User?
     
     private let apiService = DisputeAPIService()
+    // Keychain key for JWT storage
+    private let tokenAccount = "mediationAI_JWT"
+
+    init() {
+        // Attempt to restore previous session
+        if let token = loadToken() {
+            Task { await restoreSession(with: token) }
+        }
+    }
+
+    // MARK: - Keychain helpers
+    private func saveToken(_ token: String) {
+        guard let data = token.data(using: .utf8) else { return }
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrAccount: tokenAccount,
+            kSecValueData: data,
+            kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock
+        ]
+        SecItemDelete(query as CFDictionary) // remove old
+        SecItemAdd(query as CFDictionary, nil)
+    }
+
+    private func loadToken() -> String? {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrAccount: tokenAccount,
+            kSecReturnData: kCFBooleanTrue!,
+            kSecMatchLimit: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data,
+              let token = String(data: data, encoding: .utf8) else { return nil }
+        return token
+    }
+
+    private func clearToken() {
+        SecItemDelete([kSecClass: kSecClassGenericPassword, kSecAttrAccount: tokenAccount] as CFDictionary)
+    }
+
+    // MARK: - Restore session
+    private func restoreSession(with token: String) async {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/me") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        do {
+            let (data, response) = try await URLSession.shared.data(for: req)
+            guard let http = response as? HTTPURLResponse, 200...299 ~= http.statusCode,
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let userDict = json["user"] as? [String: Any],
+                  let email = userDict["email"] as? String else {
+                clearToken()
+                return
+            }
+            await MainActor.run {
+                self.currentUser = User(email: email)
+                self.apiService.setAuthToken(token)
+            }
+        } catch {
+            // Network error – keep token and try next launch
+        }
+    }
     
     // MARK: - Authentication
     func signUp(email: String, password: String) async -> Bool {
         await MainActor.run { isLoading = true }
-        
-        let success = await apiService.register(email: email, password: password)
-        
-        if success {
-            // Create user object (in real app, this would come from backend)
-            let user = User(email: email, password: password)
-            await MainActor.run {
-                currentUser = user
-                isLoading = false
-            }
+        let endpoint = "\(APIConfig.baseURL)/api/register"
+        let body = ["email": email, "password": password]
+        if let result = await performAuthRequest(endpoint: endpoint, body: body) {
+            await MainActor.run { self.currentUser = result.user; self.isLoading = false }
+            return true
         } else {
-            await MainActor.run { isLoading = false }
+            await MainActor.run { self.isLoading = false }
+            return false
         }
-        
-        return success
     }
-    
+
     func signIn(email: String, password: String) async -> Bool {
         await MainActor.run { isLoading = true }
-        
-        let success = await apiService.login(email: email, password: password)
-        
-        if success {
-            let user = User(email: email, password: password)
-            await MainActor.run {
-                currentUser = user
-                isLoading = false
-            }
+        let endpoint = "\(APIConfig.baseURL)/api/login"
+        let body = ["email": email, "password": password]
+        if let result = await performAuthRequest(endpoint: endpoint, body: body) {
+            await MainActor.run { self.currentUser = result.user; self.isLoading = false }
+            return true
         } else {
-            await MainActor.run { isLoading = false }
+            await MainActor.run { self.isLoading = false }
+            return false
         }
-        
-        return success
     }
-    
+
+    private func performAuthRequest(endpoint: String, body: [String: String]) async -> (user: User, token: String)? {
+        guard let url = URL(string: endpoint),
+              let data = try? JSONSerialization.data(withJSONObject: body) else { return nil }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = data
+        do {
+            let (respData, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, 200...299 ~= http.statusCode,
+                  let json = try? JSONSerialization.jsonObject(with: respData) as? [String: Any],
+                  let token = json["access_token"] as? String,
+                  let userDict = json["user"] as? [String: Any],
+                  let email = userDict["email"] as? String else { return nil }
+            let user = User(email: email)
+            saveToken(token)
+            apiService.setAuthToken(token)
+            return (user, token)
+        } catch { return nil }
+    }
+
     func signOut() {
         currentUser = nil
         disputes = []
+        clearToken()
+        apiService.setAuthToken(nil)
     }
     
     // MARK: - Dispute Management
