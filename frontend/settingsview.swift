@@ -149,6 +149,38 @@ struct SettingsView: View {
                         .modernCard()
                     }
                     
+                    // How to Use Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("How to Use")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        VStack(spacing: 0) {
+                            SettingsRow(
+                                icon: "book.fill",
+                                title: "Getting Started",
+                                subtitle: "Basic guide to AI dispute resolution",
+                                action: { showBasicGuide = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "brain.head.profile",
+                                title: "Advanced Features",
+                                subtitle: "Maximize your experience",
+                                action: { showAdvancedFeatures = true }
+                            )
+                            
+                            SettingsRow(
+                                icon: "wrench.and.screwdriver.fill",
+                                title: "Troubleshooting",
+                                subtitle: "Common issues & solutions",
+                                action: { showTroubleshooting = true }
+                            )
+                        }
+                        .modernCard()
+                    }
+                    
                     // App Information
                     VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                         Text("App Information")
@@ -253,20 +285,23 @@ struct SettingsView: View {
                 Button("Home") { dismissView() }
             }
         }
-        .sheet(isPresented: $showPrivacyPolicy) {
-            PrivacyPolicyView()
+        .sheet(isPresented: $showContractGeneration) {
+            ContractGenerationView()
         }
-        .sheet(isPresented: $showTermsOfService) {
-            TermsOfServiceView()
+        .sheet(isPresented: $showEscrowMediation) {
+            EscrowMediationView()
         }
         .sheet(isPresented: $showSupport) {
             SupportView()
         }
-        .sheet(isPresented: $showNewPrivacyPolicy) {
-            PrivacyPolicyView()
+        .sheet(isPresented: $showBasicGuide) {
+            BasicGuideView()
         }
-        .sheet(isPresented: $showNewTermsOfService) {
-            TermsOfServiceView()
+        .sheet(isPresented: $showAdvancedFeatures) {
+            AdvancedFeaturesView()
+        }
+        .sheet(isPresented: $showTroubleshooting) {
+            TroubleshootingView()
         }
         .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
             Button("Cancel", role: .cancel) { }
