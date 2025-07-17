@@ -12,6 +12,7 @@ import SwiftUI
 struct MediationAIApp: App {
     @StateObject var authService = MockAuthService()
     @StateObject var disputeService = MockDisputeService()
+    @StateObject var purchaseService = InAppPurchaseService()
 
     
     var body: some Scene {
@@ -19,7 +20,7 @@ struct MediationAIApp: App {
             RootView()
                 .environmentObject(authService)
                 .environmentObject(disputeService)
-
+                .environmentObject(purchaseService)
         }
     }
 }
