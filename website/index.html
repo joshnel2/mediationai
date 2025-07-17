@@ -6,134 +6,56 @@
   <title>MediationAI – AI-Powered Dispute Resolution</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --primary: #7248f2;
-      --secondary: #4080f2;
-      --accent: #f24d99;
-      --bg-start: #0d0d1e;
-      --bg-end: #121220;
-      --text-primary: #fff;
-      --text-secondary: rgba(255, 255, 255, 0.8);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Poppins", sans-serif; }
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
-      color: var(--text-primary);
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      padding: 2rem 1.5rem;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2.75rem;
-      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    p.subtitle { margin-top: 0.75rem; font-size: 1.125rem; color: var(--text-secondary); }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 2rem;
-      padding: 3rem 1.5rem;
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .card {
-      backdrop-filter: blur(16px) saturate(160%);
-      -webkit-backdrop-filter: blur(16px) saturate(160%);
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-      padding: 2rem 1.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      min-height: 260px;
-    }
-    .card h3 { font-size: 1.25rem; font-weight: 600; }
-    .card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.45; }
-    .badge {
-      display: inline-block;
-      background: rgba(0, 215, 108, 0.15);
-      color: #00d96a;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-top: 0.5rem;
-    }
-    footer {
-      margin-top: auto;
-      text-align: center;
-      padding: 2rem 1.5rem;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-    }
-    @media (prefers-color-scheme: light) {
-      body { color: #222; }
-      .card { background: rgba(255,255,255,0.65); color:#222; }
-      h1 { -webkit-text-fill-color: initial; background: none; color: var(--primary); }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <nav style="display:flex;justify-content:center;gap:2rem;margin-bottom:1.5rem;font-weight:600;font-size:.9rem;">
-      <a href="#features" style="color:var(--text-primary);text-decoration:none;">Features</a>
-      <a href="#how" style="color:var(--text-primary);text-decoration:none;">How&nbsp;It&nbsp;Works</a>
-      <a href="#escrow" style="color:var(--text-primary);text-decoration:none;">Escrow</a>
-      <a href="#beta" style="color:var(--text-primary);text-decoration:none;">Beta&nbsp;App</a>
-    </nav>
+  <!-- Hero -->
+  <header class="hero">
     <h1>MediationAI</h1>
-    <p class="subtitle">AI-Powered, Fair&nbsp;&amp;&nbsp;Fast Dispute Resolution</p>
-    <span class="badge">iOS Beta App – coming soon</span>
+    <p>AI-Powered, Fair &amp; Fast Dispute Resolution</p>
+    <span class="badge">iOS Beta – coming soon</span>
+    <img src="/public/screenshot1.png" alt="App screenshot" />
   </header>
 
-  <section id="features" class="cards">
-    <div class="card">
-      <h3>Skip Legal Fees</h3>
-      <p>Resolve disputes for a fraction of traditional lawyer costs &mdash; just $2 per party during beta.</p>
-    </div>
-    <div class="card">
-      <h3>Unbiased AI</h3>
-      <p>Our advanced models analyze both sides objectively and suggest balanced outcomes.</p>
-    </div>
-    <div class="card">
-      <h3>Minutes, Not Months</h3>
-      <p>Forget court calendars. Reach resolution in minutes and move on with your life.</p>
-    </div>
-    <div class="card">
-      <h3>Contracts &amp; Escrow</h3>
-      <p>One-tap AI-generated contracts and smart escrow coming Q2&nbsp;2025.</p>
+  <!-- Features -->
+  <section id="features">
+    <h2>Why You’ll Love It</h2>
+    <div class="cards">
+      <div class="card"><h3>Skip Legal Fees</h3><p>Resolve disputes for a fraction of traditional lawyer costs—just $2 per party during beta.</p></div>
+      <div class="card"><h3>Unbiased AI</h3><p>Advanced models analyze both sides objectively and suggest balanced outcomes.</p></div>
+      <div class="card"><h3>Minutes, Not Months</h3><p>Forget court calendars. Reach resolution in minutes and move on with your life.</p></div>
+      <div class="card"><h3>Contracts &amp; Escrow</h3><p>One-tap AI-generated contracts and smart escrow (launching Q2&nbsp;2025).</p></div>
     </div>
   </section>
 
-  <section id="how" style="padding:3rem 1.5rem;text-align:center;max-width:800px;margin:0 auto;line-height:1.6;">
-    <h2 style="font-size:2rem;margin-bottom:1rem;">How It Works</h2>
-    <p style="color:var(--text-secondary);">1&nbsp;—&nbsp;Tell us your side of the story. <br/>2&nbsp;—&nbsp;Invite the other party with a secure link. <br/>3&nbsp;—&nbsp;Our AI Mediator analyzes evidence, proposes fair terms, and (optionally) generates a court-enforceable contract.</p>
-  </section>
-
-  <section id="escrow" class="cards" style="margin-top:0;">
-    <div class="card" style="grid-column:1/-1;">
-      <h3>AI Escrow &mdash; Coming&nbsp;Soon</h3>
-      <p>Funds are held in a smart escrow until the dispute is resolved. Once both parties sign, the AI releases payment automatically, eliminating chargebacks and fraud.</p>
+  <!-- How It Works -->
+  <section id="how">
+    <h2>How It Works</h2>
+    <div class="cards">
+      <div class="card"><h3>1 &mdash; Start a Case</h3><p>Describe your dispute and invite the other party with a secure link.</p></div>
+      <div class="card"><h3>2 &mdash; AI Mediates</h3><p>Grok AI reviews evidence and proposes a fair resolution—usually in under 5&nbsp;minutes.</p></div>
+      <div class="card"><h3>3 &mdash; Sign &amp; Execute</h3><p>Both parties sign a court-enforceable contract. Funds release automatically if escrow is used.</p></div>
     </div>
   </section>
 
-  <section id="beta" style="padding:3rem 1.5rem;text-align:center;">
-    <h2 style="font-size:2rem;margin-bottom:1rem;">Join the Beta</h2>
-    <p class="subtitle" style="margin-bottom:2rem;">The iOS app is in private beta and launching on TestFlight shortly.</p>
-    <!-- Replace the Formspree action URL with your own endpoint or newsletter provider -->
+  <!-- Screenshots -->
+  <section id="screenshots">
+    <h2>Inside the App</h2>
+    <div class="screenshot-grid">
+      <img src="/public/screenshot_chat.png" alt="Chat screen" />
+      <img src="/public/screenshot_contract.png" alt="Contract generator" />
+      <img src="/public/screenshot_escrow.png" alt="Escrow overview" />
+    </div>
+  </section>
+
+  <!-- Beta Waitlist -->
+  <section class="cta" id="beta">
+    <h2>Join the Beta Waitlist</h2>
+    <p style="margin-bottom:1.5rem;color:var(--text-secondary)">Get early access on TestFlight and help shape the future of fair dispute resolution.</p>
     <form action="https://formspree.io/f/your-id" method="POST" style="display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;max-width:480px;margin:0 auto;">
       <input type="email" name="email" required placeholder="your@email.com"
              style="flex:1 1 200px;padding:0.9rem 1.25rem;border-radius:999px;border:none;font-size:0.9rem;outline:none;" />
-      <button type="submit" style="padding:0.9rem 1.75rem;border:none;border-radius:999px;font-weight:600;background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;cursor:pointer;">Join&nbsp;Waitlist</button>
+      <button type="submit">Join&nbsp;Waitlist</button>
     </form>
   </section>
 
