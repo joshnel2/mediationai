@@ -57,6 +57,9 @@ class MockAuthService: ObservableObject {
             
             // Save mock token and user data
             userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+            // Automatically enable auto-login
+            enableAutoLogin()
             saveUserSettings()
         }
         
@@ -76,6 +79,9 @@ class MockAuthService: ObservableObject {
             
             // Save mock token and user data
             userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+            // Ensure auto-login remains active
+            enableAutoLogin()
             saveUserSettings()
         }
         
