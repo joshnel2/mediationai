@@ -38,15 +38,35 @@ struct DisputeCardView: View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
             // Header with status
             HStack {
-                HStack(spacing: AppTheme.spacingSM) {
-                    Image(systemName: statusIcon)
-                        .font(.caption)
-                        .foregroundColor(statusColor)
-                    
-                    Text(dispute.status.rawValue)
-                        .font(AppTheme.caption())
-                        .fontWeight(.medium)
-                        .foregroundColor(statusColor)
+                Group {
+                    if dispute.status == .inviteSent {
+                        Button(action: {
+                            #if canImport(UIKit)
+                            UIPasteboard.general.string = dispute.shareLink
+                            #endif
+                        }) {
+                            HStack(spacing: AppTheme.spacingSM) {
+                                Image(systemName: "link")
+                                    .font(.caption)
+                                    .foregroundColor(statusColor)
+                                Text("Copy Invite Link")
+                                    .font(AppTheme.caption())
+                                    .fontWeight(.medium)
+                                    .foregroundColor(statusColor)
+                            }
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    } else {
+                        HStack(spacing: AppTheme.spacingSM) {
+                            Image(systemName: statusIcon)
+                                .font(.caption)
+                                .foregroundColor(statusColor)
+                            Text(dispute.status.rawValue)
+                                .font(AppTheme.caption())
+                                .fontWeight(.medium)
+                                .foregroundColor(statusColor)
+                        }
+                    }
                 }
                 .padding(.horizontal, AppTheme.spacingMD)
                 .padding(.vertical, AppTheme.spacingSM)
