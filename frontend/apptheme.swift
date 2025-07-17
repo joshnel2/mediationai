@@ -168,7 +168,7 @@ struct AppTheme {
     // MARK: - Uniform Card Height (for consistent box sizes)
     
     /// Minimum height applied to informational cards so they render at the same visual size even when content length varies.
-    static let uniformCardHeight: CGFloat = 260
+    static let uniformCardHeight: CGFloat = 280
     
     // MARK: - Corner Radius
     
