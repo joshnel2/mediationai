@@ -69,10 +69,8 @@ struct CreateDisputeView: View {
             }
         }
         .navigationBarHidden(true)
-        .sheet(item: $createdDispute) { dispute in
+        .sheet(item: $createdDispute, onDismiss: { dismiss() }) { dispute in
             ShareDisputeView(dispute: dispute)
-        } onDismiss: {
-            dismiss()
         }
         .sheet(isPresented: $showTermsOfService) {
             TermsOfServiceView()
