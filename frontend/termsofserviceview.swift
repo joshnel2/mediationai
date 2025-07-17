@@ -204,10 +204,22 @@ struct TermsOfServiceView: View {
                 .padding()
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button("Close") { 
+                        dismiss() 
+                    }
+                    .foregroundColor(AppTheme.primary)
                 }
+            }
+            .onAppear {
+                // Configure navigation bar appearance
+                let appearance = UINavigationBarAppearance()
+                appearance.configureWithTransparentBackground()
+                appearance.backgroundColor = UIColor.clear
+                UINavigationBar.appearance().standardAppearance = appearance
+                UINavigationBar.appearance().scrollEdgeAppearance = appearance
             }
             }
         }
