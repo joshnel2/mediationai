@@ -39,8 +39,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database
-init_db()
+# Database will be initialised lazily on startup to avoid cold-import connection issues on serverless platforms.
 
 # WebSocket connections
 websocket_connections: Dict[str, WebSocket] = {}
@@ -1083,6 +1082,7 @@ async def startup_event():
     logger.info("MediationAI API starting up...")
     logger.info(f"OpenAI API configured: {bool(settings.openai_api_key)}")
     logger.info(f"Anthropic API configured: {bool(settings.anthropic_api_key)}")
+    init_db() # Initialize database on startup
 
 if __name__ == "__main__":
     import uvicorn
