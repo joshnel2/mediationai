@@ -93,6 +93,7 @@ class MockAuthService: ObservableObject {
             }
         } catch {
             print("❌ SignUp Error: \(error)")
+            print("🔄 Falling back to mock registration...")
             // Fallback to mock registration for development
             return await mockSignUp(email: email, password: password)
         }
@@ -101,10 +102,9 @@ class MockAuthService: ObservableObject {
     }
     
     private func mockSignUp(email: String, password: String) async -> Bool {
-        // Check if email already exists in mock users
-        if users.contains(where: { $0.email == email }) {
-            return false
-        }
+        print("🔧 MockSignUp called for email: \(email)")
+        // For development/testing, allow sign-up even if email "exists" in mock
+        // In a real app, this would be handled by the backend
         
         // Create new mock user
         let newUser = User(
@@ -113,6 +113,9 @@ class MockAuthService: ObservableObject {
         )
         
         await MainActor.run {
+            // Remove any existing user with same email first (for development)
+            users.removeAll { $0.email == email }
+            
             currentUser = newUser
             users.append(newUser)
             
@@ -121,6 +124,7 @@ class MockAuthService: ObservableObject {
             saveUserSettings()
         }
         
+        print("✅ MockSignUp successful for email: \(email)")
         return true
     }
     

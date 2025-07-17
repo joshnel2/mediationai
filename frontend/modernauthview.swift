@@ -192,7 +192,7 @@ struct ModernAuthView: View {
             let success = await authService.signUp(email: email, password: password)
             await MainActor.run {
                 if !success {
-                    error = "Email already exists. Try signing in instead."
+                    error = "Sign up failed. Please try again."
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         currentStep = .email
                     }

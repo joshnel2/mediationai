@@ -67,8 +67,8 @@ struct TermsOfServiceView: View {
                         PolicySection(
                             title: "4. Payment Terms",
                             content: """
-                                                    • FREE to create a dispute during beta
-                        • FREE to join a dispute during beta
+                            • FREE to create a dispute during beta
+                            • FREE to join a dispute during beta
                             • All payments are processed through Apple's payment system
                             • Fees are non-refundable except as required by law
                             • You authorize us to charge your selected payment method
