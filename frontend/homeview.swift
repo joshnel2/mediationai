@@ -113,6 +113,9 @@ struct HomeView: View {
         .sheet(isPresented: $showEscrow) {
             EscrowView()
         }
+        .sheet(isPresented: $showNotifications) {
+            NotificationsView()
+        }
 
         .onAppear {
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
@@ -152,8 +155,7 @@ struct HomeView: View {
                 
                 // Notification button (modern touch)
                 Button(action: { 
-                    // Show notifications view or alert
-                    print("Notifications tapped - feature to be implemented")
+                    showNotifications = true
                 }) {
                     Image(systemName: "bell.fill")
                         .font(.system(size: 20))
