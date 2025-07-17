@@ -4,6 +4,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:"Poppins",sans-serif}
 body{min-height:100vh;background:linear-gradient(270deg,var(--bg-start),var(--bg-end));background-size:400% 400%;animation:gradientShift 20s ease infinite;color:var(--text-primary);display:flex;flex-direction:column;scroll-behavior:smooth;overflow-x:hidden}
+html,body{overscroll-behavior-x:none;max-width:100%;}
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2rem;text-align:center;margin-top:2rem}
 .stat h3{font-size:2rem;margin-bottom:.25rem;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -38,6 +39,16 @@ footer{margin-top:auto;text-align:center;padding:2rem 1.5rem;font-size:.8rem;col
 .timeline-item p{font-size:.85rem;color:var(--text-secondary)}
 /* Additions */
 nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.25);backdrop-filter:blur(12px);padding:.75rem 1.5rem;display:flex;gap:2rem;justify-content:center}
+@supports(padding:calc(env(safe-area-inset-top)+1px)){
+  nav{padding-top:calc(env(safe-area-inset-top)+0.75rem);}
+}
+@media(max-width:600px){
+  nav{overflow-x:auto;justify-content:flex-start;gap:1rem;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  nav::-webkit-scrollbar{display:none;}
+  .hero img{max-width:260px;width:90%;}
+  section{padding:3rem 1rem;}
+  .parallax{width:300px;height:300px;top:-120px;}
+}
 nav a{color:var(--text-primary);text-decoration:none;font-weight:600;font-size:.9rem;transition:opacity .2s}
 nav a:hover{opacity:.7}
 .card:hover{transform:translateY(-6px);box-shadow:0 14px 34px rgba(0,0,0,.4);transition:.3s}
