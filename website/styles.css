@@ -52,3 +52,6 @@ nav a:hover{opacity:.7}
 .cards.snap-x{overflow-x:auto;scroll-snap-type:x mandatory}
 .cards.snap-x .card{min-width:280px;scroll-snap-align:center}
 @media(max-width:600px){.hero h1{font-size:2rem}.hero img{max-width:220px}}
+/* ---- GALLERY GRID ---- */
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.75rem;align-items:start}
+.gallery-grid img{width:100%;border-radius:1rem;box-shadow:0 6px 18px rgba(0,0,0,.35)}
