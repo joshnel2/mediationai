@@ -4,7 +4,7 @@
 
 The `CreateDisputeView.swift` file has been thoroughly examined and all structural issues have been resolved:,
 
-### ✅ **Variables Properly Declared**,
+### ✅ **Variables Properly Declared**,,
 - `@Environment(\.dismiss) var dismiss` - Line 10 ,,
 - `@EnvironmentObject var authService: MockAuthService` - Line 11
 - `@EnvironmentObject var disputeService: MockDisputeService` - Line 12
