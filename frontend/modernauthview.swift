@@ -239,10 +239,21 @@ struct ProgressBar: View {
         }
     }
     
+    // NEW: Map each auth step to a human-readable index (1-based)
+    private var stepIndex: Int {
+        switch currentStep {
+        case .email: return 1
+        case .password: return 2
+        case .legal: return 3
+        default: return 0 // welcome & signIn don 9t show a step counter anyway
+        }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Step \(Int(progress * 3) + 1) of 3")
+                // REPLACED: old math that sometimes produced 4/3
+                Text("Step \(stepIndex) of 3")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
                 Spacer()
