@@ -29,24 +29,23 @@ else:
 # Log DB URL (masked)
 print("📡 DATABASE_URL ->", MASKED_DATABASE_URL)
 
+# Ensure SSL for Supabase/Postgres deployments
+if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
+    DATABASE_URL += "?sslmode=require"
+
+# Create SQLAlchemy engine *before* attempting any connection tests
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
+
 # Test connection after engine is created
 try:
-    from sqlalchemy import text
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
     print("✅ Database connection successful")
 except Exception as conn_err:
     print("❌ Database connection failed:", conn_err)
-
-# Ensure SSL for Supabase/Postgres deployments
-if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
-    DATABASE_URL += "?sslmode=require"
-
-# Create SQLAlchemy engine
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-else:
-    engine = create_engine(DATABASE_URL)
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
