@@ -6,13 +6,13 @@ from datetime import datetime
 import uuid
 import os
 
-# Default to SQLite but place the file in /tmp when the filesystem is read-only (e.g. Vercel lambdas)
-if "DATABASE_URL" in os.environ:
-    DATABASE_URL = os.environ["DATABASE_URL"]
-else:
-    # Use /tmp on serverless platforms because project root is read-only
-    default_sqlite_path = "/tmp/mediationai.db" if os.access("/tmp", os.W_OK) else "./mediationai.db"
-    DATABASE_URL = f"sqlite:///{default_sqlite_path}"
+# Always use a writable SQLite file in /tmp to avoid read-only FS errors on serverless platforms
+default_sqlite_path = "/tmp/mediationai.db"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{default_sqlite_path}")
+if DATABASE_URL.startswith("sqlite"):
+    # Ensure directory exists (should for /tmp) but create parent if custom path provided
+    db_path = DATABASE_URL.replace("sqlite:///", "").replace("sqlite:////", "/")
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
 # Mask the password for safe logging
 if DATABASE_URL.startswith("postgresql"):
