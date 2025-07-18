@@ -6,7 +6,7 @@ from datetime import datetime
 import uuid
 import os
 
-# Database URL - will use SQLite for development, PostgreSQL for productions okk
+# Database URL - will use SQLite for development, PostgreSQL for productions okkk
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mediationai.db")
 
 # Ensure SSL for Supabase/Postgres deployments
