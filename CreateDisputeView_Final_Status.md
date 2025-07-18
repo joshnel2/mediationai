@@ -2,7 +2,7 @@
 
 ## Current State ✅
 
-The `CreateDisputeView.swift` file has been thoroughly examined and all structural issues have been resolved:
+The `CreateDisputeView.swift` file has been thoroughly examined and all structural issues have been resolved:,
 
 ### ✅ **Variables Properly Declared**,
 - `@Environment(\.dismiss) var dismiss` - Line 10 ,,
