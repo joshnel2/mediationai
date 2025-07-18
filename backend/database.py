@@ -26,10 +26,12 @@ if DATABASE_URL.startswith("postgresql"):
 else:
     MASKED_DATABASE_URL = DATABASE_URL
 
+# Log DB URL (masked)
 print("📡 DATABASE_URL ->", MASKED_DATABASE_URL)
 
-# Test connection early and log result
+# Test connection after engine is created
 try:
+    from sqlalchemy import text
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
     print("✅ Database connection successful")
