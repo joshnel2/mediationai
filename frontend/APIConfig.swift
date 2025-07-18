@@ -10,10 +10,10 @@ struct APIConfig {
     
     // MARK: - API Endpoints
     static let endpoints = [
-        "register": "/api/users/register",
-        "login": "/api/users/login",
-        "logout": "/api/users/logout",
-        "profile": "/api/users/profile",
+        "register": "/api/register",
+        "login": "/api/login",
+        "logout": "/api/logout",
+        "profile": "/api/me",
         "createDispute": "/api/disputes/create",
         "getDisputes": "/api/disputes/user",
         "joinDispute": "/api/disputes/join",

@@ -6,8 +6,13 @@ from datetime import datetime
 import uuid
 import os
 
-# Database URL - will use SQLite for development, PostgreSQL for productions okkk
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mediationai.db")
+# Default to SQLite but place the file in /tmp when the filesystem is read-only (e.g. Vercel lambdas)
+if "DATABASE_URL" in os.environ:
+    DATABASE_URL = os.environ["DATABASE_URL"]
+else:
+    # Use /tmp on serverless platforms because project root is read-only
+    default_sqlite_path = "/tmp/mediationai.db" if os.access("/tmp", os.W_OK) else "./mediationai.db"
+    DATABASE_URL = f"sqlite:///{default_sqlite_path}"
 
 # Mask the password for safe logging
 if DATABASE_URL.startswith("postgresql"):
