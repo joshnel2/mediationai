@@ -1090,7 +1090,12 @@ async def startup_event():
     logger.info("MediationAI API starting up...")
     logger.info(f"OpenAI API configured: {bool(settings.openai_api_key)}")
     logger.info(f"Anthropic API configured: {bool(settings.anthropic_api_key)}")
-    init_db() # Initialize database on startup
+    # Initialize DB but make sure any failure doesn't bring the whole service down
+    try:
+        init_db()
+    except Exception as db_init_err:
+        logger.error(f"Database initialisation failed: {db_init_err}")
+        # Don't raise – we'll fallback to in-memory dicts so read-only endpoints still work
 
 if __name__ == "__main__":
     import uvicorn
