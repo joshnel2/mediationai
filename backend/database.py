@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, DateTime, Boolean, Float, Text, Integer, ForeignKey
+from sqlalchemy import create_engine, Column, String, DateTime, Boolean, Float, Text, Integer, ForeignKey, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -8,6 +8,28 @@ import os
 
 # Database URL - will use SQLite for development, PostgreSQL for productions okkk
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mediationai.db")
+
+# Mask the password for safe logging
+if DATABASE_URL.startswith("postgresql"):
+    try:
+        prefix, rest = DATABASE_URL.split("://", 1)
+        credentials, host_part = rest.split("@", 1)
+        user = credentials.split(":", 1)[0]
+        MASKED_DATABASE_URL = f"{prefix}://{user}:*****@{host_part}"
+    except ValueError:
+        MASKED_DATABASE_URL = DATABASE_URL  # Fallback – unexpected format
+else:
+    MASKED_DATABASE_URL = DATABASE_URL
+
+print("📡 DATABASE_URL ->", MASKED_DATABASE_URL)
+
+# Test connection early and log result
+try:
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    print("✅ Database connection successful")
+except Exception as conn_err:
+    print("❌ Database connection failed:", conn_err)
 
 # Ensure SSL for Supabase/Postgres deployments
 if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
