@@ -11,7 +11,7 @@ Your MediationAI app has been thoroughly tested and is ready for TestFlight beta
 ## 🧪 Functionality Testing Results
 
 ### ✅ **Authentication System**
-- **✅ User Registration**: Creates account, stores in database, returns JWT token
+- **✅ User Registration**: Creates account, stores in database, returns JWT token,
 - **✅ User Login**: Validates credentials, returns JWT token
 - **✅ Persistent Login**: Users stay signed in after app restart
 - **✅ Auto-Login**: Validates JWT token on startup
