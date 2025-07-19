@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import json
 import logging
 from datetime import datetime
@@ -237,6 +237,10 @@ async def create_dispute(request: CreateDisputeRequest):
         dispute.add_participant(complainant)
         disputes_db[dispute.id] = dispute
         
+        # --- NEW: Persist dispute in Upstash ---
+        _sync_dispute(dispute)
+        # --- END NEW ---
+
         logger.info(f"Created dispute: {dispute.id}")
         
         return DisputeResponse(
@@ -366,6 +370,10 @@ async def submit_evidence(dispute_id: str, request: SubmitEvidenceRequest):
     
     dispute.add_evidence(evidence)
     
+    # --- NEW: sync dispute to Upstash ---
+    _sync_dispute(dispute)
+    # --- END NEW ---
+
     # Notify other participants
     user = users_db[request.submitted_by]
     await notify_participants(dispute, f"{user.username} submitted new evidence: {evidence.title}")
@@ -419,6 +427,17 @@ async def send_message(dispute_id: str, request: SendMessageRequest):
     
     dispute.add_message(message)
     
+    # --- NEW: push message to Upstash chat list & update dispute snapshot ---
+    try:
+        chat_key = f"chat:{dispute_id}"
+        chat_log = upstash_get(chat_key) or []
+        chat_log.append(message.dict())
+        upstash_set(chat_key, chat_log)
+        _sync_dispute(dispute)
+    except Exception as up_err:
+        logger.warning(f"Upstash chat sync failed: {up_err}")
+    # --- END NEW ---
+
     # Check if AI intervention is needed
     ai_response = await mediation_orchestrator.handle_dispute_message(dispute, message)
     if ai_response:
@@ -497,6 +516,10 @@ async def conduct_mediation(dispute_id: str):
         opening_message = await mediation_orchestrator.initiate_mediation(dispute)
         dispute.add_message(opening_message)
         
+        # --- NEW: sync dispute to Upstash ---
+        _sync_dispute(dispute)
+        # --- END NEW ---
+
         # Notify participants
         await notify_websocket_clients(dispute_id, {
             "type": "mediation_started",
@@ -632,6 +655,10 @@ async def conduct_arbitration(dispute_id: str):
         
         dispute.add_message(arbitration_message)
         
+        # --- NEW: sync dispute to Upstash ---
+        _sync_dispute(dispute)
+        # --- END NEW ---
+
         # Notify participants
         await notify_websocket_clients(dispute_id, {
             "type": "arbitration_decision",
@@ -817,6 +844,10 @@ async def resolve_dispute_with_contract(dispute_id: str, background_tasks: Backg
         dispute.status = DisputeStatus.RESOLVED
         dispute.resolved_at = datetime.now()
         
+        # --- NEW: sync dispute to Upstash ---
+        _sync_dispute(dispute)
+        # --- END NEW ---
+
         # Generate contract if requested
         if getattr(dispute, 'requires_contract', False):
             background_tasks.add_task(create_contract_task, dispute_id)
@@ -933,6 +964,18 @@ async def notify_participants(dispute: Dispute, message: str):
         "message": message,
         "timestamp": datetime.now().isoformat()
     })
+
+# ----------------- Upstash sync helpers -----------------
+
+def _upstash_save(key: str, value: Any):
+    try:
+        upstash_set(key, value)
+    except Exception as up_err:
+        logger.warning(f"Upstash set failed for {key}: {up_err}")
+
+def _sync_dispute(dispute: Dispute):
+    _upstash_save(f"dispute:{dispute.id}", dispute.dict())
+# --------------------------------------------------------
 
 # ==============================================================================
 # DEMO ENDPOINTS
