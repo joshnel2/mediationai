@@ -177,6 +177,17 @@ class Message(Base):
     dispute = relationship("Dispute", back_populates="messages")
     sender = relationship("User")
 
+# NEW: Device tokens for push notifications
+class Device(Base):
+    __tablename__ = "devices"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    apns_token = Column(String, nullable=False, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
 # NEW: Table to store flattened chat messages for analytics/LLM training
 class ChatMessageLog(Base):
     __tablename__ = "chat_messages"

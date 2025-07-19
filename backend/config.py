@@ -44,7 +44,15 @@ class Settings(BaseSettings):
     ai_response_temperature: float = 0.3
     ai_model_preference: str = "gpt-3.5-turbo"  # Cheaper than GPT-4
     enable_ai_response_caching: bool = True
-    
+
+    # Observability
+    sentry_dsn: str = ""  # Leave blank to disable
+
+    # Push notifications (APNs)
+    apns_key_id: str = ""
+    apns_team_id: str = ""
+    apns_key_base64: str = ""  # Base64-encoded .p8 content
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
