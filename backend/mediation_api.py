@@ -18,7 +18,7 @@ from contract_generator import contract_generator
 from ai_cost_controller import ai_cost_controller
 from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage
 from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_current_user_optional
-from upstash_client import get as upstash_get
+from upstash_client import get as upstash_get, set as upstash_set
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -108,6 +108,18 @@ async def register_user(request: UserRegistrationRequest, db: Session = Depends(
             autoLoginEnabled=db_user.auto_login_enabled,
             notificationsEnabled=db_user.notifications_enabled
         )
+
+        # --- NEW: Persist to Upstash ---
+        try:
+            # One-key-per-user
+            upstash_set(f"user:{db_user.id}", user_response.dict())
+            # Update flat users list (optional – best effort)
+            users_list = upstash_get("users") or []
+            users_list.append(user_response.dict())
+            upstash_set("users", users_list)
+        except Exception as up_err:
+            logger.warning(f"Upstash sync failed: {up_err}")
+        # --- END NEW ---
         
         return {
             "user": user_response,
