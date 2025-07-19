@@ -43,8 +43,10 @@ class MediationTone(str, Enum):
 
 # Authentication Models
 class UserRegistrationRequest(BaseModel):
-    email: str
-    password: str
+    phoneNumber: str = Field(alias="phone")
+    verificationCode: str = Field(alias="code")
+    email: Optional[str] = None
+    password: Optional[str] = None
     display_name: Optional[str] = Field(default=None, alias="displayName")
 
     class Config:
@@ -57,7 +59,8 @@ class UserLoginRequest(BaseModel):
 # Core Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: str
+    email: str | None = None
+    phoneNumber: str | None = None
     displayName: Optional[str] = None
     hasUsedFreeDispute: bool = False
     totalDisputes: int = 0
@@ -69,7 +72,8 @@ class User(BaseModel):
     autoLoginEnabled: bool = True
     notificationsEnabled: bool = True
     created_at: datetime = Field(default_factory=datetime.now)
-    is_verified: bool = False
+    isEmailVerified: bool = False
+    isPhoneVerified: bool = False
 
 class DisputeParticipant(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
