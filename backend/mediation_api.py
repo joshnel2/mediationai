@@ -5,8 +5,8 @@ from typing import List, Dict, Optional, Any
 import json
 import logging
 from datetime import datetime
-import asyncio
 import uuid
+import asyncio
 import os
 from sqlalchemy.orm import Session
 
@@ -128,8 +128,33 @@ async def register_user(request: UserRegistrationRequest, db: Session = Depends(
         }
         
     except Exception as e:
-        logger.error(f"Registration failed: {str(e)}")
-        raise HTTPException(status_code=400, detail="Registration failed")
+        logger.error(f"Registration failed: {str(e)} – falling back to Upstash-only user store")
+        # ---------------- FALLBACK: store user only in Upstash ----------------
+        fallback_user = {
+            "id": str(uuid.uuid4()),
+            "email": request.email,
+            "displayName": request.display_name or request.email.split('@')[0],
+            "createdAt": datetime.utcnow().isoformat(),
+            "updatedAt": datetime.utcnow().isoformat(),
+        }
+        try:
+            upstash_set(f"user:{fallback_user['id']}", fallback_user)
+            users_list = upstash_get("users") or []
+            users_list.append(fallback_user)
+            upstash_set("users", users_list)
+        except Exception as up_err:
+            logger.error(f"Upstash fallback store failed: {up_err}")
+            raise HTTPException(status_code=500, detail="Registration failed")
+
+        # create a dummy token (still signed) so the app flows
+        access_token = create_access_token(data={"sub": fallback_user["id"]})
+
+        return {
+            "user": fallback_user,
+            "access_token": access_token,
+            "token_type": "bearer",
+            "note": "DB unavailable – user stored in Upstash only"
+        }
 
 @app.post("/api/login")
 async def login_user(request: UserLoginRequest, db: Session = Depends(get_db)):
