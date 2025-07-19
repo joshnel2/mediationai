@@ -18,6 +18,7 @@ from contract_generator import contract_generator
 from ai_cost_controller import ai_cost_controller
 from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage
 from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_current_user_optional
+from upstash_client import get as upstash_get
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1034,51 +1035,12 @@ async def health_check():
     }
 
 @app.get("/api/admin/users")
-async def admin_get_all_users(db: Session = Depends(get_db)):
-    """Return a summary of all registered users. If any database error occurs we return an empty list instead of 500 so that health-checks don't fail."""
-    try:
-        users = db.query(DBUser).all()
-    except Exception as db_err:
-        logger.error(f"admin_get_all_users DB error: {db_err}")
-        # Return empty payload instead of internal error so Vercel doesn't mark the function as failed
-        return {"users": []}
-
-    response = []
-    for user in users:
-        try:
-            truths = db.query(DBTruth).filter(DBTruth.user_id == user.id).all()
-            created = db.query(DBDispute).filter(DBDispute.party_a_id == user.id).all()
-            joined = db.query(DBDispute).filter(DBDispute.party_b_id == user.id).all()
-        except Exception as rel_err:
-            logger.error(f"admin_get_all_users relationship query error: {rel_err}")
-            truths, created, joined = [], [], []
-
-        def dispute_summary(d):
-            return {
-                "id": d.id,
-                "title": d.title,
-                "role": "creator" if d.party_a_id == user.id else "joiner",
-                "status": d.status,
-                "resolution": d.resolution_text,
-            }
-
-        user_data = {
-            "id": user.id,
-            "email": user.email,
-            "display_name": user.display_name,
-            "created_at": user.created_at.isoformat() if user.created_at else None,
-            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-            "truths": [{
-                "id": t.id,
-                "dispute_id": t.dispute_id,
-                "content": t.content,
-                "timestamp": t.timestamp.isoformat() if t.timestamp else None,
-            } for t in truths],
-            "disputes": [dispute_summary(d) for d in created + joined],
-        }
-        response.append(user_data)
-
-    return {"users": response}
+async def admin_get_all_users():
+    """Return user snapshots stored in Upstash Redis under key 'users'. This avoids DB connectivity issues."""
+    users_data = upstash_get("users")
+    if users_data is None:
+        return {"users": [], "source": "upstash", "note": "No data found"}
+    return {"users": users_data, "source": "upstash"}
 
 # ==============================================================================
 # STARTUP EVENTS
