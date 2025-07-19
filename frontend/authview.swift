@@ -9,9 +9,11 @@ import SwiftUI
 
 struct AuthView: View {
     @EnvironmentObject var authService: MockAuthService
-    @State private var email = ""
-    @State private var password = ""
-    @State private var isSignUp = false
+    @State private var phone = ""
+    @State private var code = ""
+    @State private var displayName = ""
+    enum Step { case enterPhone, enterCode }
+    @State private var step: Step = .enterPhone
     @State private var error: String?
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfService = false
@@ -33,28 +35,33 @@ struct AuthView: View {
                     .fontWeight(.bold)
                     .foregroundColor(AppTheme.primary)
                 
-                Text(isSignUp ? "Create your account" : "Sign in to continue")
+                Text(step == .enterPhone ? "Enter your phone" : "Verify your code")
                     .font(.body)
                     .foregroundColor(.gray)
             }
             
             // Form
             VStack(spacing: 16) {
-                TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .padding()
-                    .background(AppTheme.card)
-                    .cornerRadius(12)
-                    .shadow(radius: 2)
-                
-                SecureField("Password", text: $password)
-                    .textContentType(isSignUp ? .newPassword : .password)
-                    .padding()
-                    .background(AppTheme.card)
-                    .cornerRadius(12)
-                    .shadow(radius: 2)
+                if step == .enterPhone {
+                    TextField("Phone (+1...)", text: $phone)
+                        .keyboardType(.phonePad)
+                        .padding()
+                        .background(AppTheme.card)
+                        .cornerRadius(12)
+                        .shadow(radius: 2)
+                } else {
+                    TextField("6-digit Code", text: $code)
+                        .keyboardType(.numberPad)
+                        .padding()
+                        .background(AppTheme.card)
+                        .cornerRadius(12)
+                        .shadow(radius: 2)
+                    TextField("Your Name", text: $displayName)
+                        .padding()
+                        .background(AppTheme.card)
+                        .cornerRadius(12)
+                        .shadow(radius: 2)
+                }
                 
                 if let error = error {
                     Text(error)
@@ -63,7 +70,7 @@ struct AuthView: View {
                 }
                 
                 Button(action: handleAuth) {
-                    Text(isSignUp ? "Create Account" : "Sign In")
+                    Text(step == .enterPhone ? "Send Code" : "Continue")
                         .font(AppTheme.buttonFont())
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -75,49 +82,24 @@ struct AuthView: View {
             }
             .padding(.horizontal)
             
-            // Legal Compliance for Sign Up
-            if isSignUp {
-                VStack(spacing: 12) {
-                    Text("By creating an account, you agree to our")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                    
-                    HStack(spacing: 4) {
-                        Button("Terms of Service") {
-                            showTermsOfService = true
-                        }
+            // Legal footer stays the same but always visible
+            VStack(spacing: 12) {
+                Text("By joining, you agree to our")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                HStack(spacing: 4) {
+                    Button("Terms of Service") { showTermsOfService = true }
                         .font(.caption)
                         .foregroundColor(AppTheme.primary)
-                        
-                        Text("and")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        
-                        Button("Privacy Policy") {
-                            showPrivacyPolicy = true
-                        }
+                    Text("and").font(.caption).foregroundColor(.gray)
+                    Button("Privacy Policy") { showPrivacyPolicy = true }
                         .font(.caption)
                         .foregroundColor(AppTheme.primary)
-                    }
                 }
-                .padding(.horizontal)
             }
             
-            Spacer()
-            
-            // Toggle Sign In/Up
-            Button(action: { isSignUp.toggle() }) {
-                HStack {
-                    Text(isSignUp ? "Already have an account?" : "Don't have an account?")
-                        .foregroundColor(.gray)
-                    Text(isSignUp ? "Sign In" : "Sign Up")
-                        .foregroundColor(AppTheme.primary)
-                        .fontWeight(.medium)
-                }
-                .font(.body)
-            }
-            .padding(.bottom)
+            Spacer(minLength: 20)
         }
         .background(AppTheme.background.ignoresSafeArea())
         .sheet(isPresented: $showPrivacyPolicy) {
@@ -130,39 +112,20 @@ struct AuthView: View {
     
     func handleAuth() {
         error = nil
-        
-        guard !email.isEmpty, !password.isEmpty else {
-            error = "Please fill in all fields."
-            return
-        }
-        
-        guard email.contains("@") else {
-            error = "Please enter a valid email address."
-            return
-        }
-        
-        guard password.count >= 6 else {
-            error = "Password must be at least 6 characters."
-            return
-        }
-        
-        if isSignUp {
+        switch step {
+        case .enterPhone:
+            guard !phone.isEmpty else { error = "Enter phone"; return }
             Task {
-                let success = await authService.signUp(email: email, password: password)
+                let sent = await authService.requestCode(phone: phone)
                 await MainActor.run {
-                    if !success {
-                        error = "Email already exists. Try signing in instead."
-                    }
+                    if sent { step = .enterCode } else { error = "Failed to send code" }
                 }
             }
-        } else {
+        case .enterCode:
+            guard !code.isEmpty, !displayName.isEmpty else { error = "Fill all fields"; return }
             Task {
-                let success = await authService.signIn(email: email, password: password)
-                await MainActor.run {
-                    if !success {
-                        error = "Invalid email or password."
-                    }
-                }
+                let ok = await authService.phoneSignUp(phone: phone, code: code, displayName: displayName, email: nil, password: nil)
+                await MainActor.run { if !ok { error = "Invalid code" } }
             }
         }
     }
