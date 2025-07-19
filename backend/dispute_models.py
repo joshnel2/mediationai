@@ -45,7 +45,10 @@ class MediationTone(str, Enum):
 class UserRegistrationRequest(BaseModel):
     email: str
     password: str
-    display_name: Optional[str] = None
+    display_name: Optional[str] = Field(default=None, alias="displayName")
+
+    class Config:
+        populate_by_name = True
 
 class UserLoginRequest(BaseModel):
     email: str
