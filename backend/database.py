@@ -69,13 +69,16 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
+    phone_number = Column(String, unique=True, index=True, nullable=True)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # User profile fields
     display_name = Column(String, nullable=True)
+    is_email_verified = Column(Boolean, default=False)
+    is_phone_verified = Column(Boolean, default=False)
     has_used_free_dispute = Column(Boolean, default=False)
     total_disputes = Column(Integer, default=0)
     disputes_won = Column(Integer, default=0)

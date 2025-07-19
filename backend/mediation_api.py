@@ -86,22 +86,32 @@ async def health_check():
 async def register_user(request: UserRegistrationRequest, db: Session = Depends(get_db)):
     """Register a new user"""
     try:
-        # Basic password strength check
-        pw = request.password
-        if len(pw) < 8 or not re.search(r"[0-9]", pw) or not re.search(r"[^A-Za-z0-9]", pw):
-            raise HTTPException(status_code=400, detail="Password too weak. Must be ≥8 chars, include a number and symbol.")
-        
-        # Check if user already exists
-        existing_user = db.query(DBUser).filter(DBUser.email == request.email).first()
+        # Validate phone verification code
+        expected = upstash_get(f"phone_code:{request.phoneNumber}")
+        if expected is None or expected != request.verificationCode:
+            raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+
+        # Optional password validation if provided
+        if request.password:
+            pw = request.password
+            if len(pw) < 8 or not re.search(r"[0-9]", pw) or not re.search(r"[^A-Za-z0-9]", pw):
+                raise HTTPException(status_code=400, detail="Password too weak. Must be ≥8 chars, include a number and symbol.")
+            hashed_password = get_password_hash(pw)
+        else:
+            hashed_password = get_password_hash(str(uuid.uuid4()))  # random pw for phone-only login later
+
+        # Ensure phone unique
+        existing_user = db.query(DBUser).filter(DBUser.phone_number == request.phoneNumber).first()
         if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(status_code=400, detail="Phone already registered")
         
         # Create new user
-        hashed_password = get_password_hash(request.password)
         db_user = DBUser(
+            phone_number=request.phoneNumber,
             email=request.email,
             password_hash=hashed_password,
-            display_name=request.display_name or request.email.split('@')[0]
+            display_name=request.display_name or request.phoneNumber,
+            is_phone_verified=True
         )
         
         db.add(db_user)
@@ -1234,6 +1244,27 @@ async def startup_event():
     except Exception as db_init_err:
         logger.error(f"Database initialisation failed: {db_init_err}")
         # Don't raise – we'll fallback to in-memory dicts so read-only endpoints still work
+
+# ============================
+# PHONE VERIFICATION
+# ============================
+
+@app.post("/api/auth/request-code")
+async def request_verification_code(phone: str):
+    """Generate a 6-digit code and send via SMS (stubbed)"""
+    import random
+    code = f"{random.randint(0, 999999):06d}"
+
+    # Store in Upstash with 10-minute expiry
+    try:
+        upstash_set(f"phone_code:{phone}", code, ex=600)
+    except Exception as e:
+        logger.warning(f"Failed to save phone code: {e}")
+
+    # TODO: integrate Twilio. For now just log.
+    logger.info(f"[DEV] Verification code for {phone}: {code}")
+
+    return {"status": "sent"}
 
 if __name__ == "__main__":
     import uvicorn
