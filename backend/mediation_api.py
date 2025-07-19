@@ -5,6 +5,19 @@ from typing import List, Dict, Optional, Any
 import json
 import logging
 from datetime import datetime
+import re
+
+# Sentry (optional)
+import sentry_sdk
+
+# APNs push (optional)
+from typing import Tuple
+try:
+    from apns2.client import APNsClient
+    from apns2.payload import Payload
+except ImportError:
+    APNsClient = None  # type: ignore
+
 import asyncio
 import uuid
 import os
@@ -73,6 +86,11 @@ async def health_check():
 async def register_user(request: UserRegistrationRequest, db: Session = Depends(get_db)):
     """Register a new user"""
     try:
+        # Basic password strength check
+        pw = request.password
+        if len(pw) < 8 or not re.search(r"[0-9]", pw) or not re.search(r"[^A-Za-z0-9]", pw):
+            raise HTTPException(status_code=400, detail="Password too weak. Must be ≥8 chars, include a number and symbol.")
+        
         # Check if user already exists
         existing_user = db.query(DBUser).filter(DBUser.email == request.email).first()
         if existing_user:
@@ -130,6 +148,43 @@ async def register_user(request: UserRegistrationRequest, db: Session = Depends(
     except Exception as e:
         logger.error(f"Registration failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Registration failed")
+
+# ============================
+# DEVICE REGISTRATION
+# ============================
+
+@app.post("/api/devices")
+async def register_device(token: str, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Save or update the APNs token for the authenticated user"""
+    from database import Device  # local import to avoid circular
+
+    existing = db.query(Device).filter(Device.apns_token == token).first()
+    if existing:
+        existing.user_id = current_user.id
+    else:
+        db.add(Device(user_id=current_user.id, apns_token=token))
+    db.commit()
+    return {"status": "success"}
+
+# Helper to send a push – no-op if APNs not configured
+def _send_push(apns_token: str, title: str, body: str):
+    if not (settings.apns_key_base64 and APNsClient):
+        return
+    try:
+        import base64, tempfile, os
+        key_data = base64.b64decode(settings.apns_key_base64)
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(key_data)
+            tmp_path = tmp.name
+        client = APNsClient(tmp_path, key_id=settings.apns_key_id, team_id=settings.apns_team_id, use_sandbox=False)
+        client.send_notification(apns_token, Payload(alert={"title": title, "body": body}, sound="default"))
+    except Exception as e:
+        logger.warning(f"APNs send failed: {e}")
+    finally:
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
 
 @app.post("/api/login")
 async def login_user(request: UserLoginRequest, db: Session = Depends(get_db)):
@@ -1003,8 +1058,20 @@ async def notify_websocket_clients(dispute_id: str, message: Dict):
 
 async def notify_participants(dispute: Dispute, message: str):
     """Send notification to all participants in a dispute"""
-    # In a real app, this would send push notifications
-    # For now, we'll just log and send via WebSocket
+    db: Session | None = None
+    try:
+        db = next(get_db())
+    except Exception:
+        db = None
+    # Push notification via APNs (best effort)
+    if hasattr(settings, "apns_key_id") and settings.apns_key_id:
+        from database import Device  # avoid circular
+        for p in dispute.participants:
+            tokens = db.query(Device).filter(Device.user_id == p.user_id).all() if db else []
+            for t in tokens:
+                _send_push(t.apns_token, "Dispute Update", message)
+
+    # Also log and send via WebSocket
     logger.info(f"Notification for dispute {dispute.id}: {message}")
     
     await notify_websocket_clients(dispute.id, {
@@ -1155,6 +1222,12 @@ async def startup_event():
     logger.info("MediationAI API starting up...")
     logger.info(f"OpenAI API configured: {bool(settings.openai_api_key)}")
     logger.info(f"Anthropic API configured: {bool(settings.anthropic_api_key)}")
+
+    # Init Sentry if DSN provided
+    if settings.sentry_dsn:
+        sentry_sdk.init(dsn=settings.sentry_dsn, traces_sample_rate=0.2)
+        logger.info("Sentry initialised")
+
     # Initialize DB but make sure any failure doesn't bring the whole service down
     try:
         init_db()
