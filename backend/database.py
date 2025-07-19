@@ -8,7 +8,18 @@ import os
 
 # Always use a writable SQLite file in /tmp to avoid read-only FS errors on serverless platforms
 default_sqlite_path = "/tmp/mediationai.db"
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{default_sqlite_path}")
+raw_url = os.getenv("DATABASE_URL", f"sqlite:///{default_sqlite_path}")
+# Handle common mistakes when pasting connection strings
+raw_url = raw_url.strip()
+if raw_url.startswith("psql "):
+    # e.g. "psql 'postgresql://user:pass@host/db?sslmode=require'"
+    raw_url = raw_url[4:].strip()
+
+# Remove wrapping single or double quotes
+if (raw_url.startswith("'") and raw_url.endswith("'")) or (raw_url.startswith('"') and raw_url.endswith('"')):
+    raw_url = raw_url[1:-1].strip()
+
+DATABASE_URL = raw_url if raw_url else f"sqlite:///{default_sqlite_path}"
 if DATABASE_URL.startswith("sqlite"):
     # Ensure directory exists (should for /tmp) but create parent if custom path provided
     db_path = DATABASE_URL.replace("sqlite:///", "").replace("sqlite:////", "/")
@@ -29,24 +40,23 @@ else:
 # Log DB URL (masked)
 print("📡 DATABASE_URL ->", MASKED_DATABASE_URL)
 
+# Ensure SSL for Supabase/Postgres deployments
+if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
+    DATABASE_URL += "?sslmode=require"
+
+# Create SQLAlchemy engine *before* attempting any connection tests
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
+
 # Test connection after engine is created
 try:
-    from sqlalchemy import text
     with engine.connect() as conn:
         conn.execute(text("SELECT 1"))
     print("✅ Database connection successful")
 except Exception as conn_err:
     print("❌ Database connection failed:", conn_err)
-
-# Ensure SSL for Supabase/Postgres deployments
-if DATABASE_URL.startswith("postgresql") and "sslmode" not in DATABASE_URL:
-    DATABASE_URL += "?sslmode=require"
-
-# Create SQLAlchemy engine
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-else:
-    engine = create_engine(DATABASE_URL)
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

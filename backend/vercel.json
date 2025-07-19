@@ -7,9 +7,20 @@
       "config": {
         "runtime": "python3.12"
       }
+    },
+    {
+      "src": "mini_admin.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.12"
+      }
     }
   ],
   "routes": [
+    {
+      "src": "/api/admin/users",
+      "dest": "mini_admin.py"
+    },
     {
       "src": "/privacy-policy.html",
       "dest": "public/privacy-policy.html",
