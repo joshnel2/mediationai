@@ -177,6 +177,34 @@ class Message(Base):
     dispute = relationship("Dispute", back_populates="messages")
     sender = relationship("User")
 
+# NEW: Table to store flattened chat messages for analytics/LLM training
+class ChatMessageLog(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(String, primary_key=True)
+    dispute_id = Column(String, index=True, nullable=False)
+    sender_id = Column(String, nullable=False)
+    sender_role = Column(String, nullable=False)  # user, ai_mediator, ai_arbitrator, system
+    content = Column(Text, nullable=False)
+    is_private = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+# NEW: Table to store resolution proposals/decisions
+class ResolutionLog(Base):
+    __tablename__ = "dispute_resolutions"
+
+    id = Column(String, primary_key=True)
+    dispute_id = Column(String, index=True, nullable=False)
+    proposed_by = Column(String, nullable=False)  # user id or ai role
+    resolution_type = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    terms_json = Column(Text, nullable=False)  # JSON-encoded list of terms
+    monetary_amount = Column(Float, nullable=True)
+    deadline = Column(DateTime, nullable=True)
+    is_final = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
 # Database dependency
 def get_db():
     db = SessionLocal()

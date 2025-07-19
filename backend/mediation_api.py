@@ -16,7 +16,7 @@ from dispute_models import *
 from mediation_agents import mediation_orchestrator
 from contract_generator import contract_generator
 from ai_cost_controller import ai_cost_controller
-from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage
+from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage, ChatMessageLog, ResolutionLog
 from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_current_user_optional
 from upstash_client import get as upstash_get, set as upstash_set
 
@@ -399,7 +399,7 @@ async def get_dispute_evidence(dispute_id: str):
 # ==============================================================================
 
 @app.post("/api/disputes/{dispute_id}/messages")
-async def send_message(dispute_id: str, request: SendMessageRequest):
+async def send_message(dispute_id: str, request: SendMessageRequest, db: Session = Depends(get_db)):
     """Send a message in a dispute"""
     if dispute_id not in disputes_db:
         raise HTTPException(status_code=404, detail="Dispute not found")
@@ -426,6 +426,19 @@ async def send_message(dispute_id: str, request: SendMessageRequest):
     )
     
     dispute.add_message(message)
+
+    # Persist to analytics table
+    db_message = ChatMessageLog(
+        id=message.id,
+        dispute_id=dispute_id,
+        sender_id=request.sender_id,
+        sender_role="user",
+        content=request.content,
+        is_private=request.is_private,
+        created_at=message.timestamp,
+    )
+    db.add(db_message)
+    db.commit()
     
     # --- NEW: push message to Upstash chat list & update dispute snapshot ---
     try:
@@ -442,6 +455,18 @@ async def send_message(dispute_id: str, request: SendMessageRequest):
     ai_response = await mediation_orchestrator.handle_dispute_message(dispute, message)
     if ai_response:
         dispute.add_message(ai_response)
+
+        db_ai_msg = ChatMessageLog(
+            id=ai_response.id,
+            dispute_id=dispute_id,
+            sender_id="ai",
+            sender_role=ai_response.sender_type,
+            content=ai_response.content,
+            is_private=False,
+            created_at=ai_response.timestamp,
+        )
+        db.add(db_ai_msg)
+        db.commit()
     
     # Notify other participants via WebSocket
     await notify_websocket_clients(dispute_id, {
@@ -532,7 +557,7 @@ async def conduct_mediation(dispute_id: str):
         logger.error(f"Error in mediation for dispute {dispute_id}: {str(e)}")
 
 @app.post("/api/disputes/{dispute_id}/mediation/propose")
-async def propose_resolution(dispute_id: str, request: CreateProposalRequest):
+async def propose_resolution(dispute_id: str, request: CreateProposalRequest, db: Session = Depends(get_db)):
     """Create a resolution proposal"""
     if dispute_id not in disputes_db:
         raise HTTPException(status_code=404, detail="Dispute not found")
@@ -552,6 +577,23 @@ async def propose_resolution(dispute_id: str, request: CreateProposalRequest):
     )
     
     dispute.add_proposal(proposal)
+
+    # Log proposal
+    db_resolution = ResolutionLog(
+        id=proposal.id,
+        dispute_id=dispute_id,
+        proposed_by=request.proposed_by,
+        resolution_type=request.resolution_type.value if hasattr(request.resolution_type, 'value') else str(request.resolution_type),
+        title=request.title,
+        description=request.description,
+        terms_json=json.dumps(request.terms),
+        monetary_amount=request.monetary_amount,
+        deadline=request.deadline,
+        is_final=False,
+        created_at=proposal.created_at,
+    )
+    db.add(db_resolution)
+    db.commit()
     
     # Notify participants
     await notify_participants(dispute, f"New resolution proposal: {proposal.title}")
@@ -563,7 +605,7 @@ async def propose_resolution(dispute_id: str, request: CreateProposalRequest):
     }
 
 @app.post("/api/disputes/{dispute_id}/proposals/{proposal_id}/respond")
-async def respond_to_proposal(dispute_id: str, proposal_id: str, request: AcceptProposalRequest):
+async def respond_to_proposal(dispute_id: str, proposal_id: str, request: AcceptProposalRequest, db: Session = Depends(get_db)):
     """Accept or reject a resolution proposal"""
     if dispute_id not in disputes_db:
         raise HTTPException(status_code=404, detail="Dispute not found")
@@ -600,6 +642,12 @@ async def respond_to_proposal(dispute_id: str, proposal_id: str, request: Accept
         dispute.status = DisputeStatus.RESOLVED
         
         await notify_participants(dispute, f"Dispute resolved! Resolution: {proposal.title}")
+
+        # Mark resolution as final in DB
+        db_resolution_row = db.query(ResolutionLog).filter(ResolutionLog.id == proposal.id).first()
+        if db_resolution_row:
+            db_resolution_row.is_final = True
+            db.commit()
     
     user = users_db[request.user_id]
     action = "accepted" if request.accept else "rejected"
