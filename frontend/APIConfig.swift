@@ -11,6 +11,7 @@ struct APIConfig {
     // MARK: - API Endpoints
     static let endpoints = [
         "register": "/api/register",
+        "requestCode": "/api/auth/request-code",
         "login": "/api/login",
         "logout": "/api/logout",
         "profile": "/api/me",

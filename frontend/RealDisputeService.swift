@@ -122,6 +122,51 @@ class RealDisputeService: ObservableObject {
         } catch { return nil }
     }
 
+    // MARK: - Phone-based auth ------------------------------------------------
+
+    @MainActor
+    func requestCode(phone: String) async -> Bool {
+        guard let url = URL(string: APIConfig.url(for: "requestCode")),
+              let data = try? JSONSerialization.data(withJSONObject: ["phone": phone]) else { return false }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        do {
+            let (_, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, 200...299 ~= http.statusCode else { return false }
+            return true
+        } catch { return false }
+    }
+
+    @MainActor
+    func phoneSignUp(phone: String, code: String, displayName: String, email: String?, password: String?) async -> Bool {
+        guard let url = URL(string: APIConfig.url(for: "register")) else { return false }
+        var body: [String: Any] = [
+            "phone": phone,
+            "code": code,
+            "displayName": displayName
+        ]
+        if let email = email { body["email"] = email }
+        if let password = password { body["password"] = password }
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return false }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.httpBody = data
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        do {
+            let (respData, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, 200...299 ~= http.statusCode,
+                  let json = try? JSONSerialization.jsonObject(with: respData) as? [String: Any],
+                  let token = json["access_token"] as? String,
+                  let userDict = json["user"] as? [String: Any] else { return false }
+            let user = User(email: userDict["email"] as? String ?? "", phoneNumber: phone, displayName: displayName)
+            saveToken(token)
+            apiService.setAuthToken(token)
+            currentUser = user
+            return true
+        } catch { return false }
+    }
+
     func signOut() {
         currentUser = nil
         disputes = []
