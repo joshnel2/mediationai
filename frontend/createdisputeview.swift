@@ -307,25 +307,20 @@ struct CreateDisputeView: View {
                                 Spacer()
                             }
 
-                            // Ghost demo toggle
-                            HStack {
-                                Button(action: { useGhostDemo.toggle() }) {
-                                    Image(systemName: useGhostDemo ? "checkmark.square.fill" : "square")
-                                        .font(.title2)
-                                        .foregroundColor(useGhostDemo ? AppTheme.success : AppTheme.textSecondary)
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Demo Ghost Opponent")
+                            // Ghost demo button
+                            Button(action: { useGhostDemo.toggle() }) {
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.white)
+                                    Text(useGhostDemo ? "Ghost Mode Enabled" : "Try Ghost Mode")
                                         .font(AppTheme.caption())
-                                        .foregroundColor(AppTheme.textPrimary)
-                                    
-                                    Text("Adds an AI respondent for quick demos")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(AppTheme.textSecondary)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
                                 }
-                                
-                                Spacer()
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                                .background(useGhostDemo ? AppTheme.success : AppTheme.primary)
+                                .cornerRadius(AppTheme.radiusMD)
                             }
                         }
                     }
