@@ -16,4 +16,4 @@ passlib[bcrypt]==1.7.4
 psycopg2-binary==2.9.9
 # optional observability & push
 sentry-sdk==1.44.0
-pyapns2==0.10.2
+pyapns2==2.0.0
