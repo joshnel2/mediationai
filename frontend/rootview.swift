@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import LocalAuthentication
 
 struct RootView: View {
     @EnvironmentObject var authService: MockAuthService
@@ -27,6 +28,7 @@ struct RootView: View {
                             OnboardingView()
                         } else {
                             HomeView()
+                                .onAppear(perform: authenticate)
                         }
                     }
                     .transition(.opacity.combined(with: .scale))
@@ -34,5 +36,19 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.5), value: showSplash)
+    }
+
+    private func authenticate() {
+        // Only attempt once per launch
+        guard UserDefaults.standard.bool(forKey: "faceIDEnabled") else { return }
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Unlock MediationAI") { success, _ in
+                if !success {
+                    // Log or handle fallback – for beta we ignore
+                }
+            }
+        }
     }
 }
