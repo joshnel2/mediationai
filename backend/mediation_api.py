@@ -32,6 +32,11 @@ from ai_cost_controller import ai_cost_controller
 from database import get_db, init_db, User as DBUser, Dispute as DBDispute, Truth as DBTruth, Evidence as DBEvidence, Message as DBMessage, ChatMessageLog, ResolutionLog
 from auth import get_password_hash, verify_password, create_access_token, get_current_user, get_current_user_optional
 from upstash_client import get as upstash_get, set as upstash_set
+try:
+    import firebase_admin
+    from firebase_admin import auth as fb_auth
+except ImportError:
+    fb_auth = None  # optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -158,6 +163,49 @@ async def register_user(request: UserRegistrationRequest, db: Session = Depends(
     except Exception as e:
         logger.error(f"Registration failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Registration failed")
+
+# ---------------- Firebase phone signup ----------------
+class FirebaseSignUpRequest(BaseModel):
+    idToken: str
+    displayName: str
+
+
+@app.post("/api/auth/firebase-signup")
+async def firebase_signup(request: FirebaseSignUpRequest, db: Session = Depends(get_db)):
+    if fb_auth is None:
+        raise HTTPException(status_code=500, detail="Firebase SDK not installed")
+    try:
+        decoded = fb_auth.verify_id_token(request.idToken)
+        phone = decoded.get("phone_number")
+        if not phone:
+            raise ValueError("No phone number in token")
+    except Exception as e:
+        logger.error(f"Firebase token verify failed: {e}")
+        raise HTTPException(status_code=400, detail="Invalid Firebase token")
+
+    # Check if user exists
+    user = db.query(DBUser).filter(DBUser.phone_number == phone).first()
+    if not user:
+        # Create user
+        user = DBUser(
+            phone_number=phone,
+            display_name=request.displayName,
+            password_hash=get_password_hash(str(uuid.uuid4())),
+            is_phone_verified=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(data={"sub": user.id})
+    user_response = User(
+        id=user.id,
+        phoneNumber=phone,
+        displayName=user.display_name,
+        isPhoneVerified=True
+    )
+
+    return {"user": user_response, "access_token": access_token, "token_type": "bearer"}
 
 # ============================
 # DEVICE REGISTRATION

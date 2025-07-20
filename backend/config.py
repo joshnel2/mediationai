@@ -58,3 +58,15 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 settings = Settings()
+
+# ---------------- Firebase admin init -----------------
+import os, json
+try:
+    import firebase_admin
+    from firebase_admin import credentials
+    if not firebase_admin._apps and os.getenv("FIREBASE_SA_JSON"):
+        cred = credentials.Certificate(json.loads(os.getenv("FIREBASE_SA_JSON")))
+        firebase_admin.initialize_app(cred)
+except ImportError:
+    # firebase-admin not installed – optional dependency
+    pass

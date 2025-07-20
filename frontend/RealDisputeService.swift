@@ -167,6 +167,30 @@ class RealDisputeService: ObservableObject {
         } catch { return false }
     }
 
+    // Firebase-based signup (idToken)
+    @MainActor
+    func firebaseSignUp(idToken: String, displayName: String) async -> Bool {
+        guard let url = URL(string: APIConfig.baseURL + "/api/auth/firebase-signup") else { return false }
+        let body = ["idToken": idToken, "displayName": displayName]
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return false }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.httpBody = data
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        do {
+            let (respData, resp) = try await URLSession.shared.data(for: req)
+            guard let http = resp as? HTTPURLResponse, 200...299 ~= http.statusCode,
+                  let json = try? JSONSerialization.jsonObject(with: respData) as? [String: Any],
+                  let token = json["access_token"] as? String,
+                  let userDict = json["user"] as? [String: Any] else { return false }
+            let user = User(email: userDict["email"] as? String ?? "", phoneNumber: userDict["phoneNumber"] as? String, displayName: displayName)
+            saveToken(token)
+            apiService.setAuthToken(token)
+            currentUser = user
+            return true
+        } catch { return false }
+    }
+
     func signOut() {
         currentUser = nil
         disputes = []
