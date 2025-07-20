@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if canImport(FirebaseAuth)
+import FirebaseAuth
+#endif
 
 struct AuthView: View {
     @EnvironmentObject var authService: MockAuthService
@@ -17,6 +20,7 @@ struct AuthView: View {
     @State private var error: String?
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfService = false
+    @State private var verificationID: String?
     
     var body: some View {
         VStack(spacing: 32) {
@@ -115,18 +119,37 @@ struct AuthView: View {
         switch step {
         case .enterPhone:
             guard !phone.isEmpty else { error = "Enter phone"; return }
-            Task {
-                let sent = await authService.requestCode(phone: phone)
-                await MainActor.run {
-                    if sent { step = .enterCode } else { error = "Failed to send code" }
+#if canImport(FirebaseAuth)
+            PhoneAuthProvider.provider()
+                .verifyPhoneNumber(phone, uiDelegate: nil) { verID, err in
+                    if let err = err {
+                        error = err.localizedDescription
+                        return
+                    }
+                    verificationID = verID
+                    step = .enterCode
                 }
-            }
+#else
+            error = "FirebaseAuth SDK not available"
+#endif
         case .enterCode:
             guard !code.isEmpty, !displayName.isEmpty else { error = "Fill all fields"; return }
-            Task {
-                let ok = await authService.phoneSignUp(phone: phone, code: code, displayName: displayName, email: nil, password: nil)
-                await MainActor.run { if !ok { error = "Invalid code" } }
+            guard let verID = verificationID else { error = "Missing verification ID"; return }
+#if canImport(FirebaseAuth)
+            let credential = PhoneAuthProvider.provider().credential(withVerificationID: verID, verificationCode: code)
+            Auth.auth().signIn(with: credential) { result, err in
+                if let err = err { error = err.localizedDescription; return }
+                result?.user.getIDToken(completion: { token, _ in
+                    guard let token = token else { error = "Token error"; return }
+                    Task {
+                        let ok = await authService.firebaseSignUp(idToken: token, displayName: displayName)
+                        await MainActor.run { if !ok { error = "Signup failed" } }
+                    }
+                })
             }
+#else
+            error = "FirebaseAuth SDK not available"
+#endif
         }
     }
 }
