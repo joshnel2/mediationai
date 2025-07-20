@@ -322,6 +322,12 @@ struct CreateDisputeView: View {
                                 .background(useGhostDemo ? AppTheme.success : AppTheme.primary)
                                 .cornerRadius(AppTheme.radiusMD)
                             }
+                            if !useGhostDemo {
+                                Text("(AI Opponent Demo)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AppTheme.textSecondary)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
                         }
                     }
                 }
