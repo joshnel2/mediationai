@@ -46,15 +46,16 @@ class DisputeAPIService: ObservableObject {
     }
     
     // MARK: - Dispute Management
-    func createDispute(title: String, description: String, category: String, createContract: Bool) async -> String? {
+    func createDispute(title: String, description: String, category: String, createContract: Bool, demoGhost: Bool = false) async -> String? {
         let endpoint = APIConfig.url(for: "createDispute")
-        let requestBody = [
+        let requestBody: [String: Any] = [
             "title": title,
             "description": description,
             "category": category,
             "created_by": "user_id", // Replace with actual user ID
-            "requires_contract": createContract
-        ] as [String: Any]
+            "requires_contract": createContract,
+            "demoGhost": demoGhost
+        ]
         
         do {
             let response = try await makeRequest(to: endpoint, method: "POST", body: requestBody)

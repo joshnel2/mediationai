@@ -175,14 +175,15 @@ class RealDisputeService: ObservableObject {
     }
     
     // MARK: - Dispute Management
-    func createDispute(title: String, description: String, category: String, createContract: Bool) async -> String? {
+    func createDispute(title: String, description: String, category: String, createContract: Bool, demoGhost: Bool = false) async -> String? {
         await MainActor.run { isLoading = true }
         
         let disputeId = await apiService.createDispute(
             title: title,
             description: description,
             category: category,
-            createContract: createContract
+            createContract: createContract,
+            demoGhost: demoGhost
         )
         
         await MainActor.run { isLoading = false }

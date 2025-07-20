@@ -24,6 +24,7 @@ struct CreateDisputeView: View {
     @State private var createContract = false
     @State private var requestSignature = false
     @State private var useEscrow = false
+    @State private var useGhostDemo = false
     @State private var showSignatureView = false
     @State private var creatorSignature: UIImage?
     
@@ -305,6 +306,27 @@ struct CreateDisputeView: View {
                                 
                                 Spacer()
                             }
+
+                            // Ghost demo toggle
+                            HStack {
+                                Button(action: { useGhostDemo.toggle() }) {
+                                    Image(systemName: useGhostDemo ? "checkmark.square.fill" : "square")
+                                        .font(.title2)
+                                        .foregroundColor(useGhostDemo ? AppTheme.success : AppTheme.textSecondary)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Demo Ghost Opponent")
+                                        .font(AppTheme.caption())
+                                        .foregroundColor(AppTheme.textPrimary)
+                                    
+                                    Text("Adds an AI respondent for quick demos")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(AppTheme.textSecondary)
+                                }
+                                
+                                Spacer()
+                            }
                         }
                     }
                 }
@@ -406,12 +428,13 @@ struct CreateDisputeView: View {
         }
         
         let dispute = disputeService.createDispute(
-            title: title, 
-            description: description, 
+            title: title,
+            description: description,
             user: user,
             requiresContract: createContract,
             requiresSignature: requestSignature,
-            requiresEscrow: useEscrow
+            requiresEscrow: useEscrow,
+            demoGhost: useGhostDemo
         )
         
         // If signature is required, show signature view, otherwise smooth transition to home
