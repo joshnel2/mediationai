@@ -212,6 +212,7 @@ class CreateDisputeRequest(BaseModel):
     created_by: str  # User ID
     mediation_tone: MediationTone = MediationTone.NEUTRAL
     resolution_deadline: Optional[datetime] = None
+    demoGhost: bool = False
 
 class JoinDisputeRequest(BaseModel):
     user_id: str

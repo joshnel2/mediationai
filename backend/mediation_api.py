@@ -301,6 +301,29 @@ async def create_dispute(request: CreateDisputeRequest):
         
         dispute.add_participant(complainant)
         disputes_db[dispute.id] = dispute
+
+        # If demo ghost requested, auto-add AI participant and optional first message
+        if request.demoGhost:
+            ghost_user = User(id=str(uuid.uuid4()), displayName="GhostAI", email=None, phoneNumber=None)
+            users_db[ghost_user.id] = ghost_user
+            ghost_participant = DisputeParticipant(
+                user_id=ghost_user.id,
+                dispute_id=dispute.id,
+                role=ParticipantRole.RESPONDENT,
+                username="GhostAI",
+                email="ghost@demo.ai",
+                full_name="Ghost AI"
+            )
+            dispute.add_participant(ghost_participant)
+            # Ghost sends initial message
+            opening = MediationMessage(
+                dispute_id=dispute.id,
+                sender_id=ghost_user.id,
+                sender_type="ai_mediator",
+                content="Hello, I'm your demo opponent. Let's resolve this!",
+            )
+            dispute.add_message(opening)
+            _sync_dispute(dispute)
         
         # --- NEW: Persist dispute in Upstash ---
         _sync_dispute(dispute)
