@@ -121,6 +121,32 @@ class MockAuthService: ObservableObject {
         return await mockSignIn(email: email, password: password)
     }
 
+    // MARK: - Firebase Phone Auth Mock Signup
+    /// Handles signup when using Firebase phone authentication. Since this is a purely local mock we simply create a new `User` instance using the provided display name and a synthesized e-mail address derived from the ID token. The newly created user is also persisted so subsequent app launches keep the user logged in if auto-login is enabled.
+    @MainActor
+    func firebaseSignUp(idToken: String, displayName: String) async -> Bool {
+        // Derive a mock e-mail from the token so that the field is not empty and remains unique enough for local development.
+        let mockEmail = "user_\(idToken.prefix(8))@firebase.mock"
+
+        // Create a user using the extended convenience initialiser so the display name is preserved in the profile.
+        let newUser = User(email: mockEmail, phoneNumber: nil, displayName: displayName)
+
+        // Persist on the main actor because `@Published` properties are being mutated.
+        currentUser = newUser
+        if !users.contains(where: { $0.id == newUser.id }) {
+            users.append(newUser)
+        }
+
+        // Store a mock JWT so the rest of the app can treat the session as authenticated.
+        userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+        // Ensure auto-login remains consistent with the established behaviour of other signup paths.
+        enableAutoLogin()
+        saveUserSettings()
+
+        return true
+    }
+
     // Helper to build URLRequest
     private func urlRequest(url: URL, body: Data) -> URLRequest {
         var req = URLRequest(url: url)
