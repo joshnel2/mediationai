@@ -10,6 +10,8 @@ import LocalAuthentication
 
 struct RootView: View {
     @EnvironmentObject var authService: MockAuthService
+    @EnvironmentObject var disputeService: MockDisputeService
+    @EnvironmentObject var notificationService: NotificationService
     @State private var showSplash = true
     
     var body: some View {
@@ -28,7 +30,10 @@ struct RootView: View {
                             OnboardingView()
                         } else {
                             HomeView()
-                                .onAppear(perform: authenticate)
+                                .onAppear {
+                                    authenticate()
+                                    setupNotificationIntegration()
+                                }
                         }
                     }
                     .transition(.opacity.combined(with: .scale))
@@ -48,6 +53,26 @@ struct RootView: View {
                 if !success {
                     // Log or handle fallback – for beta we ignore
                 }
+            }
+        }
+    }
+    
+    private func setupNotificationIntegration() {
+        // Connect notification service to dispute service
+        if let realDisputeService = disputeService as? RealDisputeService {
+            realDisputeService.setNotificationService(notificationService)
+        }
+        
+        // Listen for navigation notifications
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("NavigateToDispute"),
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let disputeId = notification.userInfo?["dispute_id"] as? String {
+                // Handle navigation to specific dispute
+                print("Navigate to dispute: \(disputeId)")
+                // You can implement navigation logic here
             }
         }
     }

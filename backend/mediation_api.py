@@ -224,6 +224,47 @@ async def register_device(token: str, current_user: DBUser = Depends(get_current
     db.commit()
     return {"status": "success"}
 
+@app.post("/api/users/device-token")
+async def register_device_token(
+    request: dict,
+    current_user: DBUser = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    """Register device token for push notifications"""
+    from database import Device
+    
+    device_token = request.get("device_token")
+    platform = request.get("platform", "ios")
+    
+    if not device_token:
+        raise HTTPException(status_code=400, detail="Device token is required")
+    
+    # Check if device token already exists
+    existing = db.query(Device).filter(Device.apns_token == device_token).first()
+    if existing:
+        # Update user association
+        existing.user_id = current_user.id
+        existing.platform = platform
+        existing.updated_at = datetime.now()
+    else:
+        # Create new device record
+        device = Device(
+            user_id=current_user.id,
+            apns_token=device_token,
+            platform=platform,
+            created_at=datetime.now(),
+            updated_at=datetime.now()
+        )
+        db.add(device)
+    
+    db.commit()
+    
+    return {
+        "status": "success",
+        "message": "Device token registered successfully",
+        "device_token": device_token[:10] + "..." if len(device_token) > 10 else device_token
+    }
+
 # Helper to send a push – no-op if APNs not configured
 def _send_push(apns_token: str, title: str, body: str):
     if not (settings.apns_key_base64 and APNsClient):

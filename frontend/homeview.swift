@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
+    @EnvironmentObject var notificationService: NotificationService
     @State private var showCreate = false
     @State private var showJoin = false
     @State private var showSettings = false
@@ -46,6 +47,9 @@ struct HomeView: View {
                     
                     // Action buttons
                     actionButtonsSection
+                    
+                    // Demo notification section (for testing)
+                    demoNotificationSection
                     
                     // Disputes section
                     disputesSection
@@ -153,17 +157,32 @@ struct HomeView: View {
                 .scaleEffect(animateCards ? 1.0 : 0.9)
                 .animation(.easeOut(duration: 0.6).delay(0.0), value: animateCards)
                 
-                // Notification button (modern touch)
+                // Notification button with badge
                 Button(action: { 
                     showNotifications = true
                 }) {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(AppTheme.accent)
-                        .frame(width: 44, height: 44)
-                        .background(AppTheme.glassPrimary)
-                        .cornerRadius(AppTheme.radiusLG)
-                        .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
+                    ZStack {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(AppTheme.accent)
+                            .frame(width: 44, height: 44)
+                            .background(AppTheme.glassPrimary)
+                            .cornerRadius(AppTheme.radiusLG)
+                            .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
+                        
+                        // Notification badge
+                        let unreadCount = notificationService.notifications.filter { !$0.isRead }.count
+                        if unreadCount > 0 {
+                            Text("\(unreadCount)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .frame(minWidth: 16, minHeight: 16)
+                                .background(Color.red)
+                                .clipShape(Circle())
+                                .offset(x: 15, y: -15)
+                        }
+                    }
                 }
                 .scaleEffect(animateCards ? 1.0 : 0.9)
                 .animation(.easeOut(duration: 0.6).delay(0.1), value: animateCards)
@@ -580,5 +599,123 @@ struct ModernDisputeCard: View {
         }
         .padding(AppTheme.spacingLG)
         .glassCard()
+    }
+    
+    private var demoNotificationSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+            HStack {
+                Text("🔔 Notification Demo")
+                    .font(AppTheme.headline())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Text("For Testing")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.textTertiary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppTheme.textTertiary.opacity(0.1))
+                    .cornerRadius(8)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppTheme.spacingMD) {
+                    // Dispute Update Demo
+                    Button(action: {
+                        disputeService.simulateIncomingNotification(
+                            type: .disputeUpdate,
+                            title: "New Message",
+                            message: "John Doe responded to your dispute about the contract"
+                        )
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "doc.text.fill")
+                                .font(.title2)
+                                .foregroundColor(AppTheme.secondary)
+                            
+                            Text("Dispute\nUpdate")
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusLG)
+                    }
+                    
+                    // Resolution Demo
+                    Button(action: {
+                        disputeService.simulateIncomingNotification(
+                            type: .resolution,
+                            title: "Resolution Ready",
+                            message: "AI has generated a fair resolution for your dispute"
+                        )
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.title2)
+                                .foregroundColor(AppTheme.success)
+                            
+                            Text("Resolution\nReady")
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusLG)
+                    }
+                    
+                    // Payment Demo
+                    Button(action: {
+                        disputeService.simulateIncomingNotification(
+                            type: .payment,
+                            title: "Payment Processed",
+                            message: "Escrow payment of $500 has been released"
+                        )
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "creditcard.fill")
+                                .font(.title2)
+                                .foregroundColor(AppTheme.accent)
+                            
+                            Text("Payment\nUpdate")
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusLG)
+                    }
+                    
+                    // Clear All Demo
+                    Button(action: {
+                        notificationService.clearAllNotifications()
+                    }) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "trash.fill")
+                                .font(.title2)
+                                .foregroundColor(AppTheme.warning)
+                            
+                            Text("Clear\nAll")
+                                .font(.caption)
+                                .multilineTextAlignment(.center)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        .frame(width: 80, height: 80)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(AppTheme.radiusLG)
+                    }
+                }
+                .padding(.horizontal, AppTheme.spacingLG)
+            }
+        }
+        .padding(.horizontal, AppTheme.spacingLG)
+        .scaleEffect(animateCards ? 1.0 : 0.95)
+        .opacity(animateCards ? 1.0 : 0.0)
+        .animation(.easeOut(duration: 0.6).delay(0.3), value: animateCards)
     }
 }

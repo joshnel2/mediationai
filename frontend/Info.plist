@@ -62,5 +62,12 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Automatic</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>background-processing</string>
+	</array>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>MediationAI needs notification permission to alert you about dispute updates, new messages, and resolution proposals.</string>
 </dict>
 </plist>

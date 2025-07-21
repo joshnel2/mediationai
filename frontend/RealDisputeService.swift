@@ -9,6 +9,7 @@ class RealDisputeService: ObservableObject {
     @Published var currentUser: User?
     
     private let apiService = DisputeAPIService()
+    weak var notificationService: NotificationService?
     // Keychain key for JWT storage
     private let tokenAccount = "mediationAI_JWT"
 
@@ -215,6 +216,18 @@ class RealDisputeService: ObservableObject {
         if let disputeId = disputeId {
             // Refresh disputes list
             await loadUserDisputes()
+            
+            // Trigger notification
+            await MainActor.run {
+                notificationService?.addNotification(NotificationItem(
+                    id: UUID().uuidString,
+                    title: "Dispute Created",
+                    message: "Your dispute '\(title)' has been created successfully",
+                    type: .disputeUpdate,
+                    timestamp: Date(),
+                    isRead: false
+                ))
+            }
         }
         
         return disputeId
@@ -245,6 +258,18 @@ class RealDisputeService: ObservableObject {
         if success {
             // Refresh dispute details
             await loadUserDisputes()
+            
+            // Trigger notification
+            await MainActor.run {
+                notificationService?.addNotification(NotificationItem(
+                    id: UUID().uuidString,
+                    title: "Truth Statement Submitted",
+                    message: "Your truth statement has been submitted successfully",
+                    type: .disputeUpdate,
+                    timestamp: Date(),
+                    isRead: false
+                ))
+            }
         }
         
         return success
@@ -288,6 +313,30 @@ class RealDisputeService: ObservableObject {
     func refreshDispute(_ disputeId: UUID) async {
         // Refresh specific dispute from backend
         await loadUserDisputes()
+    }
+    
+    // MARK: - Notification Integration
+    func setNotificationService(_ service: NotificationService) {
+        self.notificationService = service
+    }
+    
+    func simulateIncomingNotification(type: NotificationType, title: String, message: String) {
+        notificationService?.addNotification(NotificationItem(
+            id: UUID().uuidString,
+            title: title,
+            message: message,
+            type: type,
+            timestamp: Date(),
+            isRead: false
+        ))
+        
+        // Also schedule a local notification for testing
+        notificationService?.scheduleLocalNotification(
+            id: UUID().uuidString,
+            title: title,
+            body: message,
+            timeInterval: 1
+        )
     }
 }
 

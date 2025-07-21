@@ -187,7 +187,10 @@ class Device(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     apns_token = Column(String, nullable=False, unique=True)
+    platform = Column(String, default="ios")  # ios, android, web
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
 
     user = relationship("User")
 

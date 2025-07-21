@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NotificationsView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var notifications: [NotificationItem] = []
+    @EnvironmentObject var notificationService: NotificationService
     @State private var showingSettings = false
     
     var body: some View {
@@ -31,19 +31,31 @@ struct NotificationsView: View {
                                 
                                 Spacer()
                                 
-                                Button(action: { showingSettings = true }) {
-                                    Image(systemName: "gearshape.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(AppTheme.secondary)
+                                HStack(spacing: 12) {
+                                    if !notificationService.notifications.isEmpty {
+                                        Button(action: {
+                                            notificationService.clearAllNotifications()
+                                        }) {
+                                            Image(systemName: "trash.fill")
+                                                .font(.system(size: 18))
+                                                .foregroundColor(AppTheme.warning)
+                                        }
+                                    }
+                                    
+                                    Button(action: { showingSettings = true }) {
+                                        Image(systemName: "gearshape.fill")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(AppTheme.secondary)
+                                    }
                                 }
                             }
                             
-                            if notifications.isEmpty {
+                            if notificationService.notifications.isEmpty {
                                 Text("Stay updated on your disputes and resolutions")
                                     .font(.subheadline)
                                     .foregroundColor(AppTheme.textSecondary)
                             } else {
-                                Text("\(notifications.count) notification\(notifications.count == 1 ? "" : "s")")
+                                Text("\(notificationService.notifications.count) notification\(notificationService.notifications.count == 1 ? "" : "s")")
                                     .font(.subheadline)
                                     .foregroundColor(AppTheme.textSecondary)
                             }
@@ -51,14 +63,14 @@ struct NotificationsView: View {
                         .padding(.horizontal)
                         
                         // Notifications List
-                        if notifications.isEmpty {
+                        if notificationService.notifications.isEmpty {
                             EmptyNotificationsView()
                         } else {
                             LazyVStack(spacing: AppTheme.spacingMD) {
-                                ForEach(notifications) { notification in
+                                ForEach(notificationService.notifications) { notification in
                                     NotificationCard(notification: notification) {
                                         // Handle notification tap
-                                        markAsRead(notification)
+                                        notificationService.markAsRead(notification.id)
                                     }
                                 }
                             }
@@ -70,7 +82,7 @@ struct NotificationsView: View {
             }
             .navigationBarHidden(true)
             .onAppear {
-                loadNotifications()
+                notificationService.updateBadgeCount()
             }
         }
         .sheet(isPresented: $showingSettings) {
@@ -78,41 +90,7 @@ struct NotificationsView: View {
         }
     }
     
-    private func loadNotifications() {
-        // Sample notifications - in real app, load from API
-        notifications = [
-            NotificationItem(
-                id: "1",
-                title: "Dispute Update",
-                message: "Your dispute #12345 has received a new response",
-                type: .disputeUpdate,
-                timestamp: Date().addingTimeInterval(-3600),
-                isRead: false
-            ),
-            NotificationItem(
-                id: "2",
-                title: "Resolution Available",
-                message: "AI has generated a resolution for your dispute",
-                type: .resolution,
-                timestamp: Date().addingTimeInterval(-7200),
-                isRead: false
-            ),
-            NotificationItem(
-                id: "3",
-                title: "Payment Processed",
-                message: "Your escrow payment has been successfully processed",
-                type: .payment,
-                timestamp: Date().addingTimeInterval(-86400),
-                isRead: true
-            )
-        ]
-    }
-    
-    private func markAsRead(_ notification: NotificationItem) {
-        if let index = notifications.firstIndex(where: { $0.id == notification.id }) {
-            notifications[index].isRead = true
-        }
-    }
+
 }
 
 struct NotificationCard: View {
@@ -203,6 +181,7 @@ struct EmptyNotificationsView: View {
 
 struct NotificationSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var notificationService: NotificationService
     @State private var pushNotifications = true
     @State private var emailNotifications = true
     @State private var disputeUpdates = true
@@ -217,6 +196,49 @@ struct NotificationSettingsView: View {
                 
                 ScrollView {
                     VStack(spacing: AppTheme.spacingXL) {
+                        // Permission Status
+                        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                            Text("Permission Status")
+                                .font(AppTheme.headline())
+                                .foregroundColor(AppTheme.textPrimary)
+                                .fontWeight(.semibold)
+                            
+                            VStack(spacing: AppTheme.spacingMD) {
+                                HStack {
+                                    Image(systemName: notificationService.isAuthorized ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundColor(notificationService.isAuthorized ? AppTheme.success : AppTheme.warning)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Push Notifications")
+                                            .font(.headline)
+                                            .foregroundColor(AppTheme.textPrimary)
+                                        
+                                        Text(notificationService.isAuthorized ? "Enabled" : "Disabled - Tap to enable")
+                                            .font(.caption)
+                                            .foregroundColor(AppTheme.textSecondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if !notificationService.isAuthorized {
+                                        Button("Enable") {
+                                            Task {
+                                                await notificationService.requestPermission()
+                                            }
+                                        }
+                                        .foregroundColor(AppTheme.primary)
+                                        .font(.caption)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(AppTheme.primary.opacity(0.1))
+                                        .cornerRadius(8)
+                                    }
+                                }
+                                .padding()
+                            }
+                            .modernCard()
+                        }
+                        
                         // General Settings
                         VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                             Text("General")
@@ -270,6 +292,75 @@ struct NotificationSettingsView: View {
                                     subtitle: "Escrow and payment updates",
                                     isOn: $paymentNotifications
                                 )
+                            }
+                            .modernCard()
+                        }
+                        
+                        // Testing & Debug
+                        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                            Text("Testing")
+                                .font(AppTheme.headline())
+                                .foregroundColor(AppTheme.textPrimary)
+                                .fontWeight(.semibold)
+                            
+                            VStack(spacing: AppTheme.spacingMD) {
+                                Button(action: {
+                                    // Send test notification
+                                    notificationService.scheduleLocalNotification(
+                                        id: UUID().uuidString,
+                                        title: "Test Notification",
+                                        body: "This is a test notification from MediationAI",
+                                        timeInterval: 2
+                                    )
+                                }) {
+                                    HStack {
+                                        Image(systemName: "bell.badge.fill")
+                                            .foregroundColor(AppTheme.primary)
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text("Send Test Notification")
+                                                .font(.headline)
+                                                .foregroundColor(AppTheme.textPrimary)
+                                            
+                                            Text("Test push notification functionality")
+                                                .font(.caption)
+                                                .foregroundColor(AppTheme.textSecondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "arrow.right")
+                                            .foregroundColor(AppTheme.textTertiary)
+                                    }
+                                    .padding()
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: {
+                                    notificationService.clearAllNotifications()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "trash.fill")
+                                            .foregroundColor(AppTheme.warning)
+                                        
+                                        VStack(alignment: .leading) {
+                                            Text("Clear All Notifications")
+                                                .font(.headline)
+                                                .foregroundColor(AppTheme.textPrimary)
+                                            
+                                            Text("Remove all stored notifications")
+                                                .font(.caption)
+                                                .foregroundColor(AppTheme.textSecondary)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "arrow.right")
+                                            .foregroundColor(AppTheme.textTertiary)
+                                    }
+                                    .padding()
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             .modernCard()
                         }
