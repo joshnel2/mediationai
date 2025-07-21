@@ -254,7 +254,8 @@ class MockAuthService: ObservableObject {
 class MockDisputeService: ObservableObject {
     @Published var disputes: [Dispute] = []
     
-    func createDispute(title: String, description: String, user: User, requiresContract: Bool = false, requiresSignature: Bool = false, requiresEscrow: Bool = false) -> Dispute {
+    // Added `demoGhost` parameter (default = false) so that view code passing this flag compiles without "extra argument" errors. The flag is currently unused here but keeps the interface consistent with `RealDisputeService`.
+    func createDispute(title: String, description: String, user: User, requiresContract: Bool = false, requiresSignature: Bool = false, requiresEscrow: Bool = false, demoGhost: Bool = false) -> Dispute {
         let shareCode = UUID().uuidString.prefix(6).uppercased()
         let disputeId = UUID()
         let shareLink = "https://mediationai.app/join/\(disputeId.uuidString)"
