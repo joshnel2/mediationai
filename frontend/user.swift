@@ -13,23 +13,38 @@ struct User: Identifiable, Codable {
     let id: UUID
     let email: String
     let password: String
+    var phoneNumber: String? // Optional phone contact details
     var profile: UserProfile
     var reputation: ReputationScore
     var verification: VerificationStatus
     var stats: UserStats
     var preferences: UserPreferences
 
-    
+    // Default initializer (legacy)
     init(id: UUID = UUID(), email: String, password: String = "") {
         self.id = id
         self.email = email
         self.password = password
+        self.phoneNumber = nil
         self.profile = UserProfile()
         self.reputation = ReputationScore()
         self.verification = VerificationStatus()
         self.stats = UserStats()
         self.preferences = UserPreferences()
 
+    }
+
+    // Convenience initializer used by RealDisputeService
+    init(id: UUID = UUID(), email: String, phoneNumber: String?, displayName: String, password: String = "") {
+        self.id = id
+        self.email = email
+        self.password = password
+        self.phoneNumber = phoneNumber
+        self.profile = UserProfile(displayName: displayName)
+        self.reputation = ReputationScore()
+        self.verification = VerificationStatus()
+        self.stats = UserStats()
+        self.preferences = UserPreferences()
     }
 }
 
