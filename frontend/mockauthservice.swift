@@ -121,6 +121,31 @@ class MockAuthService: ObservableObject {
         return await mockSignIn(email: email, password: password)
     }
 
+    // MARK: - Firebase Phone Auth Stub
+    /// Mock implementation of Firebase-based sign-up used by `AuthView` when the real backend is unavailable.
+    @MainActor
+    func firebaseSignUp(idToken: String, displayName: String) async -> Bool {
+        // In mock mode we don't validate the Firebase token – simply create a demo user.
+
+        // Create a pseudo-email so the `User` model requirements are met.
+        let pseudoEmail = "user_\(UUID().uuidString.prefix(8))@example.com"
+
+        let newUser = User(email: pseudoEmail, phoneNumber: nil, displayName: displayName)
+
+        // Persist the user and issue a mock token so auto-login works.
+        currentUser = newUser
+        if !users.contains(where: { $0.id == newUser.id }) {
+            users.append(newUser)
+        }
+        userDefaults.set("mock_token_\(UUID().uuidString)", forKey: tokenKey)
+
+        // Enable auto-login for convenience.
+        enableAutoLogin()
+        saveUserSettings()
+
+        return true
+    }
+
     // Helper to build URLRequest
     private func urlRequest(url: URL, body: Data) -> URLRequest {
         var req = URLRequest(url: url)
