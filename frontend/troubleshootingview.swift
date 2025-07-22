@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct TroubleshootingView: View {
     @Environment(\.dismiss) var dismiss

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) var dismiss

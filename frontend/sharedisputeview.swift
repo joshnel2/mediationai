@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ShareDisputeView: View {
     @Environment(\.dismiss) var dismiss

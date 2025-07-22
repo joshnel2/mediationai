@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct BasicGuideView: View {
     @Environment(\.dismiss) var dismiss

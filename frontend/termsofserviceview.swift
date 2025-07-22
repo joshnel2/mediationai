@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct TermsOfServiceView: View {
     @Environment(\.dismiss) var dismiss

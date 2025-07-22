@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ContractGenerationView: View {
     @Environment(\.dismiss) var dismiss

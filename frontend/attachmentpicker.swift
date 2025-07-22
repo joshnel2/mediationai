@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
+import UIKit
 
 struct AttachmentPicker: UIViewControllerRepresentable {
     @Binding var attachments: [Attachment]

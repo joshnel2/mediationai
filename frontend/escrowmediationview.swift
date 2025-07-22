@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct EscrowMediationView: View {
     @Environment(\.dismiss) var dismiss
