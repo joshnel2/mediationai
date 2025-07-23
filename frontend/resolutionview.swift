@@ -104,6 +104,9 @@ struct ResolutionCardView: View {
     @State private var showFullResolution = false
     
     var body: some View {
+        // Wrap the entire card in a tap gesture so users can simply tap the
+        // resolution card to open the full details. This keeps the existing
+        // design intact while improving interactivity.
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "checkmark.seal.fill")
@@ -141,6 +144,11 @@ struct ResolutionCardView: View {
         .cornerRadius(16)
         .shadow(radius: 4)
         .padding(.horizontal)
+        // Make the whole card tappable without changing its appearance
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showFullResolution = true
+        }
         .sheet(isPresented: $showFullResolution) {
             ResolutionView(resolution: resolution)
         }
