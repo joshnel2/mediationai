@@ -18,6 +18,16 @@ struct Clash: Identifiable, Codable {
     }
 }
 
+// MARK: - Mock Dispute Model
+struct MockDispute: Identifiable, Codable {
+    let id: String
+    let title: String
+    let statementA: String
+    let statementB: String
+    var votesA: Int
+    var votesB: Int
+}
+
 @MainActor
 class SocialAPIService: ObservableObject {
     @Published var liveClashes: [Clash] = []
@@ -26,6 +36,23 @@ class SocialAPIService: ObservableObject {
     @Published var overallLeaders: [UserSummary] = []
     @Published var dailyLeaders: [UserSummary] = []
     @Published var hotTopics: [String] = []
+
+    // New: fake disputes per user
+    @Published var disputesByUser: [String: [MockDispute]] = [:]
+
+    func disputes(for id: String) -> [MockDispute] {
+        disputesByUser[id] ?? []
+    }
+
+    func recordVote(disputeID: String, voteForA: Bool) {
+        for (uid, list) in disputesByUser {
+            if let idx = list.firstIndex(where: { $0.id == disputeID }) {
+                var updated = list[idx]
+                if voteForA { updated.votesA += 1 } else { updated.votesB += 1 }
+                disputesByUser[uid]![idx] = updated
+            }
+        }
+    }
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -54,6 +81,21 @@ class SocialAPIService: ObservableObject {
 
         // Show users immediately in People tab
         searchResults = overallLeaders
+
+        // Seed disputes for each user
+        let sampleDisputeTitles = ["Who Streams Better?", "Lag Blame Game", "Clip Ownership"]
+        for leader in overallLeaders {
+            var arr: [MockDispute] = []
+            for _ in 0..<Int.random(in: 1...3) {
+                arr.append(MockDispute(id: UUID().uuidString,
+                                       title: sampleDisputeTitles.randomElement()!,
+                                       statementA: "Streamer A claims victory.",
+                                       statementB: "Streamer B disagrees.",
+                                       votesA: Int.random(in: 10...200),
+                                       votesB: Int.random(in: 10...200)))
+            }
+            disputesByUser[leader.id] = arr
+        }
     }
 
     func fetchLiveClashes() {

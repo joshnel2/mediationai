@@ -235,6 +235,8 @@ struct HomeView: View {
     // small horizontal card
     private struct TrendingClashCard: View {
         let clash: Clash
+        @State private var showVote = false
+        @EnvironmentObject var social: SocialAPIService
 
         var body: some View {
             VStack(alignment: .leading, spacing: 6) {
@@ -251,6 +253,15 @@ struct HomeView: View {
             .background(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
             .cornerRadius(18)
             .shadow(radius: 4)
+            .onTapGesture {
+                showVote = true
+            }
+            .sheet(isPresented: $showVote) {
+                if let dispute = social.disputes(for: clash.id).first {
+                    VoteView(dispute: dispute)
+                        .environmentObject(social)
+                }
+            }
         }
     }
     

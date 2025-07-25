@@ -7,15 +7,17 @@ struct ProfileView: View {
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var socialService: SocialAPIService
 
-    // In a real build this would persist, here it is kept in-memory only
-    @State private var avatar: Image? = nil
+    @AppStorage("displayName") private var storedName: String = ""
+    @State private var editingName = false
+
+    @State private var avatarUIImage: UIImage? = nil
+    private var avatarImg: Image? { avatarUIImage.map { Image(uiImage: $0) } }
+
+    @State private var showPicker = false
     @State private var showSettings = false
 
     private var displayName: String {
-        if let name = authService.currentUser?.displayName, !name.isEmpty {
-            return name
-        }
-        return authService.currentUser?.email.components(separatedBy: "@").first ?? "Streamer"
+        storedName.isEmpty ? (authService.currentUser?.email.components(separatedBy: "@").first ?? "Streamer") : storedName
     }
 
     private var clashesCount: Int {
@@ -28,9 +30,7 @@ struct ProfileView: View {
                 VStack(spacing: 28) {
                     avatarSection
 
-                    Text(displayName)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(AppTheme.textPrimary)
+                    nameSection
 
                     followerStats
 
@@ -76,10 +76,8 @@ struct ProfileView: View {
     // MARK: - Subviews
     private var avatarSection: some View {
         ZStack {
-            if let avatar = avatar {
-                avatar
-                    .resizable()
-                    .scaledToFill()
+            if let img = avatarImg {
+                img.resizable().scaledToFill()
             } else {
                 Circle()
                     .fill(AppTheme.accent)
@@ -93,8 +91,25 @@ struct ProfileView: View {
         .frame(width: 140, height: 140)
         .clipShape(Circle())
         .shadow(radius: 8)
-        .onTapGesture {
-            // Image picker would go here in a full build.
+        .onTapGesture { showPicker = true }
+        .photosPicker(isPresented: $showPicker, selection: $avatarUIImage, matching: .images)
+    }
+
+    private var nameSection: some View {
+        HStack {
+            if editingName {
+                TextField("Username", text: $storedName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .frame(width: 200)
+                Button("Done") { editingName = false }
+            } else {
+                Text(displayName)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(AppTheme.textPrimary)
+                Button(action: { editingName = true }) {
+                    Image(systemName: "pencil")
+                }
+            }
         }
     }
 
