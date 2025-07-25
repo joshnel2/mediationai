@@ -21,6 +21,7 @@ struct SettingsView: View {
     @State private var showTroubleshooting = false
     @State private var showNewPrivacyPolicy = false
     @State private var showNewTermsOfService = false
+    @State private var showLegalHub = false
     
     var body: some View {
         NavigationView {
@@ -122,33 +123,16 @@ struct SettingsView: View {
                     
                     // Legal Section
                     VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
-                        Text("Legal")
+                        Text("Legal & Policies")
                             .font(AppTheme.headline())
                             .foregroundColor(AppTheme.textPrimary)
                             .fontWeight(.semibold)
-                        
-                        VStack(spacing: 0) {
-                            SettingsRow(
-                                icon: "doc.text.fill",
-                                title: "Contract Generation",
-                                subtitle: "Legal framework & enforceability",
-                                action: { showContractGeneration = true }
-                            )
-                            
-                            SettingsRow(
-                                icon: "creditcard.and.123",
-                                title: "Escrow Mediation",
-                                subtitle: "Fund protection & security",
-                                action: { showEscrowMediation = true }
-                            )
-                            
-                            SettingsRow(
-                                icon: "scale.3d",
-                                title: "Legal Disclaimer",
-                                subtitle: "AI mediation limitations",
-                                action: { showLegalDisclaimer() }
-                            )
-                        }
+                        SettingsRow(
+                            icon: "doc.plaintext",
+                            title: "View Documents",
+                            subtitle: "Terms, Privacy, Rules",
+                            action: { showLegalHub = true }
+                        )
                         .modernCard()
                     }
                     
@@ -312,6 +296,7 @@ struct SettingsView: View {
         .sheet(isPresented: $showNewTermsOfService) {
             TermsOfServiceView()
         }
+        .sheet(isPresented: $showLegalHub) { LegalHubView() }
         .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
