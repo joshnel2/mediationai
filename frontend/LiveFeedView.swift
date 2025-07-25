@@ -34,12 +34,12 @@ struct LiveFeedView: View {
                     contentView
                 }
             }
-            .navigationTitle("Live")
+            .navigationTitle(tab == 0 ? "Hot" : (tab == 1 ? "Drama" : "Public"))
             .toolbar {
                 // Segmented control right under the nav bar title
                 ToolbarItem(placement: .principal) {
                     Picker("Mode", selection: $tab) {
-                        Text("Live").tag(0)
+                        Text("Hot").tag(0)
                         Text("Drama").tag(1)
                         Text("Public").tag(2)
                     }
@@ -86,10 +86,10 @@ struct LiveFeedView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 20) {
-                        ForEach(socialService.liveClashes) { clash in
+                        ForEach(socialService.liveClashes.sorted(by: { $0.viewerCount > $1.viewerCount })) { clash in
                             ClashCardView(clash: clash)
                                 .background(
-                                    NavigationLink(destination: ClashWatchView(clash: clash)) {
+                                    NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: "tmp", title: clash.streamerA + " vs " + clash.streamerB, statementA: "Side A", statementB: "Side B", votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
                                         EmptyView()
                                     }.opacity(0)
                                 )
