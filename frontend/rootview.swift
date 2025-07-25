@@ -47,6 +47,12 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.5), value: showSplash)
+        .onAppear {
+            // Safety fallback: if SplashScreen fails to dismiss for any reason, hide it after 3 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                if showSplash { showSplash = false }
+            }
+        }
     }
 
     private func authenticate() {
