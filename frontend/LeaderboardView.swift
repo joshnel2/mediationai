@@ -79,10 +79,15 @@ struct LeaderRow: View {
             }
         }
         .padding(8).background(AppTheme.cardGradient).cornerRadius(16)
-        .swipeActions(edge: .trailing){
-            Button{
-                if let current = social.following.first { let _ = social.createClashBetween(current, user.id)}
-            }label{ Text("Challenge")}.tint(.purple)
+        .swipeActions(edge: .trailing) {
+            Button {
+                if let current = social.following.first {
+                    _ = social.createClashBetween(current, user.id)
+                }
+            } label: {
+                Text("Challenge")
+            }
+            .tint(.purple)
         }
     }
 }
