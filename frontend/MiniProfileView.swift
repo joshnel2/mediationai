@@ -3,6 +3,7 @@ import PhotosUI
 
 struct MiniProfileView: View {
     @EnvironmentObject var social: SocialAPIService
+    @EnvironmentObject var authService: MockAuthService
     let userID: String
     @Environment(\.dismiss) var dismiss
 
@@ -24,7 +25,7 @@ struct MiniProfileView: View {
 
             Text(user?.displayName ?? "Streamer")
                 .font(.title).bold()
-            Text("XP: \(user?.xp ?? 0)")
+            Text("🏆 Wins: \(user?.wins ?? 0)")
                 .font(.subheadline)
                 .foregroundColor(AppTheme.textSecondary)
             Text("Followers: \(social.followerCounts[userID, default: 0])")
@@ -38,6 +39,10 @@ struct MiniProfileView: View {
                     .cornerRadius(30)
             }
 
+            Button(action: { requestClash() }){
+                Text("Request Clash ⚡️").padding().background(AppTheme.accent).foregroundColor(.white).cornerRadius(24)
+            }
+
             Divider()
             Text("Recent Clashes")
                 .font(.headline)
@@ -45,15 +50,17 @@ struct MiniProfileView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(social.disputes(for: userID)) { disp in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(disp.title).bold()
-                            Text("Score: \(disp.votesA) - \(disp.votesB)")
-                                .font(.caption)
-                                .foregroundColor(AppTheme.textSecondary)
+                        NavigationLink(destination: ConversationView(dispute: disp)){
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(disp.title).bold()
+                                Text("Score: \(disp.votesA) - \(disp.votesB)")
+                                    .font(.caption)
+                                    .foregroundColor(AppTheme.textSecondary)
+                            }
+                            .padding()
+                            .background(AppTheme.cardGradient)
+                            .cornerRadius(16)
                         }
-                        .padding()
-                        .background(AppTheme.cardGradient)
-                        .cornerRadius(16)
                     }
                 }
             }
@@ -62,6 +69,12 @@ struct MiniProfileView: View {
         .padding()
         .background(AppTheme.backgroundGradient.ignoresSafeArea())
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+    }
+
+    private func requestClash(){
+        if let current = authService.currentUser?.id.uuidString {
+            let _ = social.createClashBetween(current, userID)
+        }
     }
 }
 

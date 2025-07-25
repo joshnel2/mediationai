@@ -21,10 +21,10 @@ struct LeaderboardView: View {
                             Text("#\(idx+1)")
                                 .fontWeight(.bold)
                                 .foregroundColor(AppTheme.accent)
-                            RankBadgeView(rank: rank(for: user.xp))
+                            Image(systemName: "flame.fill").foregroundColor(.orange)
                             Text(user.displayName)
                             Spacer()
-                            Text("\(user.xp) XP")
+                            Text("🏆 \(user.wins) wins")
                         }
                     }
                     .listRowBackground(AppTheme.cardGradient)

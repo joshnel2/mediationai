@@ -89,10 +89,10 @@ class SocialAPIService: ObservableObject {
 
         let sampleNames = ["PixelPirate", "ValkyMindz", "ChatChamp", "LootLord", "GGWizard", "StreamQueen", "NoScopeSam", "ClipTitan"]
 
-        overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000)) }
+        overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000), wins: Int.random(in: 5...30)) }
 
         dailyLeaders = overallLeaders.shuffled().prefix(5).map { leader in
-            UserSummary(id: leader.id, displayName: leader.displayName, xp: Int.random(in: 100...500))
+            UserSummary(id: leader.id, displayName: leader.displayName, xp: Int.random(in: 100...500), wins: Int.random(in: 0...3))
         }
 
         liveClashes = (0..<6).map { _ in
@@ -203,6 +203,7 @@ class SocialAPIService: ObservableObject {
         let id: String
         let displayName: String
         let xp: Int
+        let wins: Int
     }
 
     func searchUsers(query: String) {
