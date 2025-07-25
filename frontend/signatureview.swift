@@ -17,6 +17,19 @@ struct SignatureView: View {
     let title: String
     let subtitle: String
     let onSignatureComplete: (UIImage) -> Void
+
+    // Convenience initializer so the view can also be used purely for informational purposes.
+    // When used without parameters it falls back to a no-op completion handler, enabling simple
+    // navigation links such as `SignatureView()` inside the Legal hub.
+    init(
+        title: String = "Digital Signature",
+        subtitle: String = "Review the legal framework and learn how your digital signature is legally binding.",
+        onSignatureComplete: @escaping (UIImage) -> Void = { _ in }
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.onSignatureComplete = onSignatureComplete
+    }
     
     var body: some View {
         NavigationView {
