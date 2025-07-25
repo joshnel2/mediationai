@@ -13,6 +13,7 @@ struct MediationAIApp: App {
     @StateObject var authService = MockAuthService()
     @StateObject var disputeService = MockDisputeService()
     @StateObject var purchaseService = InAppPurchaseService()
+    @StateObject var badgeService = BadgeService()
 
     
     var body: some Scene {
@@ -21,6 +22,7 @@ struct MediationAIApp: App {
                 .environmentObject(authService)
                 .environmentObject(disputeService)
                 .environmentObject(purchaseService)
+                .environmentObject(badgeService)
         }
     }
 }

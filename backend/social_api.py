@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Dict, List
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi.responses import Response
 
 from database import get_db, User as DBUser
 from auth import get_current_user
-from social_models import Follow, ClashRoom
+from social_models import Follow, ClashRoom, ClashVote, Badge
 
 router = APIRouter(prefix="/api")
 
@@ -180,3 +181,95 @@ async def leaderboard(db: Session = Depends(get_db)):
         {"userId": r.followee_id, "followers": r.followers}
         for r in results
     ]
+
+# ----------------------------
+# VOTING ENDPOINT
+# ----------------------------
+
+@router.post("/clashes/{clash_id}/vote")
+async def vote_in_clash(clash_id: str, vote_for: str, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    if vote_for not in ("A", "B"):
+        raise HTTPException(status_code=400, detail="vote_for must be 'A' or 'B'")
+
+    clash = db.query(ClashRoom).filter(ClashRoom.id == clash_id).first()
+    if not clash:
+        raise HTTPException(status_code=404, detail="Clash not found")
+
+    # Upsert vote
+    existing = db.query(ClashVote).filter(ClashVote.clash_id == clash_id, ClashVote.user_id == current_user.id).first()
+    if existing:
+        existing.vote_for = vote_for
+    else:
+        db.add(ClashVote(clash_id=clash_id, user_id=current_user.id, vote_for=vote_for))
+        # award XP for first vote in a clash
+        current_user.xp_points += 5
+    db.commit()
+
+    # Aggregate votes
+    total_a = db.query(ClashVote).filter(ClashVote.clash_id == clash_id, ClashVote.vote_for == "A").count()
+    total_b = db.query(ClashVote).filter(ClashVote.clash_id == clash_id, ClashVote.vote_for == "B").count()
+    return {"A": total_a, "B": total_b}
+
+# ----------------------------
+# BADGES ENDPOINT
+# ----------------------------
+
+@router.get("/badges")
+async def get_badges(current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Simple badge logic: 100 XP → "RisingStar", 500 XP → "SuperFan"
+    earned_types = {b.badge_type for b in current_user.badges}
+
+    new_badges = []
+    if current_user.xp_points >= 100 and "RisingStar" not in earned_types:
+        badge = Badge(user_id=current_user.id, badge_type="RisingStar")
+        db.add(badge)
+        new_badges.append("RisingStar")
+    if current_user.xp_points >= 500 and "SuperFan" not in earned_types:
+        badge = Badge(user_id=current_user.id, badge_type="SuperFan")
+        db.add(badge)
+        new_badges.append("SuperFan")
+
+    if new_badges:
+        db.commit()
+
+    return {
+        "xp": current_user.xp_points,
+        "badges": [b.badge_type for b in current_user.badges] + new_badges
+    }
+
+# ----------------------------
+# HIGHLIGHT GENERATION TRIGGER
+# ----------------------------
+
+from highlight_service import generate_highlights
+
+@router.post("/clashes/{clash_id}/highlights/trigger")
+async def trigger_highlight(clash_id: str, background_tasks: BackgroundTasks, current_user: DBUser = Depends(get_current_user)):
+    background_tasks.add_task(generate_highlights, clash_id)
+    return {"status": "queued"}
+
+# ----------------------------
+# OG IMAGE ENDPOINT
+# ----------------------------
+
+@router.get("/clashes/{clash_id}/share.png")
+async def generate_share_image(clash_id: str, db: Session = Depends(get_db)):
+    clash = db.query(ClashRoom).filter(ClashRoom.id == clash_id).first()
+    if not clash:
+        raise HTTPException(status_code=404, detail="Clash not found")
+
+    # Simple image
+    img = Image.new("RGB", (1200, 630), color=(30, 30, 30))
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 72)
+    except IOError:
+        font = ImageFont.load_default()
+    text = f"{clash.streamer_a_id}  VS  {clash.streamer_b_id}"
+    w, h = draw.textsize(text, font=font)
+    draw.text(((1200-w)/2, (630-h)/2), text, fill=(255, 255, 255), font=font)
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return Response(content=buf.getvalue(), media_type="image/png")

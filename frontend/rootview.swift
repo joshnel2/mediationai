@@ -10,6 +10,7 @@ import LocalAuthentication
 
 struct RootView: View {
     @EnvironmentObject var authService: MockAuthService
+    @EnvironmentObject var badgeService: BadgeService
     @State private var showSplash = true
     
     var body: some View {
@@ -17,7 +18,12 @@ struct RootView: View {
             // Background gradient
             AppTheme.backgroundGradient
                 .ignoresSafeArea()
-            
+
+            // Confetti overlay
+            if badgeService.newBadgeUnlocked != nil {
+                ConfettiView()
+                    .transition(.opacity)
+            }
             Group {
                 if showSplash {
                     SplashScreen(showSplash: $showSplash)
@@ -29,6 +35,11 @@ struct RootView: View {
                         } else {
                             MainTabView()
                                 .onAppear(perform: authenticate)
+                                .task {
+                                    if let token = authService.jwtToken {
+                                        badgeService.fetchBadges(token: token)
+                                    }
+                                }
                         }
                     }
                     .transition(.opacity.combined(with: .scale))

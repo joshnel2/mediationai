@@ -83,6 +83,10 @@ class User(Base):
     total_disputes = Column(Integer, default=0)
     disputes_won = Column(Integer, default=0)
     disputes_lost = Column(Integer, default=0)
+
+    # Gamification
+    xp_points = Column(Integer, default=0)
+    badges = relationship("Badge", back_populates="user", cascade="all, delete-orphan")
     
     # Settings
     face_id_enabled = Column(Boolean, default=False)
