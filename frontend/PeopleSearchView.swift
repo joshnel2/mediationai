@@ -71,8 +71,11 @@ struct PeopleSearchView: View {
                 Spacer()
                 Button(action: { follow(id: user.id); }) {
                     Text(social.following.contains(user.id) ? "Following" : "Follow")
-                        .font(.caption).padding(6)
-                        .background(AppTheme.glassPrimary).cornerRadius(12)
+                        .font(.caption)
+                        .foregroundColor(AppTheme.textPrimary)
+                        .padding(6)
+                        .background(AppTheme.glassPrimary)
+                        .cornerRadius(12)
                 }
             }
         }

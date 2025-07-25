@@ -66,7 +66,12 @@ struct LeaderRow: View {
             Spacer()
             Text("🏆 \(user.wins)")
             Button(action:{ social.toggleFollow(id: user.id) }){
-                Text(social.following.contains(user.id)?"Following":"Follow").font(.caption).padding(6).background(AppTheme.glassPrimary).cornerRadius(12)
+                Text(social.following.contains(user.id) ? "Following" : "Follow")
+                    .font(.caption)
+                    .foregroundColor(AppTheme.textPrimary)
+                    .padding(6)
+                    .background(AppTheme.glassPrimary)
+                    .cornerRadius(12)
             }
         }
         .padding(8).background(AppTheme.cardGradient).cornerRadius(16)
