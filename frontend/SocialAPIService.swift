@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 struct Clash: Identifiable, Codable {
     let id: String
