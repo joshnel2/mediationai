@@ -20,6 +20,25 @@ class MockAuthService: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let userKey = "mediationAI_currentUser"
     private let tokenKey = "mediationAI_access_token"
+
+    // Expose the stored JWT / access token so that views and services can conveniently read it.
+    // We don’t mark this as `@Published` because UI does not need to reactively refresh when the
+    // token changes – it’s only accessed on demand when performing network requests. Using a
+    // computed property avoids having to keep the value in sync manually; it simply proxies to
+    // `UserDefaults` where the token is already stored.
+    /// The JWT / access token that was persisted after signing-in or signing-up. Returns `nil` when the
+    /// user is signed-out or no token has been saved yet.
+    var jwtToken: String? {
+        get { userDefaults.string(forKey: tokenKey) }
+        set {
+            if let value = newValue {
+                userDefaults.set(value, forKey: tokenKey)
+            } else {
+                userDefaults.removeObject(forKey: tokenKey)
+            }
+        }
+    }
+    
     private let faceIDKey = "mediationAI_faceID_enabled"
     private let autoLoginKey = "mediationAI_autoLogin_enabled"
     
