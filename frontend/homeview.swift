@@ -10,14 +10,14 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
+    @EnvironmentObject var socialService: SocialAPIService
     @EnvironmentObject var viralService: ViralAPIService
     @EnvironmentObject var badgeService: BadgeService
     @State private var showCreate = false
     @State private var showJoin = false
     @State private var showSettings = false
     @State private var showCommunity = false
-    @State private var showContract = false
-    @State private var showEscrow = false
+    // Contract & escrow features removed for Gen-Z simplification
     @State private var showNotifications = false
 
     @State private var selectedDispute: Dispute?
@@ -46,11 +46,13 @@ struct HomeView: View {
                     // Header section
                     headerSection
                     
+                    heroBanner
+
                     // Quick stats
                     statsSection
-                    
-                    // Quick access section
-                    quickAccessSection
+
+                    // Trending clashes
+                    trendingSection
                     
                     // Action buttons
                     actionButtonsSection
@@ -81,12 +83,6 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showCommunity) {
             CommunityView()
-        }
-        .sheet(isPresented: $showContract) {
-            ContractView()
-        }
-        .sheet(isPresented: $showEscrow) {
-            EscrowView()
         }
         .sheet(isPresented: $showNotifications) {
             NotificationsView()
@@ -187,80 +183,75 @@ struct HomeView: View {
         .opacity(animateCards ? 1.0 : 0.0)
         .animation(.easeOut(duration: 0.6).delay(0.1), value: animateCards)
     }
-    
-    private var quickAccessSection: some View {
-        VStack(spacing: AppTheme.spacingMD) {
-            HStack(spacing: AppTheme.spacingMD) {
-                Button(action: { showContract = true }) {
-                    HStack {
-                        Image(systemName: "doc.text.fill")
-                            .font(.title2)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Contract")
-                                .font(AppTheme.headline())
-                                .fontWeight(.semibold)
-                            
-                            Text("AI creates fair contracts")
-                                .font(AppTheme.caption())
-                                .opacity(0.8)
-                        }
-                        
-                        Spacer()
-                    }
-                    .foregroundColor(.white)
-                    .padding(AppTheme.spacingLG)
-                    .frame(maxWidth: .infinity)
-                    .background(AppTheme.mainGradient)
-                    .cornerRadius(AppTheme.radiusLG)
-                    .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
-                }
-                
-                Button(action: { showEscrow = true }) {
-                    HStack {
-                        Image(systemName: "lock.shield.fill")
-                            .font(.title2)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Escrow")
-                                .font(AppTheme.headline())
-                                .fontWeight(.semibold)
-                            
-                            Text("Coming soon")
-                                .font(AppTheme.caption())
-                                .opacity(0.8)
-                            
-                            Text("Learn More")
-                                .font(.system(size: 11))
-                                .foregroundColor(AppTheme.primary)
-                                .fontWeight(.medium)
-                        }
-                        
-                        Spacer()
-                    }
-                    .foregroundColor(AppTheme.textPrimary)
-                    .padding(AppTheme.spacingLG)
-                    .frame(maxWidth: .infinity)
-                }
-                .glassCard()
-            }
-            
-            // Pricing info
+
+    // MARK: - Hero Banner
+    private var heroBanner: some View {
+        Button(action: { showCreate = true }) {
             HStack {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(AppTheme.info)
-                
-                                    Text("FREE dispute resolution • AI-powered mediation • No hidden fees")
-                    .font(AppTheme.caption())
-                    .foregroundColor(AppTheme.textTertiary)
-                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Start a Clash")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("Go live & let chat vote")
+                        .font(.headline)
+                        .foregroundColor(.white.opacity(0.9))
+                }
                 Spacer()
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(10))
             }
-            .padding(.horizontal, AppTheme.spacingSM)
+            .padding(32)
+            .frame(maxWidth: .infinity)
+            .background(LinearGradient(colors: [AppTheme.accent, AppTheme.primary], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .cornerRadius(32)
+            .shadow(color: AppTheme.primary.opacity(0.3), radius: 12, x: 0, y: 6)
         }
-        .scaleEffect(animateCards ? 1.0 : 0.95)
-        .opacity(animateCards ? 1.0 : 0.0)
-        .animation(.easeOut(duration: 0.6).delay(0.2), value: animateCards)
+        .scaleEffect(animateCards ? 1 : 0.95)
+        .opacity(animateCards ? 1 : 0)
+        .animation(.easeOut(duration: 0.6), value: animateCards)
+    }
+    
+    private var trendingSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+            Text("Trending Clashes")
+                .font(AppTheme.title2())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.bold)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 16) {
+                    ForEach(socialService.liveClashes) { clash in
+                        TrendingClashCard(clash: clash)
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+        }
+        .padding(.top, AppTheme.spacingMD)
+    }
+
+    // small horizontal card
+    private struct TrendingClashCard: View {
+        let clash: Clash
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(clash.streamerA) vs \(clash.streamerB)")
+                    .font(.subheadline).bold()
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                Text("👀 \(clash.viewerCount) viewers")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            .padding()
+            .frame(width: 200, height: 100)
+            .background(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .cornerRadius(18)
+            .shadow(radius: 4)
+        }
     }
     
     private var actionButtonsSection: some View {

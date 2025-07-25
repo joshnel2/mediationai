@@ -26,7 +26,7 @@ struct LeaderboardView: View {
                         Text("\(segment==0 ? user.xp : user.xp) XP")
                     }
                     .listRowBackground(AppTheme.cardGradient)
-                    .foregroundColor(.white)
+                    .foregroundColor(AppTheme.textPrimary)
                 }
             }
             .listStyle(PlainListStyle())

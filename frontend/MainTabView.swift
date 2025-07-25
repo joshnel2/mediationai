@@ -8,25 +8,21 @@ struct MainTabView: View {
             LeaderboardView()
                 .tabItem {
                     Image(systemName: "trophy.fill")
-                    Text("Top")
                 }
 
             LiveFeedView()
                 .tabItem {
                     Image(systemName: "bolt.fill")
-                    Text("Drama")
                 }
 
             PeopleSearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
-                    Text("Search")
                 }
 
             HomeView()
                 .tabItem {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
-                    Text("Clashes")
                 }
 
             ProfileView()
@@ -34,7 +30,7 @@ struct MainTabView: View {
                     Image(systemName: "person.crop.circle")
                 }
         }
-        .accentColor(.green)
+        .accentColor(AppTheme.accent)
     }
 }
 
