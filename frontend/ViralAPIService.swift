@@ -80,4 +80,13 @@ class ViralAPIService: ObservableObject {
             completion(upload)
         }.resume()
     }
+
+    func registerDeviceToken(_ token: String) {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/devices"), let jwt = UserDefaults.standard.string(forKey: "authToken") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("Bearer \(jwt)", forHTTPHeaderField: "Authorization")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["token": token])
+        URLSession.shared.dataTask(with: req).resume()
+    }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 
 @main
 struct MediationAIApp: App {
+    @UIApplicationDelegateAdaptor(PushDelegate.self) var pushDelegate
     @StateObject var authService = MockAuthService()
     @StateObject var disputeService = MockDisputeService()
     @StateObject var purchaseService = InAppPurchaseService()

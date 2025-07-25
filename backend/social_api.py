@@ -9,6 +9,8 @@ from fastapi.responses import Response
 from database import get_db, User as DBUser
 from auth import get_current_user
 from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, HighlightClip, XPLog, PredictionVote
+from pyapns2.client import APNsClient
+from pyapns2.payload import Payload
 
 router = APIRouter(prefix="/api")
 
@@ -18,6 +20,16 @@ def _add_xp(db: Session, user: DBUser, points: int):
     user.xp_points += points
     db.add(XPLog(user_id=user.id, points=points))
     db.add(user)
+
+def _send_push(apns_token: str, title: str, body: str):
+    if not settings.apns_key_id:
+        return  # push disabled
+    try:
+        client = APNsClient(credentials=None, key_id=settings.apns_key_id, team_id=settings.apns_team_id)
+        payload = Payload(alert={"title": title, "body": body}, sound="default")
+        client.send_notification(apns_token, payload, topic=settings.bundle_id)
+    except Exception as e:
+        logger.error(f"push error {e}")
 
 # ----------------------------
 # FOLLOW / UNFOLLOW ENDPOINTS
@@ -483,6 +495,10 @@ async def set_clash_public(clash_id: str, public: bool, current_user: DBUser = D
         raise HTTPException(status_code=403, detail="Not your clash")
     clash.is_public = public
     db.commit()
+    if public:
+        tokens = [d.apns_token for d in db.query(Device).join(Follow, Follow.follower_id == Device.user_id).filter(Follow.followee_id == current_user.id)]
+        for t in tokens:
+            _send_push(t, f"{current_user.display_name} is live!", "Tap to watch their clash 🔥")
     return {"clash_id": clash.id, "public": clash.is_public}
 
 @router.get("/clashes/public")
