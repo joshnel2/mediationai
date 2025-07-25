@@ -15,7 +15,6 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showCommunity = false
     @State private var showContract = false
-    @State private var showEscrow = false
     @State private var showNotifications = false
 
     @State private var selectedDispute: Dispute?
@@ -50,40 +49,7 @@ struct HomeView: View {
                     // Disputes section
                     disputesSection
                     
-                    // Legal Disclaimer
-                    VStack(spacing: AppTheme.spacingSM) {
-                        HStack(spacing: AppTheme.spacingSM) {
-                            Image(systemName: "info.circle")
-                                .font(.caption2)
-                                .foregroundColor(AppTheme.textTertiary)
-                            
-                            Text("This app provides mediation services, not legal advice. For legal matters, consult a qualified attorney.")
-                                .font(AppTheme.caption2())
-                                .foregroundColor(AppTheme.textTertiary)
-                                .multilineTextAlignment(.leading)
-                        }
-                        
-                        HStack(spacing: AppTheme.spacingSM) {
-                            Image(systemName: "brain.head.profile")
-                                .font(.caption2)
-                                .foregroundColor(AppTheme.textTertiary)
-                            
-                            Text("AI responses are suggestions based on mediation principles, not legal determinations.")
-                                .font(AppTheme.caption2())
-                                .foregroundColor(AppTheme.textTertiary)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-                    .padding(AppTheme.spacingMD)
-                    .background(AppTheme.glassSecondary)
-                    .cornerRadius(AppTheme.radiusMD)
-                    .padding(.top, AppTheme.spacingLG)
-                    
-                    // Footer
-                    Text("Decentralized Technology Solutions 2025")
-                        .font(.system(size: 12))
-                        .foregroundColor(AppTheme.textSecondary.opacity(0.7))
-                        .padding(.top, AppTheme.spacingXL)
+                    // Removed professional legal disclaimers & footer for simpler kid-friendly UI
                     
                     Spacer(minLength: AppTheme.spacingXXL)
                 }
@@ -109,9 +75,6 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showContract) {
             ContractView()
-        }
-        .sheet(isPresented: $showEscrow) {
-            EscrowView()
         }
         .sheet(isPresented: $showNotifications) {
             NotificationsView()
@@ -297,11 +260,11 @@ struct HomeView: View {
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Create Dispute")
+                            Text("Start Clash")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                                                Text("Start new mediation")
+                                                Text("Go live with friends")
                         .font(AppTheme.caption())
                         .opacity(0.8)
                         }
@@ -322,11 +285,11 @@ struct HomeView: View {
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Join Dispute")
+                            Text("Join Clash")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
-                            Text("Use invitation link")
+                            Text("Watch & chat live")
                                 .font(AppTheme.caption())
                                 .opacity(0.8)
                         }
