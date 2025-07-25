@@ -5,27 +5,34 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
+            LeaderboardView()
+                .tabItem {
+                    Image(systemName: "trophy.fill")
+                    Text("Top")
+                }
+
             LiveFeedView()
                 .tabItem {
-                    Image(systemName: "bolt.bubble.fill")
-                    Text("Live")
+                    Image(systemName: "bolt.fill")
+                    Text("Drama")
+                }
+
+            PeopleSearchView()
+                .tabItem {
+                    Image(systemName: "magnifyingglass")
+                    Text("Search")
                 }
 
             HomeView()
                 .tabItem {
-                    Image(systemName: "house.fill")
-                    Text("Home")
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                    Text("Clashes")
                 }
 
             SettingsView()
                 .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Settings")
-                }
-            ClipRouletteView()
-                .tabItem {
-                    Image(systemName: "play.rectangle")
-                    Text("Clips")
+                    Image(systemName: "person.crop.circle")
+                    Text("Profile")
                 }
         }
         .accentColor(.green)

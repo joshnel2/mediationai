@@ -461,3 +461,12 @@ async def drama_feed(limit: int = 20, db: Session = Depends(get_db)):
             "startedAt": r.ClashRoom.created_at.isoformat(),
             "votes": int(r.votes)
         } for r in rows]
+
+# ----------------------------
+# HOT TOPICS
+# ----------------------------
+@router.get("/hot-topics")
+async def hot_topics(limit: int = 10):
+    random.seed(datetime.utcnow().hour)
+    topics = random.sample(DRAMA_KEYWORDS, k=min(limit, len(DRAMA_KEYWORDS)))
+    return topics

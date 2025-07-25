@@ -23,6 +23,7 @@ class SocialAPIService: ObservableObject {
     @Published var searchResults: [UserSummary] = []
     @Published var overallLeaders: [UserSummary] = []
     @Published var dailyLeaders: [UserSummary] = []
+    @Published var hotTopics: [String] = []
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -54,6 +55,17 @@ class SocialAPIService: ObservableObject {
                 self?.liveClashes = clashes
                 self?.isLoading = false
             }
+            .store(in: &cancellables)
+    }
+
+    func fetchHotTopics() {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/hot-topics") else { return }
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: [String].self, decoder: JSONDecoder())
+            .replaceError(with: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] topics in self?.hotTopics = topics }
             .store(in: &cancellables)
     }
 
