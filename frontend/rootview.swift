@@ -27,7 +27,7 @@ struct RootView: View {
                         if authService.currentUser == nil {
                             OnboardingView()
                         } else {
-                            HomeView()
+                            MainTabView()
                                 .onAppear(perform: authenticate)
                         }
                     }

@@ -134,3 +134,49 @@ async def clash_websocket_endpoint(websocket: WebSocket, clash_id: str,
                 db.commit()
         except SQLAlchemyError:
             pass
+
+# ----------------------------
+# FEED & LEADERBOARD
+# ----------------------------
+
+@router.get("/feed")
+async def get_feed(current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Aggregated feed of live clashes from people you follow plus trending rooms."""
+    # Get followees ids
+    followees = db.query(Follow.followee_id).filter(Follow.follower_id == current_user.id).subquery()
+
+    # Live clashes by followees
+    followed_live = db.query(ClashRoom).filter(ClashRoom.status == "live", ClashRoom.streamer_a_id.in_(followees)).all()
+
+    # Trending = top viewer count live rooms not in followed list
+    trending_live = db.query(ClashRoom).filter(ClashRoom.status == "live").order_by(ClashRoom.viewer_count.desc()).limit(10).all()
+
+    def serialize(room: ClashRoom):
+        return {
+            "clash_id": room.id,
+            "streamerA": room.streamer_a_id,
+            "streamerB": room.streamer_b_id,
+            "viewerCount": room.viewer_count,
+            "startedAt": room.created_at.isoformat()
+        }
+
+    feed_items = [serialize(r) for r in followed_live] + [serialize(r) for r in trending_live if r not in followed_live]
+    return feed_items
+
+
+@router.get("/leaderboard")
+async def leaderboard(db: Session = Depends(get_db)):
+    """Top 10 users by follower count."""
+    from sqlalchemy import func
+
+    results = (
+        db.query(Follow.followee_id, func.count(Follow.follower_id).label("followers"))
+        .group_by(Follow.followee_id)
+        .order_by(func.count(Follow.follower_id).desc())
+        .limit(10)
+        .all()
+    )
+    return [
+        {"userId": r.followee_id, "followers": r.followers}
+        for r in results
+    ]
