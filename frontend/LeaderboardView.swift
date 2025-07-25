@@ -49,8 +49,12 @@ struct LeaderRow: View {
     var body: some View {
         HStack(spacing:12){
             ZStack{
-                AsyncImage(url: URL(string:"https://i.pravatar.cc/48?u=\(user.id)")){phase in
-                    phase.image?.resizable().clipShape(Circle()) ?? Circle().fill(AppTheme.accent)
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/48?u=\(user.id)")) { phase in
+                    if let img = phase.image {
+                        img.resizable().clipShape(Circle())
+                    } else {
+                        Circle().fill(AppTheme.accent)
+                    }
                 }
                 if rank<=3 {
                     Image(systemName: rank==1 ? "crown.fill":"crown")

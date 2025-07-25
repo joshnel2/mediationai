@@ -63,9 +63,14 @@ struct PeopleSearchView: View {
     private func row(for user: SocialAPIService.UserSummary) -> some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
             HStack(spacing:12) {
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/40?u=\(user.id)")){phase in
-                    phase.image?.resizable().clipShape(Circle()) ?? Circle().fill(AppTheme.accent)
-                }.frame(width:40,height:40)
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/40?u=\(user.id)")) { phase in
+                    if let img = phase.image {
+                        img.resizable().clipShape(Circle())
+                    } else {
+                        Circle().fill(AppTheme.accent)
+                    }
+                }
+                .frame(width:40,height:40)
                 Text(user.displayName)
                     .foregroundColor(AppTheme.textPrimary)
                 Spacer()
