@@ -49,6 +49,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# New: include social features (follow, clash rooms)
+import social_api
+app.include_router(social_api.router)
+
 # CORS middleware for iOS app
 app.add_middleware(
     CORSMiddleware,
