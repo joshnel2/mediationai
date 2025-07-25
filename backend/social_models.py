@@ -60,3 +60,23 @@ class Badge(Base):
     badge_type = Column(String, nullable=False)
     awarded_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="badges")
+
+class InviteCode(Base):
+    __tablename__ = "invite_codes"
+
+    code = Column(String, primary_key=True)
+    inviter_id = Column(String, ForeignKey("users.id"), nullable=False)
+    used_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    inviter = relationship("User", foreign_keys=[inviter_id])
+    used_by = relationship("User", foreign_keys=[used_by_id])
+
+class HighlightClip(Base):
+    __tablename__ = "highlight_clips"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    clash_id = Column(String, ForeignKey("clash_rooms.id"))
+    file_url = Column(String, nullable=False)
+    caption = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

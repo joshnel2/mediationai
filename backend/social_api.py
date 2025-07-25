@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
+import random, string
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.responses import Response
 
 from database import get_db, User as DBUser
 from auth import get_current_user
-from social_models import Follow, ClashRoom, ClashVote, Badge
+from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, HighlightClip
 
 router = APIRouter(prefix="/api")
 
@@ -236,6 +237,102 @@ async def get_badges(current_user: DBUser = Depends(get_current_user), db: Sessi
         "xp": current_user.xp_points,
         "badges": [b.badge_type for b in current_user.badges] + new_badges
     }
+
+# ----------------------------
+# VIRAL INVITE LINKS
+# ----------------------------
+
+INVITE_CODE_LENGTH = 6
+
+@router.post("/invite/generate")
+async def generate_invite(background_tasks: BackgroundTasks, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=INVITE_CODE_LENGTH))
+    db.add(InviteCode(code=code, inviter_id=current_user.id))
+    db.commit()
+    return {"code": code, "expiresInHours": 24}
+
+@router.post("/invite/redeem")
+async def redeem_invite(code: str, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    invite = db.query(InviteCode).filter(InviteCode.code == code).first()
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invalid code")
+    if invite.used_by_id is not None:
+        raise HTTPException(status_code=400, detail="Code already used")
+    if datetime.utcnow() - invite.created_at > timedelta(hours=24):
+        raise HTTPException(status_code=400, detail="Code expired")
+    if current_user.id == invite.inviter_id:
+        raise HTTPException(status_code=400, detail="Cannot redeem own code")
+
+    invite.used_by_id = current_user.id
+    # Award inviter XP
+    inviter = db.query(DBUser).filter(DBUser.id == invite.inviter_id).first()
+    if inviter:
+        inviter.xp_points += 50
+    # Award new user Legend badge
+    legend_badge = Badge(user_id=current_user.id, badge_type="Legend")
+    db.add(legend_badge)
+    db.commit()
+    return {"status": "success", "badge": "Legend"}
+
+# ----------------------------
+# DAILY DRAMA DROP
+# ----------------------------
+DRAMA_KEYWORDS = [
+    "Minecraft mob vote",
+    "MrBeast giveaway",
+    "Fortnite season leak",
+    "Taylor Swift album theory",
+    "Roblox outage"
+]
+
+@router.get("/drama/today")
+async def get_today_drama(current_user: DBUser = Depends(get_current_user)):
+    seed = datetime.utcnow().strftime("%Y-%m-%d")
+    random.seed(seed)
+    keyword = random.choice(DRAMA_KEYWORDS)
+    return {"keyword": keyword}
+
+@router.post("/drama/start")
+async def start_drama_clash(current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    today = datetime.utcnow().date()
+    existing = db.query(ClashRoom).filter(
+        ClashRoom.streamer_a_id == current_user.id,
+        ClashRoom.created_at >= datetime(today.year, today.month, today.day)
+    ).first()
+    if existing:
+        return {"clash_id": existing.id, "status": existing.status}
+
+    seed = datetime.utcnow().strftime("%Y-%m-%d")
+    random.seed(seed)
+    keyword = random.choice(DRAMA_KEYWORDS)
+    clash = ClashRoom(streamer_a_id=current_user.id, streamer_b_id="DramaBot", status="live")
+    db.add(clash)
+    db.commit()
+    db.refresh(clash)
+    return {"clash_id": clash.id, "keyword": keyword}
+
+# ----------------------------
+# CLIP ROULETTE
+# ----------------------------
+@router.get("/clips/roulette")
+async def clip_roulette(limit: int = 10, db: Session = Depends(get_db)):
+    clips = db.query(HighlightClip).order_by(func.random()).limit(limit).all()
+    return [
+        {"clip_id": c.id, "url": c.file_url, "caption": c.caption}
+        for c in clips
+    ]
+
+# ----------------------------
+# CLIP TO TIKTOK (stub)
+# ----------------------------
+@router.get("/clips/{clip_id}/tiktok")
+async def clip_to_tiktok(clip_id: str, db: Session = Depends(get_db)):
+    clip = db.query(HighlightClip).filter(HighlightClip.id == clip_id).first()
+    if not clip:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    # Stub: In real implementation, a background job would burn captions & merge trending sound.
+    share_url = f"https://tiktok.com/upload?video={clip.file_url}"
+    return {"uploadUrl": share_url}
 
 # ----------------------------
 # HIGHLIGHT GENERATION TRIGGER
