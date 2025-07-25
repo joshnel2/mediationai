@@ -80,3 +80,25 @@ class HighlightClip(Base):
     file_url = Column(String, nullable=False)
     caption = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class XPLog(Base):
+    __tablename__ = "xp_log"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    points = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
+class PredictionVote(Base):
+    """User predicts dispute winner before resolution"""
+    __tablename__ = "prediction_votes"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    dispute_id = Column(String, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    guess = Column(String)  # partyA, partyB, draw
+    created_at = Column(DateTime, default=datetime.utcnow)
+    processed = Column(Boolean, default=False)

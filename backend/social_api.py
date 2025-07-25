@@ -8,9 +8,16 @@ from fastapi.responses import Response
 
 from database import get_db, User as DBUser
 from auth import get_current_user
-from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, HighlightClip
+from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, HighlightClip, XPLog, PredictionVote
 
 router = APIRouter(prefix="/api")
+
+# Helper function
+
+def _add_xp(db: Session, user: DBUser, points: int):
+    user.xp_points += points
+    db.add(XPLog(user_id=user.id, points=points))
+    db.add(user)
 
 # ----------------------------
 # FOLLOW / UNFOLLOW ENDPOINTS
@@ -203,7 +210,7 @@ async def vote_in_clash(clash_id: str, vote_for: str, current_user: DBUser = Dep
     else:
         db.add(ClashVote(clash_id=clash_id, user_id=current_user.id, vote_for=vote_for))
         # award XP for first vote in a clash
-        current_user.xp_points += 5
+        _add_xp(db, current_user, 5)
     db.commit()
 
     # Aggregate votes
@@ -267,7 +274,7 @@ async def redeem_invite(code: str, current_user: DBUser = Depends(get_current_us
     # Award inviter XP
     inviter = db.query(DBUser).filter(DBUser.id == invite.inviter_id).first()
     if inviter:
-        inviter.xp_points += 50
+        _add_xp(db, inviter, 50)
     # Award new user Legend badge
     legend_badge = Badge(user_id=current_user.id, badge_type="Legend")
     db.add(legend_badge)
@@ -370,3 +377,50 @@ async def generate_share_image(clash_id: str, db: Session = Depends(get_db)):
     img.save(buf, format="PNG")
     buf.seek(0)
     return Response(content=buf.getvalue(), media_type="image/png")
+
+# ----------------------------
+# PREDICTION VOTES
+# ----------------------------
+@router.post("/disputes/{dispute_id}/predict")
+async def predict_outcome(dispute_id: str, guess: str, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    if guess not in ("partyA", "partyB", "draw"):
+        raise HTTPException(status_code=400, detail="Bad guess value")
+    existing = db.query(PredictionVote).filter(PredictionVote.dispute_id==dispute_id, PredictionVote.user_id==current_user.id).first()
+    if existing:
+        existing.guess = guess
+    else:
+        db.add(PredictionVote(dispute_id=dispute_id, user_id=current_user.id, guess=guess))
+    db.commit()
+    return {"status":"ok"}
+
+@router.post("/disputes/{dispute_id}/evaluate-predictions")
+async def evaluate_predictions(dispute_id: str, winner: str, db: Session = Depends(get_db)):
+    if winner not in ("partyA", "partyB", "draw"):
+        raise HTTPException(status_code=400, detail="Bad winner")
+    votes = db.query(PredictionVote).filter(PredictionVote.dispute_id==dispute_id, PredictionVote.processed==False).all()
+    result = []
+    for v in votes:
+        user = db.query(DBUser).filter(DBUser.id==v.user_id).first()
+        delta = 10 if v.guess == winner else -10
+        _add_xp(db, user, delta)
+        v.processed = True
+        result.append({"user": v.user_id, "delta": delta})
+    db.commit()
+    return result
+
+# ----------------------------
+# LEADERBOARDS
+# ----------------------------
+from sqlalchemy import func, desc, Date
+
+@router.get("/leaderboard/overall")
+async def overall_leaderboard(limit: int = 20, db: Session = Depends(get_db)):
+    users = db.query(DBUser).order_by(DBUser.xp_points.desc()).limit(limit).all()
+    return [{"userId": u.id, "xp": u.xp_points} for u in users]
+
+@router.get("/leaderboard/daily")
+async def daily_leaderboard(limit: int = 20, db: Session = Depends(get_db)):
+    today = datetime.utcnow().date()
+    subq = db.query(XPLog.user_id, func.sum(XPLog.points).label("points")).filter(func.date(XPLog.created_at)==today).group_by(XPLog.user_id).subquery()
+    rows = db.query(subq.c.user_id, subq.c.points).order_by(subq.c.points.desc()).limit(limit).all()
+    return [{"userId": r.user_id, "xpToday": r.points} for r in rows]
