@@ -134,6 +134,9 @@ async def clash_websocket_endpoint(websocket: WebSocket, clash_id: str,
             clash.viewer_count += 1
             db.add(clash)
             db.commit()
+            # broadcast new count
+            for conn in connections:
+                await conn.send_json({"type":"vc","count": clash.viewer_count})
     except SQLAlchemyError:
         pass  # Non-critical
 
@@ -153,6 +156,8 @@ async def clash_websocket_endpoint(websocket: WebSocket, clash_id: str,
                 clash.viewer_count -= 1
                 db.add(clash)
                 db.commit()
+                for conn in connections:
+                    await conn.send_json({"type":"vc","count": clash.viewer_count})
         except SQLAlchemyError:
             pass
 
@@ -507,3 +512,19 @@ async def list_public_clashes(limit: int = 20, db: Session = Depends(get_db)):
     return [
         {"clash_id": r.id, "streamerA": r.streamer_a_id, "streamerB": r.streamer_b_id, "viewerCount": r.viewer_count, "startedAt": r.created_at.isoformat()} for r in rooms
     ]
+
+# ----------------------------
+# STREAMER PUBLIC INFO
+# ----------------------------
+@router.get("/streamers/{slug}")
+async def streamer_page(slug: str, db: Session = Depends(get_db)):
+    user = db.query(DBUser).filter(func.lower(DBUser.display_name)==slug.replace("-"," ")).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Streamer not found")
+    live_clash = db.query(ClashRoom).filter(ClashRoom.streamer_a_id==user.id, ClashRoom.status=="live", ClashRoom.is_public==True).first()
+    return {
+        "displayName": user.display_name,
+        "rank": user.rank if hasattr(user,"rank") else "",
+        "xp": user.xp_points,
+        "liveClashId": live_clash.id if live_clash else None
+    }
