@@ -22,6 +22,11 @@ struct MainTabView: View {
                     Image(systemName: "gearshape.fill")
                     Text("Settings")
                 }
+            ClipRouletteView()
+                .tabItem {
+                    Image(systemName: "play.rectangle")
+                    Text("Clips")
+                }
         }
         .accentColor(.green)
     }

@@ -14,6 +14,7 @@ struct MediationAIApp: App {
     @StateObject var disputeService = MockDisputeService()
     @StateObject var purchaseService = InAppPurchaseService()
     @StateObject var badgeService = BadgeService()
+    @StateObject var viralService = ViralAPIService.shared
 
     
     var body: some Scene {
@@ -23,6 +24,7 @@ struct MediationAIApp: App {
                 .environmentObject(disputeService)
                 .environmentObject(purchaseService)
                 .environmentObject(badgeService)
+                .environmentObject(viralService)
         }
     }
 }

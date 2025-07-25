@@ -3,43 +3,33 @@ import SwiftUI
 struct LiveFeedView: View {
     @StateObject private var socialService = SocialAPIService()
     @State private var isRefreshing = false
+    @State private var navigateClashID: String?
+    @EnvironmentObject var viralService: ViralAPIService
+    @EnvironmentObject var authService: MockAuthService
 
     var body: some View {
         NavigationView {
             ZStack {
                 AppTheme.backgroundGradient
                     .ignoresSafeArea()
-
-                if socialService.isLoading && socialService.liveClashes.isEmpty {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else if socialService.liveClashes.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "bolt.bubble")
-                            .font(.system(size: 48))
-                            .foregroundColor(.white.opacity(0.8))
-                        Text("No live clashes yet\nCheck back soon!")
-                            .font(.title3.weight(.semibold))
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.white.opacity(0.8))
-                    }
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 20) {
-                            ForEach(socialService.liveClashes) { clash in
-                                ClashCardView(clash: clash)
-                                    .background(
-                                        NavigationLink(destination: ClashWatchView(clash: clash)) {
-                                            EmptyView()
-                                        }.opacity(0)
-                                    )
+                VStack {
+                    // Drama drop button
+                    if !viralService.todayDramaKeyword.isEmpty {
+                        DramaDropButton(keyword: viralService.todayDramaKeyword) {
+                            if let token = authService.jwtToken {
+                                viralService.startDrama(token: token) { id in
+                                    if let id = id {
+                                        // navigate to clash watch
+                                        DispatchQueue.main.async {
+                                            navigateClashID = id
+                                        }
+                                    }
+                                }
                             }
                         }
-                        .padding()
-                        .refreshable {
-                            await refresh()
-                        }
+                        .padding(.top)
                     }
+                    contentView
                 }
             }
             .navigationTitle("Live")
@@ -55,6 +45,42 @@ struct LiveFeedView: View {
         }
         .onAppear {
             socialService.fetchLiveClashes()
+        }
+    }
+
+    private var contentView: some View {
+        Group {
+            if socialService.isLoading && socialService.liveClashes.isEmpty {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+            } else if socialService.liveClashes.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "bolt.bubble")
+                        .font(.system(size: 48))
+                        .foregroundColor(.white.opacity(0.8))
+                    Text("No live clashes yet\nCheck back soon!")
+                        .font(.title3.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 20) {
+                        ForEach(socialService.liveClashes) { clash in
+                            ClashCardView(clash: clash)
+                                .background(
+                                    NavigationLink(destination: ClashWatchView(clash: clash)) {
+                                        EmptyView()
+                                    }.opacity(0)
+                                )
+                        }
+                    }
+                    .padding()
+                    .refreshable {
+                        await refresh()
+                    }
+                }
+            }
         }
     }
 

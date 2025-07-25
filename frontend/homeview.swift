@@ -10,6 +10,8 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var disputeService: MockDisputeService
+    @EnvironmentObject var viralService: ViralAPIService
+    @EnvironmentObject var badgeService: BadgeService
     @State private var showCreate = false
     @State private var showJoin = false
     @State private var showSettings = false
@@ -34,6 +36,12 @@ struct HomeView: View {
             
             ScrollView {
                 VStack(spacing: AppTheme.spacingXL) {
+                    // Invite banner
+                    InviteBanner()
+                        .environmentObject(viralService)
+                        .environmentObject(badgeService)
+                        .padding(.bottom, AppTheme.spacingLG)
+
                     // Header section
                     headerSection
                     
