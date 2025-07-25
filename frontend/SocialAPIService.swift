@@ -37,6 +37,24 @@ class SocialAPIService: ObservableObject {
     @Published var dailyLeaders: [UserSummary] = []
     @Published var hotTopics: [String] = []
 
+    // MARK: - Social Graph
+    @AppStorage("followingIDs") private var storedFollowing: Data = Data()
+    @Published var following: Set<String> = [] {
+        didSet { saveFollowing() }
+    }
+    @Published var followerCounts: [String: Int] = [:]
+
+    private func loadFollowing() {
+        if let ids = try? JSONDecoder().decode(Set<String>.self, from: storedFollowing) {
+            following = ids
+        }
+    }
+    private func saveFollowing() {
+        if let data = try? JSONEncoder().encode(following) {
+            storedFollowing = data
+        }
+    }
+
     // New: fake disputes per user
     @Published var disputesByUser: [String: [MockDispute]] = [:]
 
@@ -58,6 +76,7 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Mock Seed
     init() {
+        loadFollowing()
         seedMockData()
     }
 
@@ -82,7 +101,7 @@ class SocialAPIService: ObservableObject {
         // Show users immediately in People tab
         searchResults = overallLeaders
 
-        // Seed disputes for each user
+        // Seed disputes & follow counts
         let sampleDisputeTitles = ["Who Streams Better?", "Lag Blame Game", "Clip Ownership"]
         for leader in overallLeaders {
             var arr: [MockDispute] = []
@@ -95,6 +114,8 @@ class SocialAPIService: ObservableObject {
                                        votesB: Int.random(in: 10...200)))
             }
             disputesByUser[leader.id] = arr
+
+            followerCounts[leader.id] = Int.random(in: 200...5000)
         }
     }
 
@@ -208,7 +229,22 @@ class SocialAPIService: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // MARK: - Follow Logic
+    func toggleFollow(id: String) {
+        if following.contains(id) {
+            following.remove(id)
+            followerCounts[id, default: 0] = max(0, followerCounts[id, default: 0] - 1)
+        } else {
+            following.insert(id)
+            followerCounts[id, default: 0] += 1
+        }
+    }
+
     func followUser(id: String) {
+        if APIConfig.enableMockData {
+            toggleFollow(id: id)
+            return
+        }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/follow/\(id)"), let token = UserDefaults.standard.string(forKey: "authToken") else { return }
         var req = URLRequest(url: url)
         req.httpMethod = "POST"

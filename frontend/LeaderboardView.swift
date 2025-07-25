@@ -16,14 +16,16 @@ struct LeaderboardView: View {
             List {
                 ForEach(currentList.indices, id: \.self) { idx in
                     let user = currentList[idx]
-                    HStack {
-                        Text("#\(idx+1)")
-                            .fontWeight(.bold)
-                            .foregroundColor(AppTheme.accent)
-                        RankBadgeView(rank: rank(for: user.xp))
-                        Text(user.displayName)
-                        Spacer()
-                        Text("\(segment==0 ? user.xp : user.xp) XP")
+                    NavigationLink(destination: MiniProfileView(userID: user.id)) {
+                        HStack {
+                            Text("#\(idx+1)")
+                                .fontWeight(.bold)
+                                .foregroundColor(AppTheme.accent)
+                            RankBadgeView(rank: rank(for: user.xp))
+                            Text(user.displayName)
+                            Spacer()
+                            Text("\(user.xp) XP")
+                        }
                     }
                     .listRowBackground(AppTheme.cardGradient)
                     .foregroundColor(AppTheme.textPrimary)

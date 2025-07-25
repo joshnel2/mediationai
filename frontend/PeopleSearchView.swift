@@ -66,20 +66,17 @@ struct PeopleSearchView: View {
 
     // DRY user row
     private func row(for user: SocialAPIService.UserSummary) -> some View {
-        HStack {
-            Text(user.displayName)
-                .foregroundColor(AppTheme.textPrimary)
-            Spacer()
-            Button(action: { follow(id: user.id) }) {
-                Image(systemName: "person.badge.plus")
+        NavigationLink(destination: MiniProfileView(userID: user.id)) {
+            HStack {
+                Text(user.displayName)
+                    .foregroundColor(AppTheme.textPrimary)
+                Spacer()
+                Button(action: { follow(id: user.id); }) {
+                    Image(systemName: social.following.contains(user.id) ? "checkmark" : "person.badge.plus")
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .foregroundColor(AppTheme.accent)
             }
-            .buttonStyle(BorderlessButtonStyle())
-            .foregroundColor(AppTheme.accent)
-            Button(action: { startClash(with: user.id) }) {
-                Image(systemName: "bolt.fill")
-            }
-            .buttonStyle(BorderlessButtonStyle())
-            .foregroundColor(AppTheme.primary)
         }
     }
 
