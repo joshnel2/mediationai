@@ -68,7 +68,6 @@ struct MiniProfileView: View {
         }
         .padding()
         .background(AppTheme.backgroundGradient.ignoresSafeArea())
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
     }
 
     private func requestClash(){
