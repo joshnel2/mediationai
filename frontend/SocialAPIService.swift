@@ -8,11 +8,13 @@ struct Clash: Identifiable, Codable {
     let viewerCount: Int
     let startedAt: String
     let votes: Int?
+    let isPublic: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id = "clash_id"
         case streamerA, streamerB, viewerCount, startedAt
         case votes
+        case isPublic
     }
 }
 
@@ -66,6 +68,21 @@ class SocialAPIService: ObservableObject {
             .replaceError(with: [])
             .receive(on: DispatchQueue.main)
             .sink { [weak self] topics in self?.hotTopics = topics }
+            .store(in: &cancellables)
+    }
+
+    func fetchPublicClashes() {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/public") else { return }
+        isLoading = true
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: [Clash].self, decoder: JSONDecoder())
+            .replaceError(with: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] c in
+                self?.liveClashes = c
+                self?.isLoading = false
+            }
             .store(in: &cancellables)
     }
 

@@ -470,3 +470,24 @@ async def hot_topics(limit: int = 10):
     random.seed(datetime.utcnow().hour)
     topics = random.sample(DRAMA_KEYWORDS, k=min(limit, len(DRAMA_KEYWORDS)))
     return topics
+
+# ----------------------------
+# PUBLIC CLASHES
+# ----------------------------
+@router.patch("/clashes/{clash_id}/public")
+async def set_clash_public(clash_id: str, public: bool, current_user: DBUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    clash = db.query(ClashRoom).filter(ClashRoom.id == clash_id).first()
+    if not clash:
+        raise HTTPException(status_code=404, detail="Clash not found")
+    if clash.streamer_a_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your clash")
+    clash.is_public = public
+    db.commit()
+    return {"clash_id": clash.id, "public": clash.is_public}
+
+@router.get("/clashes/public")
+async def list_public_clashes(limit: int = 20, db: Session = Depends(get_db)):
+    rooms = db.query(ClashRoom).filter(ClashRoom.status == "live", ClashRoom.is_public==True).order_by(ClashRoom.viewer_count.desc()).limit(limit).all()
+    return [
+        {"clash_id": r.id, "streamerA": r.streamer_a_id, "streamerB": r.streamer_b_id, "viewerCount": r.viewer_count, "startedAt": r.created_at.isoformat()} for r in rooms
+    ]

@@ -30,6 +30,7 @@ class ClashRoom(Base):
 
     status = Column(String, default="live")  # live, ended, scheduled
     viewer_count = Column(Integer, default=0)
+    is_public = Column(Boolean, default=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime, nullable=True)

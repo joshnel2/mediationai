@@ -49,16 +49,34 @@ class ClashWebSocketManager: ObservableObject {
 struct ClashWatchView: View {
     let clash: Clash
     @StateObject private var wsManager = ClashWebSocketManager()
+    @EnvironmentObject var authService: MockAuthService
+    @State private var isPublic = false
+    @State private var showCopied = false
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
             VStack {
-                Text("\(clash.streamerA) VS \(clash.streamerB)")
-                    .font(.title.bold())
-                    .foregroundColor(.white)
-                    .padding(.top)
+                HStack {
+                    Text("\(clash.streamerA) VS \(clash.streamerB)")
+                        .font(.title.bold())
+                        .foregroundColor(.white)
+                        .padding(.top)
+
+                    if authService.currentUser?.id == clash.streamerA {
+                        Toggle("Public", isOn: $isPublic)
+                            .toggleStyle(SwitchToggleStyle(tint: AppTheme.accent))
+                            .onChange(of: isPublic) { val in
+                                setPublic(val)
+                            }
+                    } else if clash.isPublic ?? true { // watchers copy link
+                        Button(action: copyLink) {
+                            Image(systemName: "link.circle")
+                        }
+                        .alert("Link Copied", isPresented: $showCopied) { Button("OK", role: .cancel) {} }
+                    }
+                }
 
                 Spacer()
 
@@ -94,6 +112,19 @@ struct ClashWatchView: View {
         .onDisappear {
             wsManager.disconnect()
         }
+    }
+
+    private func setPublic(_ val: Bool) {
+        guard let token = authService.jwtToken else { return }
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/\(clash.id)/public?public=\(val)") else { return }
+        var req = URLRequest(url: url)
+        req.httpMethod = "PATCH"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        URLSession.shared.dataTask(with: req).resume()
+    }
+    private func copyLink() {
+        UIPasteboard.general.string = "https://clashup.app/clash/\(clash.id)"
+        showCopied = true
     }
 }
 

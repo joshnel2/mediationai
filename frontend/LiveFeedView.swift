@@ -33,11 +33,16 @@ struct LiveFeedView: View {
                     Picker("Mode", selection: $tab) {
                         Text("Live").tag(0)
                         Text("Drama").tag(1)
+                        Text("Public").tag(2)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
                     .onChange(of: tab) { newVal in
-                        if newVal == 0 { socialService.fetchLiveClashes() } else { socialService.fetchDramaFeed() }
+                        switch newVal {
+                        case 0: socialService.fetchLiveClashes()
+                        case 1: socialService.fetchDramaFeed()
+                        default: socialService.fetchPublicClashes()
+                        }
                     }
                     contentView
                 }
@@ -54,7 +59,7 @@ struct LiveFeedView: View {
             }
         }
         .onAppear {
-            tab == 0 ? socialService.fetchLiveClashes() : socialService.fetchDramaFeed()
+            if tab == 0 { socialService.fetchLiveClashes() } else if tab == 1 { socialService.fetchDramaFeed() } else { socialService.fetchPublicClashes() }
         }
     }
 
