@@ -13,6 +13,7 @@ struct ProfileView: View {
 
     @State private var avatarItem: PhotosPickerItem? = nil
     @State private var avatarUIImage: UIImage? = nil
+    @State private var showPicker = false
     private var avatarImg: Image? { avatarUIImage.map { Image(uiImage: $0) } }
 
     @State private var showSettings = false
@@ -92,7 +93,7 @@ struct ProfileView: View {
         .frame(width: 140, height: 140)
         .clipShape(Circle())
         .shadow(radius: 8)
-        .photosPicker(selection: $avatarItem, matching: .images)
+        .photosPicker(isPresented: $showPicker, selection: $avatarItem, matching: .images)
         .onChange(of: avatarItem) { newItem in
             guard let item = newItem else { return }
             Task {
