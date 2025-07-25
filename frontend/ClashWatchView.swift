@@ -52,6 +52,7 @@ struct ClashWatchView: View {
     @EnvironmentObject var authService: MockAuthService
     @State private var isPublic = false
     @State private var showCopied = false
+    @State private var shareSheet = false
 
     var body: some View {
         ZStack {
@@ -67,14 +68,20 @@ struct ClashWatchView: View {
                         .padding(.leading, 8)
 
                     if authService.currentUser?.id == clash.streamerA {
-                        Toggle("Public", isOn: $isPublic)
-                            .toggleStyle(SwitchToggleStyle(tint: AppTheme.accent))
-                            .onChange(of: isPublic) { val in
-                                setPublic(val)
-                            }
+                        Toggle("Public", isOn: $isPublic) {
+                            setPublic(isPublic)
+                        }
                     } else if clash.isPublic ?? true { // watchers copy link
-                        Button(action: copyLink) {
+                        Button(action: { copyLink(); shareSheet=true }) {
                             Image(systemName: "link.circle")
+                        }
+                        .sheet(isPresented: $shareSheet) {
+                            VStack(spacing:20){
+                                QRCodeView(url: shareURL)
+                                    .frame(width:200,height:200)
+                                Button("Copy Link") { copyLink(); HapticManager.success() }
+                                    .primaryButton()
+                            }.padding()
                         }
                         .alert("Link Copied", isPresented: $showCopied) { Button("OK", role: .cancel) {} }
                     }
@@ -125,8 +132,9 @@ struct ClashWatchView: View {
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         URLSession.shared.dataTask(with: req).resume()
     }
+    private var shareURL: String { "https://clashup.app/clash/\(clash.id)" }
     private func copyLink() {
-        UIPasteboard.general.string = "https://clashup.app/clash/\(clash.id)"
+        UIPasteboard.general.string = shareURL
         showCopied = true
     }
 }
