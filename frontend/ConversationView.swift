@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(ConfettiSwiftUI)
 import ConfettiSwiftUI
+#endif
 
 struct ConversationView: View {
     @EnvironmentObject var social: SocialAPIService
@@ -10,7 +12,9 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
+            #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, emojis: ["🔥","🎉"], confettiSize: 20, repetitions: 1)
+            #endif
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Bubble(text: dispute.statementA, isMe: true)

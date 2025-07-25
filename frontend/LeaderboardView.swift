@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(ConfettiSwiftUI)
 import ConfettiSwiftUI
+#endif
 
 struct LeaderboardView: View {
     @EnvironmentObject var social: SocialAPIService
@@ -8,7 +10,9 @@ struct LeaderboardView: View {
 
     var body: some View {
         VStack {
+            #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
+            #endif
             Picker("Leaderboard", selection: $segment) {
                 Text("Overall").tag(0)
                 Text("Today").tag(1)
