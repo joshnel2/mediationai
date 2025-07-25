@@ -6,6 +6,7 @@ struct LiveFeedView: View {
     @State private var navigateClashID: String?
     @EnvironmentObject var viralService: ViralAPIService
     @EnvironmentObject var authService: MockAuthService
+    @State private var tab = 0
 
     var body: some View {
         NavigationView {
@@ -29,6 +30,15 @@ struct LiveFeedView: View {
                         }
                         .padding(.top)
                     }
+                    Picker("Mode", selection: $tab) {
+                        Text("Live").tag(0)
+                        Text("Drama").tag(1)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                    .padding(.horizontal)
+                    .onChange(of: tab) { newVal in
+                        if newVal == 0 { socialService.fetchLiveClashes() } else { socialService.fetchDramaFeed() }
+                    }
                     contentView
                 }
             }
@@ -44,7 +54,7 @@ struct LiveFeedView: View {
             }
         }
         .onAppear {
-            socialService.fetchLiveClashes()
+            tab == 0 ? socialService.fetchLiveClashes() : socialService.fetchDramaFeed()
         }
     }
 

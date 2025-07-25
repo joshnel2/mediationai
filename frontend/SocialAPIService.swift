@@ -7,10 +7,12 @@ struct Clash: Identifiable, Codable {
     let streamerB: String
     let viewerCount: Int
     let startedAt: String
+    let votes: Int?
 
     enum CodingKeys: String, CodingKey {
         case id = "clash_id"
         case streamerA, streamerB, viewerCount, startedAt
+        case votes
     }
 }
 
@@ -28,6 +30,21 @@ class SocialAPIService: ObservableObject {
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/live") else { return }
         isLoading = true
 
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map { $0.data }
+            .decode(type: [Clash].self, decoder: JSONDecoder())
+            .replaceError(with: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] clashes in
+                self?.liveClashes = clashes
+                self?.isLoading = false
+            }
+            .store(in: &cancellables)
+    }
+
+    func fetchDramaFeed() {
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/drama") else { return }
+        isLoading = true
         URLSession.shared.dataTaskPublisher(for: url)
             .map { $0.data }
             .decode(type: [Clash].self, decoder: JSONDecoder())

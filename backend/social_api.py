@@ -436,3 +436,28 @@ async def search_users(q: str, limit: int = 20, db: Session = Depends(get_db)):
         {"id": u.id, "displayName": u.display_name, "xp": u.xp_points}
         for u in results
     ]
+
+# ----------------------------
+# DRAMA FEED – most voted live clashes
+# ----------------------------
+@router.get("/clashes/drama")
+async def drama_feed(limit: int = 20, db: Session = Depends(get_db)):
+    sub = (db.query(ClashVote.clash_id, func.count().label("votes"))
+              .group_by(ClashVote.clash_id)
+              .subquery())
+
+    rows = (db.query(ClashRoom, sub.c.votes)
+              .join(sub, ClashRoom.id == sub.c.clash_id)
+              .filter(ClashRoom.status == "live")
+              .order_by(sub.c.votes.desc())
+              .limit(limit)
+              .all())
+    return [
+        {
+            "clash_id": r.ClashRoom.id,
+            "streamerA": r.ClashRoom.streamer_a_id,
+            "streamerB": r.ClashRoom.streamer_b_id,
+            "viewerCount": r.ClashRoom.viewer_count,
+            "startedAt": r.ClashRoom.created_at.isoformat(),
+            "votes": int(r.votes)
+        } for r in rows]
