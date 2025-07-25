@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from sqlalchemy.orm import Session
 from typing import Dict, List
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
 
 from database import get_db, User as DBUser
 from auth import get_current_user
@@ -98,18 +99,38 @@ async def list_live_clashes(db: Session = Depends(get_db)):
 clash_ws_connections: Dict[str, List[WebSocket]] = {}
 
 @router.websocket("/ws/clash/{clash_id}")
-async def clash_websocket_endpoint(websocket: WebSocket, clash_id: str):
+async def clash_websocket_endpoint(websocket: WebSocket, clash_id: str,
+                                   db: Session = Depends(get_db)):
     await websocket.accept()
+    # Connection management
     connections = clash_ws_connections.setdefault(clash_id, [])
     connections.append(websocket)
 
+    # Increment viewer count
+    try:
+        clash: ClashRoom | None = db.query(ClashRoom).filter(ClashRoom.id == clash_id).first()
+        if clash:
+            clash.viewer_count += 1
+            db.add(clash)
+            db.commit()
+    except SQLAlchemyError:
+        pass  # Non-critical
+
     try:
         while True:
-            # Expect small reaction payloads from spectators {"emoji":"🔥"}
             data = await websocket.receive_json()
-            # Broadcast to everyone in the same clash
+            # Broadcast reaction to peers
             for conn in connections:
                 if conn is not websocket:
                     await conn.send_json({"type": "reaction", "data": data})
     except WebSocketDisconnect:
         connections.remove(websocket)
+        # Decrement viewer count
+        try:
+            clash = db.query(ClashRoom).filter(ClashRoom.id == clash_id).first()
+            if clash and clash.viewer_count > 0:
+                clash.viewer_count -= 1
+                db.add(clash)
+                db.commit()
+        except SQLAlchemyError:
+            pass
