@@ -73,7 +73,7 @@ struct ClashWatchView: View {
                     EqualizerView(color: AppTheme.accent)
                         .padding(.leading, 8)
 
-                    if authService.currentUser?.id == clash.streamerA {
+                    if authService.currentUser?.id.uuidString == clash.streamerA {
                         Toggle("Public", isOn: $isPublic) {
                             setPublic(isPublic)
                         }
@@ -155,6 +155,6 @@ struct ClashWatchView: View {
 
 struct ClashWatchView_Previews: PreviewProvider {
     static var previews: some View {
-        ClashWatchView(clash: Clash(id: "1", streamerA: "Alice", streamerB: "Bob", viewerCount: 120, startedAt: ISO8601DateFormatter().string(from: Date())))
+        ClashWatchView(clash: Clash(id: "1", streamerA: "Alice", streamerB: "Bob", viewerCount: 120, startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true))
     }
 }
