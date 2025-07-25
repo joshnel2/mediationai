@@ -32,6 +32,7 @@ struct MockDispute: Identifiable, Codable {
 @MainActor
 class SocialAPIService: ObservableObject {
     @Published var liveClashes: [Clash] = []
+    @Published var dramaClashes: [Clash] = []
     @Published var isLoading = false
     @Published var searchResults: [UserSummary] = []
     @Published var overallLeaders: [UserSummary] = []
@@ -40,7 +41,7 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
-    @Published var following: Set<String> = [] {
+    @Published var following: Set<String> = {} {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
@@ -95,6 +96,10 @@ class SocialAPIService: ObservableObject {
 
         liveClashes = (0..<6).map { _ in
             Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 100...4000), startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-Double.random(in: 300...7200))), votes: nil, isPublic: true)
+        }
+
+        dramaClashes = (0..<6).map { _ in
+            Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 50...1000), startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true)
         }
 
         hotTopics = ["AI Art", "GTA6", "EldenRing", "Valorant", "F1"]
@@ -211,6 +216,7 @@ class SocialAPIService: ObservableObject {
     }
 
     func fetchLeaderboard() {
+        if APIConfig.enableMockData { return }
         guard let url1 = URL(string: "\(APIConfig.baseURL)/api/leaderboard/overall"),
               let url2 = URL(string: "\(APIConfig.baseURL)/api/leaderboard/daily") else { return }
         URLSession.shared.dataTaskPublisher(for: url1)
