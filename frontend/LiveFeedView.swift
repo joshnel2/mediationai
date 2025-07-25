@@ -30,13 +30,21 @@ struct LiveFeedView: View {
                         }
                         .padding(.top)
                     }
+                    // Picker moved to toolbar
+                    contentView
+                }
+            }
+            .navigationTitle("Live")
+            .toolbar {
+                // Segmented control right under the nav bar title
+                ToolbarItem(placement: .principal) {
                     Picker("Mode", selection: $tab) {
                         Text("Live").tag(0)
                         Text("Drama").tag(1)
                         Text("Public").tag(2)
                     }
                     .pickerStyle(SegmentedPickerStyle())
-                    .padding(.horizontal)
+                    .frame(width: 250)
                     .onChange(of: tab) { newVal in
                         switch newVal {
                         case 0: socialService.fetchLiveClashes()
@@ -44,11 +52,8 @@ struct LiveFeedView: View {
                         default: socialService.fetchPublicClashes()
                         }
                     }
-                    contentView
                 }
-            }
-            .navigationTitle("Live")
-            .toolbar {
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { Task { await refresh() } }) {
                         Image(systemName: "arrow.clockwise.circle")

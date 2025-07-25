@@ -29,10 +29,9 @@ struct MainTabView: View {
                     Text("Clashes")
                 }
 
-            SettingsView()
+            ProfileView()
                 .tabItem {
                     Image(systemName: "person.crop.circle")
-                    Text("Profile")
                 }
         }
         .accentColor(.green)

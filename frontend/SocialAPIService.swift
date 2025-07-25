@@ -29,6 +29,30 @@ class SocialAPIService: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
+    // MARK: - Mock Seed
+    init() {
+        seedMockData()
+    }
+
+    private func seedMockData() {
+        // Only seed if arrays are empty (first launch / offline)
+        guard overallLeaders.isEmpty else { return }
+
+        let sampleNames = ["PixelPirate", "ValkyMindz", "ChatChamp", "LootLord", "GGWizard", "StreamQueen", "NoScopeSam", "ClipTitan"]
+
+        overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000)) }
+
+        dailyLeaders = overallLeaders.shuffled().prefix(5).map { leader in
+            UserSummary(id: leader.id, displayName: leader.displayName, xp: Int.random(in: 100...500))
+        }
+
+        liveClashes = (0..<6).map { _ in
+            Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 100...4000), startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-Double.random(in: 300...7200))), votes: nil, isPublic: true)
+        }
+
+        hotTopics = ["AI Art", "GTA6", "EldenRing", "Valorant", "F1"]
+    }
+
     func fetchLiveClashes() {
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/live") else { return }
         isLoading = true
