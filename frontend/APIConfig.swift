@@ -46,7 +46,7 @@ struct APIConfig {
     // MARK: - Development/Debug Settings
     #if DEBUG
     static let enableLogging = true
-    static let enableMockData = false
+    static let enableMockData = true
     #else
     static let enableLogging = false
     static let enableMockData = false

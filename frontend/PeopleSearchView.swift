@@ -41,29 +41,17 @@ struct PeopleSearchView: View {
                     }
                     .padding()
                     if social.searchResults.isEmpty {
-                        Spacer()
-                        Text("No users yet")
-                            .foregroundColor(.white.opacity(0.7))
-                        Spacer()
+                        // Show seeded users
+                        List {
+                            ForEach(social.overallLeaders) { user in
+                                row(for: user)
+                            }
+                        }
+                        .listStyle(PlainListStyle())
                     } else {
                         List {
                             ForEach(social.searchResults) { user in
-                                HStack {
-                                    Text(user.displayName)
-                                        .foregroundColor(.white)
-                                    Spacer()
-                                    Button(action: { follow(id: user.id) }) {
-                                        Image(systemName: "person.badge.plus")
-                                    }
-                                    .buttonStyle(BorderlessButtonStyle())
-                                    .foregroundColor(AppTheme.accent)
-                                    Button(action: { startClash(with: user.id) }) {
-                                        Image(systemName: "bolt.fill")
-                                    }
-                                    .buttonStyle(BorderlessButtonStyle())
-                                    .foregroundColor(AppTheme.primary)
-                                }
-                                .listRowBackground(AppTheme.cardGradient)
+                                row(for: user)
                             }
                         }
                         .listStyle(PlainListStyle())
@@ -73,6 +61,25 @@ struct PeopleSearchView: View {
             .navigationTitle("People")
             .background(AppTheme.backgroundGradient)
             .onAppear { social.fetchHotTopics() }
+        }
+    }
+
+    // DRY user row
+    private func row(for user: SocialAPIService.UserSummary) -> some View {
+        HStack {
+            Text(user.displayName)
+                .foregroundColor(AppTheme.textPrimary)
+            Spacer()
+            Button(action: { follow(id: user.id) }) {
+                Image(systemName: "person.badge.plus")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .foregroundColor(AppTheme.accent)
+            Button(action: { startClash(with: user.id) }) {
+                Image(systemName: "bolt.fill")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .foregroundColor(AppTheme.primary)
         }
     }
 

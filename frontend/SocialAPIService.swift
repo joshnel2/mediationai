@@ -51,9 +51,16 @@ class SocialAPIService: ObservableObject {
         }
 
         hotTopics = ["AI Art", "GTA6", "EldenRing", "Valorant", "F1"]
+
+        // Show users immediately in People tab
+        searchResults = overallLeaders
     }
 
     func fetchLiveClashes() {
+        if APIConfig.enableMockData {
+            liveClashes.shuffle()
+            return
+        }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/live") else { return }
         isLoading = true
 
@@ -70,6 +77,10 @@ class SocialAPIService: ObservableObject {
     }
 
     func fetchDramaFeed() {
+        if APIConfig.enableMockData {
+            liveClashes.shuffle()
+            return
+        }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/drama") else { return }
         isLoading = true
         URLSession.shared.dataTaskPublisher(for: url)
@@ -96,6 +107,10 @@ class SocialAPIService: ObservableObject {
     }
 
     func fetchPublicClashes() {
+        if APIConfig.enableMockData {
+            liveClashes.shuffle()
+            return
+        }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/public") else { return }
         isLoading = true
         URLSession.shared.dataTaskPublisher(for: url)
@@ -117,6 +132,10 @@ class SocialAPIService: ObservableObject {
     }
 
     func searchUsers(query: String) {
+        if APIConfig.enableMockData {
+            searchResults = overallLeaders.filter { $0.displayName.lowercased().contains(query.lowercased()) || query.isEmpty }
+            return
+        }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/users/search?q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else { return }
         URLSession.shared.dataTaskPublisher(for: url)
             .map { $0.data }
