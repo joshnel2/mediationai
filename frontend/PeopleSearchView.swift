@@ -14,9 +14,11 @@ struct PeopleSearchView: View {
                             ForEach(social.hotTopics, id: \.self) { topic in
                                 Button(action: { query = topic; social.searchUsers(query: topic) }) {
                                     Text(topic)
+                                        .font(.caption)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(AppTheme.accentGradient)
+                                        .background(AppTheme.cardGradient)
+                                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(AppTheme.accent, lineWidth: 1))
                                         .cornerRadius(14)
                                 }
                             }
@@ -25,21 +27,14 @@ struct PeopleSearchView: View {
                     }
 
                     HStack {
-                        TextField("Search users", text: $query, onCommit: {
-                            social.searchUsers(query: query)
-                        })
-                        .padding(12)
-                        .background(AppTheme.cardGradient)
-                        .cornerRadius(12)
-                        Button(action: { social.searchUsers(query: query) }) {
-                            Image(systemName: "magnifyingglass")
-                                .padding(10)
-                                .background(AppTheme.accent)
-                                .clipShape(Circle())
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                        TextField("Search users", text: $query)
+                            .onSubmit { social.searchUsers(query: query) }
                     }
-                    .padding()
+                    .padding(12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
+                    .padding(.horizontal)
                     if social.searchResults.isEmpty {
                         // Show seeded users
                         List {
@@ -67,15 +62,18 @@ struct PeopleSearchView: View {
     // DRY user row
     private func row(for user: SocialAPIService.UserSummary) -> some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack {
+            HStack(spacing:12) {
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/40?u=\(user.id)")){phase in
+                    phase.image?.resizable().clipShape(Circle()) ?? Circle().fill(AppTheme.accent)
+                }.frame(width:40,height:40)
                 Text(user.displayName)
                     .foregroundColor(AppTheme.textPrimary)
                 Spacer()
                 Button(action: { follow(id: user.id); }) {
-                    Image(systemName: social.following.contains(user.id) ? "checkmark" : "person.badge.plus")
+                    Text(social.following.contains(user.id) ? "Following" : "Follow")
+                        .font(.caption).padding(6)
+                        .background(AppTheme.glassPrimary).cornerRadius(12)
                 }
-                .buttonStyle(BorderlessButtonStyle())
-                .foregroundColor(AppTheme.accent)
             }
         }
     }
