@@ -87,20 +87,31 @@ struct LiveFeedView: View {
                         .foregroundColor(.white.opacity(0.8))
                 }
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 20) {
+                if tab == 0 {
+                    TabView {
                         ForEach(list) { clash in
-                            (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
-                                .background(
-                                    NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: "tmp", title: clash.streamerA + " vs " + clash.streamerB, statementA: "Side A", statementB: "Side B", votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
-                                        EmptyView()
-                                    }.opacity(0)
-                                )
+                            HotCardView(clash: clash)
+                                .onTapGesture {
+                                    navigateClashID = clash.id
+                                }
                         }
                     }
-                    .padding()
-                    .refreshable {
-                        await refresh()
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
+                    .frame(height:300)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 20) {
+                            ForEach(list) { clash in
+                                (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
+                                    .background(
+                                        NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: "tmp", title: clash.streamerA + " vs " + clash.streamerB, statementA: "Side A", statementB: "Side B", votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
+                                            EmptyView()
+                                        }.opacity(0)
+                                    )
+                            }
+                        }
+                        .padding()
+                        .refreshable { await refresh() }
                     }
                 }
             }
@@ -184,6 +195,30 @@ struct DramaCardView: View {
         }
         .frame(maxWidth:.infinity,minHeight:90)
         .cornerRadius(20)
+    }
+}
+
+struct HotCardView: View {
+    let clash: Clash
+    var body: some View {
+        ZStack{
+            RoundedRectangle(cornerRadius: 30)
+                .fill(LinearGradient(colors:[.orange,.red],startPoint:.topLeading,endPoint:.bottomTrailing))
+            VStack(spacing:16){
+                HStack{
+                    Image(systemName:"flame.fill").foregroundColor(.yellow)
+                    Text("HOT NOW").bold().foregroundColor(.white)
+                    Spacer()
+                    Text("👀 \(clash.viewerCount)")
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal)
+                Text("\(clash.streamerA) vs \(clash.streamerB)")
+                    .font(.title2).bold().foregroundColor(.white)
+                Text("Tap to watch & vote")
+                    .font(.caption).foregroundColor(.white.opacity(0.8))
+            }
+        }.padding(.horizontal,24)
     }
 }
 

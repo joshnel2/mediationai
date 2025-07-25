@@ -1,13 +1,16 @@
 import SwiftUI
+import ConfettiSwiftUI
 
 struct ConversationView: View {
     @EnvironmentObject var social: SocialAPIService
     let dispute: MockDispute
     @State private var voted = false
     @State private var votedForA = false
+    @State private var confetti = 0
 
     var body: some View {
         VStack {
+            ConfettiCannon(counter: $confetti, emojis: ["🔥","🎉"], confettiSize: 20, repetitions: 1)
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Bubble(text: dispute.statementA, isMe: true)
@@ -18,10 +21,8 @@ struct ConversationView: View {
             }
             if !voted {
                 HStack {
-                    Button("Vote A") { cast(true) }
-                        .primaryButton()
-                    Button("Vote B") { cast(false) }
-                        .accentButton()
+                    GradientPill(title: "Vote A", gradient: [AppTheme.primary, .purple]) { cast(true) }
+                    GradientPill(title: "Vote B", gradient: [AppTheme.accent, .pink]) { cast(false) }
                 }
                 .padding()
             } else {
@@ -37,6 +38,10 @@ struct ConversationView: View {
         social.recordVote(disputeID: dispute.id, voteForA: forA)
         votedForA = forA
         voted = true
+        confetti += 1
+        #if canImport(UIKit)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        #endif
     }
 
     private struct Bubble: View {
@@ -53,6 +58,20 @@ struct ConversationView: View {
                     .cornerRadius(16)
                 if !isMe { Spacer() }
             }
+        }
+    }
+
+    private struct GradientPill: View {
+        let title: String
+        let gradient: [Color]
+        let action: ()->Void
+        var body: some View {
+            Button(action: action){
+                Text(title).bold().frame(maxWidth: .infinity).padding()
+            }
+            .background(LinearGradient(colors: gradient, startPoint: .leading, endPoint: .trailing))
+            .foregroundColor(.white)
+            .cornerRadius(28)
         }
     }
 }
