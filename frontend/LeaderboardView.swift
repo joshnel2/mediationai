@@ -20,6 +20,7 @@ struct LeaderboardView: View {
                         Text("#\(idx+1)")
                             .fontWeight(.bold)
                             .foregroundColor(AppTheme.accent)
+                        RankBadgeView(rank: rank(for: user.xp))
                         Text(user.displayName)
                         Spacer()
                         Text("\(segment==0 ? user.xp : user.xp) XP")
@@ -37,6 +38,14 @@ struct LeaderboardView: View {
 
     private var currentList: [SocialAPIService.UserSummary] {
         segment == 0 ? social.overallLeaders : social.dailyLeaders
+    }
+
+    private func rank(for xp: Int) -> String {
+        switch xp {
+        case 0..<500: return "N"
+        case 500..<2000: return "C"
+        default: return "R"
+        }
     }
 }
 

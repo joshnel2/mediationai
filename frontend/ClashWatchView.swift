@@ -63,6 +63,8 @@ struct ClashWatchView: View {
                         .font(.title.bold())
                         .foregroundColor(.white)
                         .padding(.top)
+                    EqualizerView(color: AppTheme.accent)
+                        .padding(.leading, 8)
 
                     if authService.currentUser?.id == clash.streamerA {
                         Toggle("Public", isOn: $isPublic)
@@ -83,6 +85,7 @@ struct ClashWatchView: View {
                 HStack(spacing: 30) {
                     ForEach(["🔥", "😂", "💥", "👏"], id: \.self) { emoji in
                         Button(emoji) {
+                            HapticManager.impact(.light)
                             wsManager.sendReaction(emoji)
                         }
                         .font(.system(size: 40))

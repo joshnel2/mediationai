@@ -41,7 +41,7 @@ struct InviteBanner: View {
     private func redeem() {
         guard let token = authService.jwtToken else { return }
         viral.redeemInvite(code: code, token: token) { ok, badge in
-            if ok { showSuccess = true; badgeService.fetchBadges(token: token) }
+            if ok { showSuccess = true; HapticManager.success(); badgeService.fetchBadges(token: token) }
         }
     }
 }
