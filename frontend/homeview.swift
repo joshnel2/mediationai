@@ -17,6 +17,7 @@ struct HomeView: View {
     @State private var showSettings = false
     @State private var showCommunity = false
     @State private var showContract = false
+    @State private var showEscrow = false
     @State private var showNotifications = false
 
     @State private var selectedDispute: Dispute?
@@ -83,6 +84,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showContract) {
             ContractView()
+        }
+        .sheet(isPresented: $showEscrow) {
+            EscrowView()
         }
         .sheet(isPresented: $showNotifications) {
             NotificationsView()
