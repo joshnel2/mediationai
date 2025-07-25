@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 
 // MARK: - Simple Gen-Z Profile Screen
 
@@ -10,10 +11,10 @@ struct ProfileView: View {
     @AppStorage("displayName") private var storedName: String = ""
     @State private var editingName = false
 
+    @State private var avatarItem: PhotosPickerItem? = nil
     @State private var avatarUIImage: UIImage? = nil
     private var avatarImg: Image? { avatarUIImage.map { Image(uiImage: $0) } }
 
-    @State private var showPicker = false
     @State private var showSettings = false
 
     private var displayName: String {
@@ -91,8 +92,15 @@ struct ProfileView: View {
         .frame(width: 140, height: 140)
         .clipShape(Circle())
         .shadow(radius: 8)
-        .onTapGesture { showPicker = true }
-        .photosPicker(isPresented: $showPicker, selection: $avatarUIImage, matching: .images)
+        .photosPicker(selection: $avatarItem, matching: .images)
+        .onChange(of: avatarItem) { newItem in
+            guard let item = newItem else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self), let uiImg = UIImage(data: data) {
+                    avatarUIImage = uiImg
+                }
+            }
+        }
     }
 
     private var nameSection: some View {
