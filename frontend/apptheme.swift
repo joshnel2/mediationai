@@ -26,9 +26,9 @@ struct AppTheme {
     static let glassAccent = Color(red: 0.45, green: 0.30, blue: 0.95).opacity(0.08)
     
     // Text colors - High contrast for readability
-    static let textPrimary = Color.white
-    static let textSecondary = Color.white.opacity(0.85)
-    static let textTertiary = Color.white.opacity(0.60)
+    static let textPrimary = Color.black
+    static let textSecondary = Color.black.opacity(0.85)
+    static let textTertiary = Color.black.opacity(0.60)
     
     // Status colors - Modern and vibrant
     static let success = Color(red: 0.0, green: 0.85, blue: 0.40) // Vibrant green #00D966
@@ -50,9 +50,9 @@ struct AppTheme {
     
     static let backgroundGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.02, green: 0.02, blue: 0.05),
-            Color(red: 0.08, green: 0.02, blue: 0.15),
-            Color(red: 0.02, green: 0.02, blue: 0.05)
+            Color(red: 0.94, green: 0.95, blue: 1.00),   // Soft off-white
+            Color(red: 0.90, green: 0.92, blue: 1.00),   // Pastel lavender
+            Color(red: 0.96, green: 0.94, blue: 1.00)    // Nearly white
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -60,8 +60,8 @@ struct AppTheme {
     
     static let cardGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white.opacity(0.10),
-            primary.opacity(0.15)
+            Color.white.opacity(0.85),
+            Color(red: 0.93, green: 0.95, blue: 1.00)
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
