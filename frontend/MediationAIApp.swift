@@ -16,6 +16,7 @@ struct MediationAIApp: App {
     @StateObject var purchaseService = InAppPurchaseService()
     @StateObject var badgeService = BadgeService()
     @StateObject var viralService = ViralAPIService.shared
+    @StateObject var socialService = SocialAPIService()
 
     
     var body: some Scene {
@@ -26,6 +27,7 @@ struct MediationAIApp: App {
                 .environmentObject(purchaseService)
                 .environmentObject(badgeService)
                 .environmentObject(viralService)
+                .environmentObject(socialService)
         }
     }
 }

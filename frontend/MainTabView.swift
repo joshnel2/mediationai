@@ -44,5 +44,6 @@ struct MainTabView_Previews: PreviewProvider {
         MainTabView()
             .environmentObject(MockAuthService())
             .environmentObject(MockDisputeService())
+            .environmentObject(SocialAPIService())
     }
 }
