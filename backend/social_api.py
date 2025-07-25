@@ -424,3 +424,15 @@ async def daily_leaderboard(limit: int = 20, db: Session = Depends(get_db)):
     subq = db.query(XPLog.user_id, func.sum(XPLog.points).label("points")).filter(func.date(XPLog.created_at)==today).group_by(XPLog.user_id).subquery()
     rows = db.query(subq.c.user_id, subq.c.points).order_by(subq.c.points.desc()).limit(limit).all()
     return [{"userId": r.user_id, "xpToday": r.points} for r in rows]
+
+# ----------------------------
+# USER SEARCH
+# ----------------------------
+@router.get("/users/search")
+async def search_users(q: str, limit: int = 20, db: Session = Depends(get_db)):
+    pattern = f"%{q.lower()}%"
+    results = db.query(DBUser).filter(func.lower(DBUser.display_name).like(pattern)).limit(limit).all()
+    return [
+        {"id": u.id, "displayName": u.display_name, "xp": u.xp_points}
+        for u in results
+    ]
