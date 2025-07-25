@@ -33,6 +33,7 @@ struct MockDispute: Identifiable, Codable {
 class SocialAPIService: ObservableObject {
     @Published var liveClashes: [Clash] = []
     @Published var dramaClashes: [Clash] = []
+    @Published var publicClashes: [Clash] = []
     @Published var isLoading = false
     @Published var searchResults: [UserSummary] = []
     @Published var overallLeaders: [UserSummary] = []
@@ -41,7 +42,7 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
-    @Published var following: Set<String> = {} {
+    @Published var following: Set<String> = [] {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
@@ -100,6 +101,10 @@ class SocialAPIService: ObservableObject {
 
         dramaClashes = (0..<6).map { _ in
             Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 50...1000), startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true)
+        }
+
+        publicClashes = (0..<20).map { _ in
+            Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 20...400), startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true)
         }
 
         hotTopics = ["AI Art", "GTA6", "EldenRing", "Valorant", "F1"]
@@ -265,5 +270,18 @@ class SocialAPIService: ObservableObject {
         req.httpMethod = "POST"
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         URLSession.shared.dataTask(with: req).resume()
+    }
+
+    // create a new dispute between two users and return it
+    func createClashBetween(_ a: String, _ b: String) -> MockDispute {
+        let disp = MockDispute(id: UUID().uuidString, title: "\(userName(a)) vs \(userName(b))", statementA: "I was better!", statementB: "No, I won!", votesA: 0, votesB: 0)
+        disputesByUser[a, default: []].append(disp)
+        disputesByUser[b, default: []].append(disp)
+        liveClashes.append(Clash(id: disp.id, streamerA: userName(a), streamerB: userName(b), viewerCount: 0, startedAt: ISO8601DateFormatter().string(from:Date()), votes: 0, isPublic: true))
+        return disp
+    }
+
+    private func userName(_ id: String) -> String {
+        overallLeaders.first { $0.id == id }?.displayName ?? "Anon"
     }
 }

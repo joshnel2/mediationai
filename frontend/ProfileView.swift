@@ -36,24 +36,9 @@ struct ProfileView: View {
 
                     followerStats
 
-                    VStack(spacing: 16) {
-                        Button(action: {/* TODO: hook into CreateDisputeView */}) {
-                            Label("Create Clash", systemImage: "bolt.fill")
-                                .font(.headline)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                        }
-                        .primaryButton()
+                    chipsSection
 
-                        Button(action: shareInvite) {
-                            Label("Share Invite", systemImage: "link")
-                                .font(.headline)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                        }
-                        .accentButton()
-                    }
-                    .padding(.top)
+                    myDisputesSection
 
                     Spacer(minLength: 60)
                 }
@@ -122,23 +107,31 @@ struct ProfileView: View {
         }
     }
 
-    private var followerStats: some View {
-        HStack(spacing: 40) {
-            VStack {
-                Text("1.2k")
-                    .font(.title2).bold()
-                    .foregroundColor(AppTheme.textPrimary)
-                Text("followers")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.textSecondary)
+    private var followerStats: some View { EmptyView() }
+
+    private var chipsSection: some View {
+        HStack(spacing:24){
+            NavigationLink(destination: FollowingListView()){
+                Text("Following \(socialService.following.count)")
+                    .font(.caption).padding(8).background(AppTheme.cardGradient).cornerRadius(12)
             }
-            VStack {
-                Text("\(clashesCount)")
-                    .font(.title2).bold()
-                    .foregroundColor(AppTheme.textPrimary)
-                Text("clashes")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.textSecondary)
+            Text("Followers \(socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])")
+                .font(.caption).padding(8).background(AppTheme.cardGradient).cornerRadius(12)
+            Spacer()
+        }
+    }
+
+    private var myDisputesSection: some View {
+        VStack(alignment:.leading){
+            Text("My Disputes").font(.headline)
+            ForEach(socialService.disputes(for: authService.currentUser?.id.uuidString ?? "")) { disp in
+                NavigationLink(destination: ConversationView(dispute: disp)){
+                    VStack(alignment:.leading){
+                        Text(disp.title).bold()
+                        Text("Score: \(disp.votesA)-\(disp.votesB)").font(.caption)
+                    }
+                }
+                .padding(8).background(AppTheme.cardGradient).cornerRadius(12)
             }
         }
     }

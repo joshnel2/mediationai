@@ -46,11 +46,7 @@ struct LiveFeedView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(width: 250)
                     .onChange(of: tab) { newVal in
-                        switch newVal {
-                        case 0: socialService.fetchLiveClashes()
-                        case 1: socialService.fetchDramaFeed()
-                        default: socialService.fetchPublicClashes()
-                        }
+                        loadTab(newVal)
                     }
                 }
 
@@ -63,17 +59,24 @@ struct LiveFeedView: View {
                 }
             }
         }
-        .onAppear {
-            if tab == 0 { socialService.fetchLiveClashes() } else if tab == 1 { socialService.fetchDramaFeed() } else { socialService.fetchPublicClashes() }
+        .onAppear { loadTab(tab) }
+    }
+
+    private func loadTab(_ index:Int){
+        switch index {
+        case 0: socialService.fetchLiveClashes()
+        case 1: socialService.fetchDramaFeed()
+        default: socialService.fetchPublicClashes()
         }
     }
 
     private var contentView: some View {
         Group {
-            if socialService.isLoading && socialService.liveClashes.isEmpty {
+            let list = tab == 0 ? socialService.liveClashes : (tab==1 ? socialService.dramaClashes : socialService.publicClashes)
+            if socialService.isLoading && list.isEmpty {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-            } else if socialService.liveClashes.isEmpty {
+            } else if list.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "bolt.bubble")
                         .font(.system(size: 48))
@@ -86,8 +89,8 @@ struct LiveFeedView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 20) {
-                        ForEach(socialService.liveClashes.sorted(by: { $0.viewerCount > $1.viewerCount })) { clash in
-                            ClashCardView(clash: clash)
+                        ForEach(list) { clash in
+                            (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
                                 .background(
                                     NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: "tmp", title: clash.streamerA + " vs " + clash.streamerB, statementA: "Side A", statementB: "Side B", votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
                                         EmptyView()
@@ -107,7 +110,7 @@ struct LiveFeedView: View {
     @MainActor
     private func refresh() async {
         isRefreshing = true
-        socialService.fetchLiveClashes()
+        loadTab(tab)
         // simple delay to end refresh animation
         try? await Task.sleep(nanoseconds: 600_000_000)
         isRefreshing = false
@@ -160,6 +163,27 @@ struct ClashCardView: View {
             return rel.localizedString(for: date, relativeTo: Date())
         }
         return "now"
+    }
+}
+
+struct DramaCardView: View {
+    let clash: Clash
+    var body: some View {
+        ZStack {
+            HStack(spacing:0){
+                Color.red.opacity(0.8)
+                Color.blue.opacity(0.8)
+            }
+            .mask(RoundedRectangle(cornerRadius: 20))
+            VStack{
+                Text("⚔️ \(clash.streamerA) VS \(clash.streamerB)")
+                    .font(.headline).bold()
+                    .foregroundColor(.white)
+            }
+            .padding()
+        }
+        .frame(maxWidth:.infinity,minHeight:90)
+        .cornerRadius(20)
     }
 }
 
