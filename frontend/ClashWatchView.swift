@@ -4,6 +4,7 @@ import Combine
 class ClashWebSocketManager: ObservableObject {
     @Published var reactions: [UUID: String] = [:]
     private var webSocketTask: URLSessionWebSocketTask?
+    var onViewerUpdate: ((Int)->Void)?
 
     func connect(clashId: String) {
         guard let url = URL(string: "ws://" + APIConfig.baseURL.replacingOccurrences(of: "https://", with: "") + "/ws/clash/\(clashId)") else { return }
@@ -18,12 +19,15 @@ class ClashWebSocketManager: ObservableObject {
             case .success(let message):
                 if case .string(let text) = message,
                    let data = text.data(using: .utf8),
-                   let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   obj["type"] as? String == "reaction",
-                   let dataDict = obj["data"] as? [String: String],
-                   let emoji = dataDict["emoji"] {
-                    DispatchQueue.main.async {
-                        self?.reactions[UUID()] = emoji
+                   let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    if obj["type"] as? String == "reaction",
+                       let dataDict = obj["data"] as? [String: String],
+                       let emoji = dataDict["emoji"] {
+                        DispatchQueue.main.async {
+                            self?.reactions[UUID()] = emoji
+                        }
+                    } else if obj["type"] as? String == "vc", let count = obj["count"] as? Int {
+                        DispatchQueue.main.async { self?.onViewerUpdate?(count) }
                     }
                 }
             case .failure:
@@ -53,6 +57,8 @@ struct ClashWatchView: View {
     @State private var isPublic = false
     @State private var showCopied = false
     @State private var shareSheet = false
+    @State private var viewerCount = 0
+    @State private var showConfetti = false
 
     var body: some View {
         ZStack {
@@ -115,9 +121,17 @@ struct ClashWatchView: View {
                         }
                 }
             }
+            if showConfetti { ConfettiView() }
         }
         .onAppear {
             wsManager.connect(clashId: clash.id)
+            wsManager.onViewerUpdate = { count in
+                viewerCount = count
+                if count >= 100 && !showConfetti {
+                    showConfetti = true
+                    DispatchQueue.main.asyncAfter(deadline: .now()+3) { showConfetti=false }
+                }
+            }
         }
         .onDisappear {
             wsManager.disconnect()
