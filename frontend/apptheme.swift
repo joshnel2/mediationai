@@ -8,17 +8,16 @@
 import SwiftUI
 
 struct AppTheme {
-    // MARK: - Colors (Professional Modern Theme with Wow Factor)
-    
-    // Primary brand colors - Modern purple/blue gradient like premium apps
-    static let primary = Color(red: 0.45, green: 0.30, blue: 0.95) // Deep purple #7248F2
-    static let secondary = Color(red: 0.25, green: 0.50, blue: 0.95) // Electric blue #4080F2
-    static let accent = Color(red: 0.95, green: 0.30, blue: 0.60) // Vibrant pink accent #F24D99
+    // MARK: - Colors (Neon Streamer Theme)
+    // Electric neon palette aimed at streaming culture (Twitch / Kick vibe)
+    static let primary = Color(red: 0.92, green: 0.05, blue: 0.40) // Neon pink #EB0D66
+    static let secondary = Color(red: 0.00, green: 0.80, blue: 0.80) // Neon cyan #00CCD4
+    static let accent = Color(red: 1.00, green: 0.86, blue: 0.00) // Neon yellow #FFDB00
     
     // Background colors - Deep sophisticated gradients
-    static let background = Color(red: 0.05, green: 0.05, blue: 0.12) // Deep navy #0D0D1E
-    static let surfaceBackground = Color(red: 0.08, green: 0.08, blue: 0.16) // Slightly lighter navy
-    static let cardBackground = Color(red: 0.12, green: 0.12, blue: 0.20) // Card background
+    static let background = Color(red: 0.05, green: 0.05, blue: 0.08) // Near-black
+    static let surfaceBackground = Color(red: 0.08, green: 0.08, blue: 0.12)
+    static let cardBackground = Color(red: 0.12, green: 0.12, blue: 0.18)
     
     // Glass-morphism backgrounds with subtle color tints
     static let glassPrimary = Color.white.opacity(0.12)
@@ -27,7 +26,7 @@ struct AppTheme {
     
     // Text colors - High contrast for readability
     static let textPrimary = Color.white
-    static let textSecondary = Color.white.opacity(0.80)
+    static let textSecondary = Color.white.opacity(0.85)
     static let textTertiary = Color.white.opacity(0.60)
     
     // Status colors - Modern and vibrant
@@ -40,9 +39,9 @@ struct AppTheme {
     
     static let mainGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.45, green: 0.30, blue: 0.95), // Deep purple
-            Color(red: 0.25, green: 0.50, blue: 0.95), // Electric blue
-            Color(red: 0.95, green: 0.30, blue: 0.60)  // Vibrant pink
+            primary,
+            secondary,
+            accent
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -50,10 +49,9 @@ struct AppTheme {
     
     static let backgroundGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color(red: 0.05, green: 0.05, blue: 0.12), // Deep navy
-            Color(red: 0.08, green: 0.08, blue: 0.16), // Slightly lighter
-            Color(red: 0.12, green: 0.12, blue: 0.20), // Card background
-            Color(red: 0.05, green: 0.05, blue: 0.12)  // Back to deep navy
+            Color(red: 0.02, green: 0.02, blue: 0.05),
+            Color(red: 0.08, green: 0.02, blue: 0.15),
+            Color(red: 0.02, green: 0.02, blue: 0.05)
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -61,9 +59,8 @@ struct AppTheme {
     
     static let cardGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white.opacity(0.12),
-            Color.white.opacity(0.06),
-            Color(red: 0.45, green: 0.30, blue: 0.95).opacity(0.08)
+            Color.white.opacity(0.10),
+            primary.opacity(0.15)
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
@@ -88,13 +85,20 @@ struct AppTheme {
     )
     
     static let accentGradient = LinearGradient(
-        gradient: Gradient(colors: [
-            Color(red: 0.95, green: 0.30, blue: 0.60),
-            Color(red: 0.95, green: 0.50, blue: 0.70)
-        ]),
+        gradient: Gradient(colors: [primary, secondary]),
         startPoint: .leading,
         endPoint: .trailing
     )
+    
+    // MARK: - Neon Glow Effect
+    struct Glow: ViewModifier {
+        var color: Color = primary
+        func body(content: Content) -> some View {
+            content
+                .shadow(color: color.opacity(0.9), radius: 10)
+                .shadow(color: color.opacity(0.7), radius: 20)
+        }
+    }
     
     // MARK: - Typography
     
@@ -328,5 +332,9 @@ extension View {
                     )
             )
             .shadow(color: AppTheme.shadowSM, radius: 4, x: 0, y: 2)
+    }
+
+    func neonGlow(color: Color = AppTheme.primary) -> some View {
+        modifier(AppTheme.Glow(color: color))
     }
 }
