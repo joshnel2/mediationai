@@ -10,9 +10,10 @@ import SwiftUI
 struct AppTheme {
     // MARK: - Colors (Neon Streamer Theme)
     // Electric neon palette aimed at streaming culture (Twitch / Kick vibe)
-    static let primary = Color(red: 0.92, green: 0.05, blue: 0.40) // Neon pink #EB0D66
-    static let secondary = Color(red: 0.00, green: 0.80, blue: 0.80) // Neon cyan #00CCD4
-    static let accent = Color(red: 1.00, green: 0.86, blue: 0.00) // Neon yellow #FFDB00
+    // Trendy Twitch + Twitter inspired palette
+    static let primary = Color(red: 0.57, green: 0.27, blue: 1.00) // Twitch Purple #9146FF
+    static let secondary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
+    static let accent = Color(red: 1.00, green: 0.38, blue: 0.96) // Hot Pink #FF61F6
     
     // Background colors - Deep sophisticated gradients
     static let background = Color(red: 0.05, green: 0.05, blue: 0.08) // Near-black
