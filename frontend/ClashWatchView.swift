@@ -74,9 +74,10 @@ struct ClashWatchView: View {
                         .padding(.leading, 8)
 
                     if authService.currentUser?.id.uuidString == clash.streamerA {
-                        Toggle("Public", isOn: $isPublic) {
-                            setPublic(isPublic)
-                        }
+                        Toggle("Public", isOn: $isPublic)
+                            .onChange(of: isPublic) { value in
+                                setPublic(value)
+                            }
                     } else if clash.isPublic ?? true { // watchers copy link
                         Button(action: { copyLink(); shareSheet=true }) {
                             Image(systemName: "link.circle")
