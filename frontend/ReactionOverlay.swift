@@ -2,18 +2,19 @@ import SwiftUI
 
 struct ReactionOverlay: View {
     let reaction: String
-    @State private var animate = false
-    let animationDuration = 2.0
+    @State private var fly = false
+    let animationDuration = 2.4
 
     var body: some View {
         Text(reaction)
-            .font(.system(size: 40))
-            .scaleEffect(animate ? 1.8 : 0.8)
-            .opacity(animate ? 0 : 1)
+            .font(.system(size: 44))
+            .shadow(color: .white.opacity(0.8), radius: 4)
+            .scaleEffect(fly ? 2.0 : 0.6)
+            .rotationEffect(.degrees(fly ? Double.random(in:-20...20) : 0))
+            .offset(y: fly ? -200 : 0)
+            .opacity(fly ? 0 : 1)
             .onAppear {
-                withAnimation(.easeOut(duration: animationDuration)) {
-                    animate = true
-                }
+                withAnimation(.easeOut(duration: animationDuration)) { fly = true }
             }
     }
 }

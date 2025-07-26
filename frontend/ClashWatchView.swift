@@ -133,32 +133,29 @@ struct ClashWatchView: View {
 
                 // Vote buttons or reaction buttons
                 if voted || dispute == nil {
-                    HStack(spacing: 30) {
+                    HStack(spacing: 18) {
                         ForEach(["🔥", "😂", "💥", "👏"], id: \.self) { emoji in
-                            Button(emoji) {
+                            Button(action:{
                                 HapticManager.impact(.light)
                                 wsManager.sendReaction(emoji)
+                            }){
+                                Text(emoji)
+                                    .font(.system(size:30))
+                                    .padding(14)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.white.opacity(0.15))
+                                            .shadow(color:.black.opacity(0.3),radius:4,x:0,y:2)
+                                    )
                             }
-                            .font(.system(size: 40))
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .padding(.bottom, 40)
                 } else {
                     HStack(spacing:40){
-                        Button(action:{ castVote(true) }){
-                            Text("Vote \(clash.streamerA)")
-                                .padding(.vertical,12).padding(.horizontal,18)
-                                .background(AppTheme.primary)
-                                .foregroundColor(.white)
-                                .cornerRadius(22)
-                        }
-                        Button(action:{ castVote(false) }){
-                            Text("Vote \(clash.streamerB)")
-                                .padding(.vertical,12).padding(.horizontal,18)
-                                .background(AppTheme.secondary)
-                                .foregroundColor(.white)
-                                .cornerRadius(22)
-                        }
+                        voteButton(title: clash.streamerA, color: AppTheme.primary, voteForA: true)
+                        voteButton(title: clash.streamerB, color: AppTheme.secondary, voteForA: false)
                     }
                     .padding(.bottom,40)
                 }
@@ -215,6 +212,26 @@ struct ClashWatchView: View {
         voteForA = forA
         voted = true
         HapticManager.success()
+    }
+
+    // Fancy vote button
+    private func voteButton(title:String,color:Color,voteForA:Bool)->some View{
+        Button(action:{ castVote(voteForA) }){
+            HStack(spacing:6){
+                Image(systemName:"flame.fill")
+                Text(title)
+            }
+            .font(.subheadline.bold())
+            .padding(.vertical,12)
+            .padding(.horizontal,20)
+            .background(
+                Capsule()
+                    .fill(color)
+                    .shadow(color: color.opacity(0.6), radius:6,x:0,y:3)
+            )
+            .foregroundColor(.white)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
