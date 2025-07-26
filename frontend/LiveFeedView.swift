@@ -187,12 +187,11 @@ struct DramaCardView: View {
     let clash: Clash
     var body: some View {
         ZStack {
-            // Split gradient background
-            HStack(spacing:0){
-                LinearGradient(colors:[Color.red,Color.orange],startPoint:.topLeading,endPoint:.bottomTrailing)
-                LinearGradient(colors:[Color.blue,Color.purple],startPoint:.topLeading,endPoint:.bottomTrailing)
-            }
-            .mask(RoundedRectangle(cornerRadius: 28))
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.white.opacity(0.15))
+                .background(
+                    RoundedRectangle(cornerRadius:24).stroke(Color.white.opacity(0.25),lineWidth:1)
+                )
 
             // Content overlay
             HStack {
@@ -200,7 +199,7 @@ struct DramaCardView: View {
                     AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerA)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
                         .frame(width:60,height:60)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white,lineWidth:2))
+                        .overlay(Circle().stroke(Color.white.opacity(0.8),lineWidth:2))
                     Text(clash.streamerA)
                         .font(.caption2).bold().foregroundColor(.white)
                 }
@@ -209,7 +208,7 @@ struct DramaCardView: View {
                     AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerB)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
                         .frame(width:60,height:60)
                         .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.white,lineWidth:2))
+                        .overlay(Circle().stroke(Color.white.opacity(0.8),lineWidth:2))
                     Text(clash.streamerB)
                         .font(.caption2).bold().foregroundColor(.white)
                 }
@@ -217,13 +216,18 @@ struct DramaCardView: View {
             .padding(.horizontal,24)
 
             // VS label
-            Text("VS")
-                .font(.title2).bold().foregroundColor(.white.opacity(0.9))
-                .shadow(radius:4)
+            VStack(spacing:4){
+                Text("VS").font(.caption).foregroundColor(.white.opacity(0.8))
+                if let votes = clash.votes {
+                    Text("🔥 \(votes) votes")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+            }
         }
         .frame(height:140)
-        .cornerRadius(28)
-        .shadow(color:.black.opacity(0.25),radius:6,x:0,y:4)
+        .cornerRadius(24)
+        .shadow(color:.black.opacity(0.15),radius:6,x:0,y:3)
     }
 }
 
