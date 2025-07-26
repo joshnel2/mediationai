@@ -121,8 +121,9 @@ struct LeaderRow: View {
             .background(rankGradient)
             .cornerRadius(20)
             .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
+            // Highlight champion row without external shimmer dependency
             .overlay(
-                rank==1 ? LinearGradient(colors:[.yellow.opacity(0.4),.clear],startPoint:.top,endPoint:.bottom).mask(RoundedRectangle(cornerRadius:20)).shimmer(duration:2) : nil
+                rank==1 ? RoundedRectangle(cornerRadius:20).stroke(Color.yellow.opacity(0.4),lineWidth:2) : nil
             )
         }
         .buttonStyle(PlainButtonStyle())
