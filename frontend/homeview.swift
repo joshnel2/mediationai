@@ -282,7 +282,7 @@ struct HomeView: View {
             if let dispute = allDisputes.first(where: { $0.id == clash.id }) {
                 return AnyView(ConversationView(dispute: dispute))
             } else {
-                return AnyView(ClashWatchView(clash: clash))
+                return AnyView(ClashWatchView(clash: clash).environmentObject(social))
             }
         }
     }

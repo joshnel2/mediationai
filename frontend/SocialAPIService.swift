@@ -441,4 +441,13 @@ class SocialAPIService: ObservableObject {
     private func userName(_ id: String) -> String {
         overallLeaders.first { $0.id == id }?.displayName ?? "Anon"
     }
+
+    // MARK: - Helpers
+    /// Find a dispute anywhere in the mock storage using its id.
+    func dispute(withId id:String) -> MockDispute? {
+        for list in disputesByUser.values {
+            if let d = list.first(where: { $0.id == id }) { return d }
+        }
+        return nil
+    }
 }

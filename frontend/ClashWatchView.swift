@@ -1,6 +1,8 @@
 import SwiftUI
 import Combine
 
+// MARK: - ClashWatch with Voting & Scoreboard
+
 class ClashWebSocketManager: ObservableObject {
     @Published var reactions: [UUID: String] = [:]
     private var webSocketTask: URLSessionWebSocketTask?
@@ -54,22 +56,55 @@ struct ClashWatchView: View {
     let clash: Clash
     @StateObject private var wsManager = ClashWebSocketManager()
     @EnvironmentObject var authService: MockAuthService
+    @EnvironmentObject var social: SocialAPIService
     @State private var isPublic = false
     @State private var showCopied = false
     @State private var shareSheet = false
     @State private var viewerCount = 0
     @State private var showConfetti = false
 
+    // Voting state
+    @State private var voted = false
+    @State private var voteForA: Bool = false
+
+    private var dispute: MockDispute? { social.dispute(withId: clash.id) }
+    private var votesA: Int { dispute?.votesA ?? 0 }
+    private var votesB: Int { dispute?.votesB ?? 0 }
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
 
             VStack {
+                // Scoreboard
+                VStack(spacing:8){
+                    HStack{
+                        VStack{
+                            Text(clash.streamerA).font(.caption2).foregroundColor(.white.opacity(0.8))
+                            Text("🔥 \(votesA)").bold().foregroundColor(.white)
+                        }
+                        Spacer()
+                        VStack{
+                            Text(clash.streamerB).font(.caption2).foregroundColor(.white.opacity(0.8))
+                            Text("🔥 \(votesB)").bold().foregroundColor(.white)
+                        }
+                    }
+                    GeometryReader{ geo in
+                        ZStack(alignment:.leading){
+                            RoundedRectangle(cornerRadius:4).fill(Color.white.opacity(0.15))
+                            let total = max(1, votesA+votesB)
+                            let percentA = CGFloat(votesA) / CGFloat(total)
+                            RoundedRectangle(cornerRadius:4).fill(AppTheme.accent).frame(width: geo.size.width * percentA)
+                        }
+                    }
+                    .frame(height:8)
+                }
+                .padding(.horizontal)
+
+                // Viewer bar & actions
                 HStack {
-                    Text("\(clash.streamerA) VS \(clash.streamerB)")
-                        .font(.title.bold())
-                        .foregroundColor(.white)
-                        .padding(.top)
+                    Text("👀 \(viewerCount)")
+                        .foregroundColor(.white.opacity(0.8))
                     EqualizerView(color: AppTheme.accent)
                         .padding(.leading, 8)
 
@@ -96,16 +131,37 @@ struct ClashWatchView: View {
 
                 Spacer()
 
-                HStack(spacing: 30) {
-                    ForEach(["🔥", "😂", "💥", "👏"], id: \.self) { emoji in
-                        Button(emoji) {
-                            HapticManager.impact(.light)
-                            wsManager.sendReaction(emoji)
+                // Vote buttons or reaction buttons
+                if voted || dispute == nil {
+                    HStack(spacing: 30) {
+                        ForEach(["🔥", "😂", "💥", "👏"], id: \.self) { emoji in
+                            Button(emoji) {
+                                HapticManager.impact(.light)
+                                wsManager.sendReaction(emoji)
+                            }
+                            .font(.system(size: 40))
                         }
-                        .font(.system(size: 40))
                     }
+                    .padding(.bottom, 40)
+                } else {
+                    HStack(spacing:40){
+                        Button(action:{ castVote(true) }){
+                            Text("Vote \(clash.streamerA)")
+                                .padding(.vertical,12).padding(.horizontal,18)
+                                .background(AppTheme.primary)
+                                .foregroundColor(.white)
+                                .cornerRadius(22)
+                        }
+                        Button(action:{ castVote(false) }){
+                            Text("Vote \(clash.streamerB)")
+                                .padding(.vertical,12).padding(.horizontal,18)
+                                .background(AppTheme.secondary)
+                                .foregroundColor(.white)
+                                .cornerRadius(22)
+                        }
+                    }
+                    .padding(.bottom,40)
                 }
-                .padding(.bottom, 40)
             }
 
             // Floating reactions
@@ -152,10 +208,19 @@ struct ClashWatchView: View {
         UIPasteboard.general.string = shareURL
         showCopied = true
     }
+
+    // MARK: - Voting Logic
+    private func castVote(_ forA: Bool){
+        social.recordVote(disputeID: clash.id, voteForA: forA)
+        voteForA = forA
+        voted = true
+        HapticManager.success()
+    }
 }
 
 struct ClashWatchView_Previews: PreviewProvider {
     static var previews: some View {
         ClashWatchView(clash: Clash(id: "1", streamerA: "Alice", streamerB: "Bob", viewerCount: 120, startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true))
+            .environmentObject(SocialAPIService())
     }
 }

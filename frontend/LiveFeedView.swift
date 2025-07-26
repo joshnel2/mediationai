@@ -90,7 +90,7 @@ struct LiveFeedView: View {
                 ScrollView {
                     LazyVStack(spacing: 24) {
                         ForEach(list) { clash in
-                            NavigationLink(destination: ClashWatchView(clash: clash)) {
+                            NavigationLink(destination: ClashWatchView(clash: clash).environmentObject(socialService)) {
                                 FeedClashRow(clash: clash)
                                     .environmentObject(socialService)
                             }
