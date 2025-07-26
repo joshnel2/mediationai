@@ -13,13 +13,41 @@ struct LeaderboardView: View {
             #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
+
+            // Segmented selector
             Picker("Leaderboard", selection: $segment) {
                 Text("Overall").tag(0)
                 Text("Today").tag(1)
             }
             .pickerStyle(SegmentedPickerStyle())
-            .padding()
+            .padding(.horizontal)
 
+            // Podium for top 3
+            if !currentList.isEmpty {
+                HStack(alignment:.bottom,spacing:24){
+                    ForEach(0..<min(3,currentList.count),id:\.self){ idx in
+                        let user = currentList[idx]
+                        VStack(spacing:6){
+                            AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
+                                if let img = phase.image { img.resizable() } else { Color.gray }
+                            }
+                            .frame(width:72,height:72)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(AppTheme.accent,lineWidth:3))
+                            Text(user.displayName)
+                                .font(.caption)
+                                .foregroundColor(.white)
+                            Text("🏆 \(user.wins)")
+                                .font(.caption2).foregroundColor(.yellow)
+                        }
+                        .scaleEffect(idx==0 ? 1.2 : 1.0)
+                        .opacity(idx==0 ? 1 : 0.9)
+                    }
+                }
+                .padding(.vertical,8)
+            }
+
+            // List body
             List {
                 ForEach(currentList.indices, id: \.self) { idx in
                     let user = currentList[idx]
@@ -85,11 +113,24 @@ struct LeaderRow: View {
                 }
             }
             .padding(10)
-            .background(AppTheme.cardGradient)
+            .background(rankGradient)
             .cornerRadius(20)
             .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+
+    private var rankGradient: LinearGradient {
+        switch rank {
+        case 1:
+            return LinearGradient(colors:[Color.yellow,Color.orange],startPoint:.topLeading,endPoint:.bottomTrailing)
+        case 2:
+            return LinearGradient(colors:[Color.gray.opacity(0.8),Color.gray],startPoint:.topLeading,endPoint:.bottomTrailing)
+        case 3:
+            return LinearGradient(colors:[Color.brown,Color.orange.opacity(0.7)],startPoint:.topLeading,endPoint:.bottomTrailing)
+        default:
+            return AppTheme.cardGradient
+        }
     }
 }
 
