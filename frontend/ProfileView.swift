@@ -30,11 +30,7 @@ struct ProfileView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 28) {
-                    // Avatar
-                    avatarSection
-                        .padding(.top,20)
-
-                    nameSection
+                    heroHeader
 
                     chipsSection
 
@@ -171,6 +167,22 @@ struct ProfileView: View {
                 }
                 .padding(8).background(AppTheme.cardGradient).cornerRadius(12)
             }
+        }
+    }
+
+    // MARK: Hero Header
+    private var heroHeader: some View {
+        ZStack(alignment:.bottom){
+            RoundedRectangle(cornerRadius:32)
+                .fill(AppTheme.cardGradient)
+                .frame(height:260)
+                .shadow(color:.black.opacity(0.15),radius:8,x:0,y:4)
+
+            VStack(spacing:12){
+                avatarSection
+                nameSection
+            }
+            .padding(.bottom,32)
         }
     }
 
