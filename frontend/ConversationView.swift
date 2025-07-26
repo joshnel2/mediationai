@@ -34,6 +34,9 @@ struct ConversationView: View {
     @State private var votesB:Int = 0
     @State private var showBothSides = false
 
+    @State private var showSideA = true
+    @State private var showSideB = false
+
     @EnvironmentObject var authService: MockAuthService
 
     private var meIsA: Bool { Bool.random() } // placeholder
@@ -46,13 +49,8 @@ struct ConversationView: View {
                 Text("Side B 🔥 \(votesB)")
                 Spacer()
                 if !voted {
-                    Button(showBothSides ? "Hide" : "Show Both") {
-                        withAnimation { showBothSides.toggle() }
-                    }
-                    .font(.caption2)
-                    .padding(6)
-                    .background(AppTheme.glassPrimary)
-                    .cornerRadius(12)
+                    ToggleChip(title: "A", isOn: $showSideA, color: AppTheme.primary)
+                    ToggleChip(title: "B", isOn: $showSideB, color: AppTheme.accent)
                 }
             }
             .padding(8)
@@ -137,6 +135,7 @@ struct ConversationView: View {
         messages.append(ChatMsg(text: input, sender: sender))
         if sender == .a { votesA += 1 } else { votesB += 1 }
         voted = true
+        showSideA = true; showSideB = true
         input = ""
         aiRespond()
     }
@@ -180,12 +179,26 @@ struct ConversationView: View {
     }
 
     private func shouldShow(_ msg:ChatMsg)->Bool {
-        if voted || showBothSides { return true }
-        // before vote, only show AI and my side
+        if voted { return true }
         switch msg.sender {
         case .ai: return true
-        case .a: return meIsA
-        case .b: return !meIsA
+        case .a: return showSideA
+        case .b: return showSideB
+        }
+    }
+
+    private struct ToggleChip: View {
+        let title: String
+        @Binding var isOn: Bool
+        let color: Color
+        var body: some View {
+            Text(title)
+                .font(.caption2)
+                .padding(.horizontal,10).padding(.vertical,6)
+                .background(isOn ? color : Color.white.opacity(0.2))
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .onTapGesture { withAnimation{ isOn.toggle() } }
         }
     }
 }
