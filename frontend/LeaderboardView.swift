@@ -10,6 +10,7 @@ struct LeaderboardView: View {
 
     var body: some View {
         VStack {
+            Spacer(minLength: 0).frame(height: 8) // top breathing space
             #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
@@ -22,30 +23,22 @@ struct LeaderboardView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
 
-            // Podium for top 3
-            if !currentList.isEmpty {
-                HStack(alignment:.bottom,spacing:24){
-                    ForEach(0..<min(3,currentList.count),id:\.self){ idx in
-                        let user = currentList[idx]
-                        VStack(spacing:6){
-                            AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
-                                if let img = phase.image { img.resizable() } else { Color.gray }
-                            }
-                            .frame(width:72,height:72)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(AppTheme.accent,lineWidth:3))
-                            Text(user.displayName)
-                                .font(.caption)
-                                .foregroundColor(.white)
-                            Text("🏆 \(user.wins)")
-                                .font(.caption2).foregroundColor(.yellow)
-                        }
-                        .scaleEffect(idx==0 ? 1.2 : 1.0)
-                        .opacity(idx==0 ? 1 : 0.9)
-                    }
-                }
-                .padding(.vertical,8)
+            // Podium for top 3 – revamped
+            if currentList.count >= 3 {
+                PodiumView(first: currentList[0], second: currentList[1], third: currentList[2])
+                    .environmentObject(social)
+                    .padding(.bottom,8)
             }
+
+            // Fallback when <3 users
+            else if !currentList.isEmpty {
+                ForEach(0..<currentList.count,id:\.self){ idx in
+                    LeaderRow(user: currentList[idx], rank: idx+1, maxWins: maxWins)
+                        .environmentObject(social)
+                }
+            }
+
+            // Continue list ...
 
             // List body
             List {
@@ -54,9 +47,11 @@ struct LeaderboardView: View {
                     LeaderRow(user: user, rank: idx+1, maxWins: maxWins)
                         .environmentObject(social)
                         .onAppear{ if idx==0 { confetti+=1 } }
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top:8, leading:0, bottom:8, trailing:0))
                 }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
         }
         .navigationTitle("Leaderboard")
         .background(AppTheme.backgroundGradient)
@@ -74,61 +69,76 @@ struct LeaderboardView: View {
     // no longer needed
 }
 
-struct LeaderRow: View {
+// MARK: - Podium
+
+private struct PodiumView: View {
+    @EnvironmentObject var social: SocialAPIService
+    let first: SocialAPIService.UserSummary
+    let second: SocialAPIService.UserSummary
+    let third: SocialAPIService.UserSummary
+
+    var body: some View {
+        HStack(alignment:.bottom,spacing:24){
+            miniColumn(for: second, height:100)
+            miniColumn(for: first, height:120, isChampion:true)
+            miniColumn(for: third, height:100)
+        }
+    }
+
+    private func miniColumn(for user:SocialAPIService.UserSummary, height:CGFloat, isChampion:Bool=false)->some View{
+        VStack(spacing:6){
+            NavigationLink(destination: MiniProfileView(userID: user.id)){
+                AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:height*0.6,height:height*0.6)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(isChampion ? Color.yellow : AppTheme.accent,lineWidth: isChampion ? 4 : 2))
+                .shadow(radius:isChampion ? 6 : 3)
+            }
+            .buttonStyle(PlainButtonStyle())
+            Text(user.displayName).font(.caption)
+            Text("🏆 \(user.wins)").font(.caption2).foregroundColor(.secondary)
+        }
+        .frame(height:height)
+    }
+}
+
+// MARK: - Leader Row
+
+private struct LeaderRow: View {
     @EnvironmentObject var social: SocialAPIService
     let user: SocialAPIService.UserSummary
     let rank: Int
     let maxWins: Int
     var body: some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack(spacing:16){
-                ZStack{
-                    Circle()
-                        .stroke(Color.white.opacity(0.15), lineWidth: 4)
-                        .overlay(
-                            Circle()
-                                .trim(from: 0, to: CGFloat(user.wins)/CGFloat(maxWins))
-                                .stroke(AppTheme.primary, style: StrokeStyle(lineWidth:4, lineCap:.round))
-                                .rotationEffect(.degrees(-90))
-                                .animation(.easeOut(duration:0.6),value:user.wins)
-                        )
-                    AsyncImage(url: URL(string: "https://i.pravatar.cc/64?u=\(user.id)")) { phase in
-                        if let img = phase.image { img.resizable().clipShape(Circle()) } else { Circle().fill(AppTheme.accent) }
-                    }
+            HStack(spacing:12){
+                Text("#\(rank)")
+                    .font(.subheadline.weight(.bold))
+                    .frame(width:28)
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/60?u=\(user.id)")) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
-                .frame(width:64,height:64)
-                .shadow(radius:4)
+                .frame(width:40,height:40) .clipShape(Circle())
 
-                VStack(alignment:.leading,spacing:4){
+                VStack(alignment:.leading,spacing:2){
                     Text(user.displayName)
-                        .font(.headline)
-                    Text("🏆 \(user.wins) Crashouts")
+                        .font(.subheadline.weight(.semibold))
+                    Text("\(user.wins) wins • \(user.xp) XP")
                         .font(.caption)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(.secondary)
                 }
                 Spacer()
                 Button(action:{ social.toggleFollow(id: user.id) }){
-                    Text(social.following.contains(user.id) ? "Following" : "+ Follow")
-                        .font(.caption2)
-                        .padding(.vertical,6)
-                        .padding(.horizontal,10)
-                        .background(AppTheme.primary.opacity(0.85))
-                        .foregroundColor(.white)
-                        .cornerRadius(16)
+                    Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
+                        .foregroundColor(AppTheme.primary)
                 }
             }
-            .padding(10)
-            .background(rankGradient)
-            .cornerRadius(20)
-            .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
-            // Highlight champion row without external shimmer dependency
-            .overlay(
-                rank==1 ? RoundedRectangle(cornerRadius:20).stroke(Color.yellow.opacity(0.4),lineWidth:2) : nil
-            )
+            .padding(.horizontal)
         }
         .buttonStyle(PlainButtonStyle())
     }
-
     private var rankGradient: LinearGradient {
         switch rank {
         case 1:
@@ -141,6 +151,8 @@ struct LeaderRow: View {
             return AppTheme.cardGradient
         }
     }
+
+    // Not used since rows are flat
 }
 
 struct LeaderboardView_Previews: PreviewProvider {

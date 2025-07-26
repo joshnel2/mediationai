@@ -38,23 +38,64 @@ struct ConversationView: View {
     @State private var votesA:Int = 0
     @State private var votesB:Int = 0
 
-    @State private var showSideA = true
-    @State private var showSideB = false
+    // Swipeable view selection: 0 = A, 1 = B, 2 = AI Resolution
+    @State private var selectedTab = 0
 
     @EnvironmentObject var authService: MockAuthService
+
+    // Determine if the current signed-in user is a participant in this crash-out.
+    private var isParticipant: Bool {
+        guard let myID = authService.currentUser?.id.uuidString else { return false }
+        // A user is considered a participant if this dispute appears in their personal dispute list
+        return social.disputesByUser[myID]?.contains(where: { $0.id == dispute.id }) ?? false
+    }
 
     private var meIsA: Bool { Bool.random() } // placeholder
 
     var body: some View {
         VStack {
-            // Top controls
-            HStack(spacing:16){
-                Text("Side A 🔥 \(votesA)")
-                Text("Side B 🔥 \(votesB)")
-                Spacer()
-                if !voted {
-                    ToggleChip(title: "A", isOn: $showSideA, color: AppTheme.primary)
-                    ToggleChip(title: "B", isOn: $showSideB, color: AppTheme.accent)
+            // Neon scoreboard
+            VStack(spacing:8){
+                HStack(alignment:.center){
+                    VStack(spacing:2){
+                        Text("🔥 \(votesA)")
+                            .font(.title3.bold())
+                            .foregroundColor(AppTheme.primary)
+                        Text("A")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    VStack(spacing:2){
+                        Text("🔥 \(votesB)")
+                            .font(.title3.bold())
+                            .foregroundColor(AppTheme.accent)
+                        Text("B")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                // Progress bar with glow
+                GeometryReader { geo in
+                    ZStack(alignment:.leading){
+                        RoundedRectangle(cornerRadius:4)
+                            .fill(Color.white.opacity(0.15))
+                        let total = max(1, votesA + votesB)
+                        let percentA = CGFloat(votesA) / CGFloat(total)
+                        RoundedRectangle(cornerRadius:4)
+                            .fill(AppTheme.primary)
+                            .frame(width: geo.size.width * percentA)
+                            .shadow(color: AppTheme.primary.opacity(0.6), radius:6)
+                    }
+                }
+                .frame(height:8)
+
+                // Tab chooser
+                HStack(spacing:0){
+                    tabLabel(title:"Side A", index:0, color:AppTheme.primary)
+                    tabLabel(title:"Side B", index:1, color:AppTheme.accent)
+                    tabLabel(title:"Result", index:2, color:Color.yellow)
                 }
             }
             .padding(8)
@@ -62,38 +103,48 @@ struct ConversationView: View {
             .cornerRadius(16)
             .padding(.top,8)
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing:12){
-                        ForEach(messages.filter{ shouldShow($0) }){ msg in bubble(for: msg) }
-                    }
-                    .padding()
-                }
-                .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
+            // Swipeable pages
+            TabView(selection:$selectedTab){
+                chatPage(for:.a)
+                    .tag(0)
+                chatPage(for:.b)
+                    .tag(1)
+                resolutionPage
+                    .tag(2)
             }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode:.never))
 
             // Modern glass input bar
-            HStack(spacing:8){
-                TextField("Type your point", text:$input)
-                    .foregroundColor(.primary)
-                Button(action: send){
-                    Image(systemName:"paperplane.fill")
-                        .rotationEffect(.degrees(45))
-                        .padding(10)
-                        .background(AppTheme.primary)
-                        .clipShape(Circle())
-                        .foregroundColor(.white)
+            // Input section – visible only to participants
+            if isParticipant {
+                HStack(spacing:8){
+                    TextField("Type your point", text:$input)
+                        .foregroundColor(.primary)
+                    Button(action: send){
+                        Image(systemName:"paperplane.fill")
+                            .rotationEffect(.degrees(45))
+                            .padding(10)
+                            .background(AppTheme.primary)
+                            .clipShape(Circle())
+                            .foregroundColor(.white)
+                    }
+                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
                 }
-                .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
-            }
-            .padding(.vertical,10)
-            .padding(.horizontal,16)
-            .background(BlurView(style:.systemUltraThinMaterial))
-            .clipShape(Capsule())
-            .padding(.horizontal)
+                .padding(.vertical,10)
+                .padding(.horizontal,16)
+                .background(BlurView(style:.systemUltraThinMaterial))
+                .clipShape(Capsule())
+                .padding(.horizontal)
 
-            if voted {
-                opponentSection
+                if voted {
+                    opponentSection
+                }
+            } else {
+                // Viewer message when not a participant
+                Text("You are watching this crashout. Only the participants can add messages.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 12)
             }
         }
         .navigationTitle(dispute.title)
@@ -101,12 +152,36 @@ struct ConversationView: View {
     }
 
     private func seed(){
+        // Build an extended mock conversation so spectators see depth
+        let sideAExtras = [
+            "I predicted their rotations every round—check my pings on minimap.",
+            "My utility usage forced their duelists to waste cooldowns early.",
+            "I won the mental game; their IGL admitted it post-match.",
+            "When you look at ADR I’m 30% ahead—impact speaks louder than K/D."
+        ].shuffled().prefix(3)
+
+        let sideBExtras = [
+            "Your ‘prediction’ was luck; I counter-flanked and caught you twice.",
+            "Utility is pointless if you burn it with no follow-up—basic economics.",
+            "We adapted mid-game and you went 3-10 afterwards—momentum lost.",
+            "ADR ignores entry damage vs finishing—context matters."
+        ].shuffled().prefix(3)
+
         messages = [
             ChatMsg(text: dispute.statementA, sender:.a),
-            ChatMsg(text: "AI: That’s an interesting perspective. Could you elaborate?", sender:.ai),
+            ChatMsg(text: "AI: Interesting opening. Could you provide concrete evidence?", sender:.ai),
             ChatMsg(text: dispute.statementB, sender:.b),
-            ChatMsg(text: "AI: I see contrasting viewpoints. Let’s explore common ground.", sender:.ai)
         ]
+
+        // Interleave extra arguments with AI probing
+        for i in 0..<3 {
+            messages.append(ChatMsg(text: Array(sideAExtras)[i], sender:.a))
+            messages.append(ChatMsg(text: "AI: Noted. Counter-argument?", sender:.ai))
+            messages.append(ChatMsg(text: Array(sideBExtras)[i], sender:.b))
+            messages.append(ChatMsg(text: "AI: Let’s keep dissecting the core claim.", sender:.ai))
+        }
+
+        messages.append(ChatMsg(text: "AI: We’ve surfaced both micro- and macro-level concerns. Shall we move to closing statements?", sender:.ai))
         votesA = dispute.votesA
         votesB = dispute.votesB
     }
@@ -188,27 +263,76 @@ struct ConversationView: View {
         func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
     }
 
-    private func shouldShow(_ msg:ChatMsg)->Bool {
-        if voted { return true }
-        switch msg.sender {
-        case .ai: return true
-        case .a: return showSideA
-        case .b: return showSideB
+    // Pages
+    private func chatPage(for side:ChatMsg.Sender) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing:12){
+                    ForEach(messages.filter{ $0.sender == side || $0.sender == .ai }){ msg in bubble(for: msg) }
+                }
+                .padding()
+            }
+            .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
         }
     }
+
+    private var resolutionPage: some View {
+        ScrollView{
+            VStack(alignment:.leading,spacing:12){
+                Text("AI Resolution")
+                    .font(.headline)
+                Text(resolutionText)
+            }
+            .padding()
+        }
+    }
+
+    private var resolutionText: String {
+        if votesA == votesB {
+            return "After weighing the evidence, the debate is currently tied. Both sides presented compelling but inconclusive arguments. I recommend additional data or a deciding round."
+        }
+        let winner = votesA > votesB ? "Side A" : "Side B"
+        return "Considering the presented facts, logical coherence, and audience votes, **\(winner)** made the stronger case. Key determining factors included statistical backing, situational awareness, and adaptability under pressure."
+    }
+
+    // Tab label helper
+    private func tabLabel(title:String,index:Int,color:Color)->some View{
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundColor(selectedTab==index ? Color.white : Color.white.opacity(0.6))
+            .padding(.vertical,6)
+            .frame(maxWidth:.infinity)
+            .background(
+                ZStack{
+                    if selectedTab==index {
+                        RoundedRectangle(cornerRadius:12).fill(color.opacity(0.8)).shadow(radius:4)
+                    }
+                }
+            )
+            .onTapGesture { withAnimation(.easeInOut){ selectedTab = index } }
+    }
+
+    // old shouldShow no longer needed
 
     private struct ToggleChip: View {
         let title: String
         @Binding var isOn: Bool
         let color: Color
         var body: some View {
-            Text(title)
-                .font(.caption2)
-                .padding(.horizontal,10).padding(.vertical,6)
-                .background(isOn ? color : Color.white.opacity(0.2))
-                .foregroundColor(.white)
-                .cornerRadius(12)
-                .onTapGesture { withAnimation{ isOn.toggle() } }
+            HStack(spacing:4){
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.white)
+                    .font(.caption2)
+                Text(title)
+            }
+            .font(.caption2)
+            .padding(.horizontal,10).padding(.vertical,6)
+            .background(isOn ? color : Color.white.opacity(0.15))
+            .overlay(RoundedRectangle(cornerRadius:12).stroke(Color.white.opacity(0.6), lineWidth:1))
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .opacity(isOn ? 1.0 : 0.7)
+            .onTapGesture { withAnimation{ isOn.toggle() } }
         }
     }
 }

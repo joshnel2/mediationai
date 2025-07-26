@@ -5,7 +5,7 @@ struct PeopleSearchView: View {
     @EnvironmentObject var authService: MockAuthService
     @State private var query: String = ""
 
-    private let grid = [GridItem(.adaptive(minimum: 140), spacing: 16)]
+    // Not using grid anymore; vertical list
 
     var body: some View {
         NavigationView {
@@ -44,23 +44,12 @@ struct PeopleSearchView: View {
                     .padding(.horizontal)
                 }
 
-                // Results Grid
-                ScrollView {
-                    if social.searchResults.isEmpty {
-                        HStack{
-                            Text("Suggested creators")
-                                .font(.headline)
-                                .foregroundColor(AppTheme.textPrimary)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
+                // Results List
+                ScrollView{
+                    LazyVStack(spacing:16){
+                        ForEach(results){ user in userRow(for:user) }
                     }
-                    LazyVGrid(columns: grid, spacing: 20) {
-                        ForEach(results) { user in
-                            userCard(for: user)
-                        }
-                    }
-                    .padding()
+                    .padding(.horizontal)
                 }
             }
             .navigationTitle("People")
@@ -73,50 +62,29 @@ struct PeopleSearchView: View {
         social.searchResults.isEmpty ? social.overallLeaders : social.searchResults
     }
 
-    // Card style for grid
-    private func userCard(for user: SocialAPIService.UserSummary) -> some View {
+    // Twitter-like row
+    private func userRow(for user: SocialAPIService.UserSummary) -> some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            VStack(spacing: 12) {
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/120?u=\(user.id)")) { phase in
-                    if let img = phase.image {
-                        img.resizable().scaledToFill()
-                    } else { Color.gray }
+            HStack(spacing:12){
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/120?u=\(user.id)") ) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
-                .frame(width:100,height:100)
-                .clipShape(Circle())
-                .shadow(radius:4)
+                .frame(width:46,height:46).clipShape(Circle())
 
-                Text(user.displayName)
-                    .font(.subheadline).bold()
-                    .foregroundColor(AppTheme.textPrimary)
+                VStack(alignment:.leading,spacing:2){
+                    Text(user.displayName).font(.subheadline.bold())
+                    Text("\(user.wins) wins • {user.xp} XP").font(.caption).foregroundColor(.secondary)
+                }
 
-                Text("🏆 \(user.wins) Crashouts")
-                    .font(.caption2)
-                    .foregroundColor(AppTheme.textSecondary)
+                Spacer()
 
-                Button(action: { follow(id: user.id) }) {
-                    Text(social.following.contains(user.id) ? "Following" : "+ Follow")
-                        .font(.caption2)
-                        .padding(.vertical,6)
-                        .padding(.horizontal,16)
-                        .background(
-                            Group {
-                                if social.following.contains(user.id) {
-                                    Color.white.opacity(0.25)
-                                } else {
-                                    AppTheme.accentGradient
-                                }
-                            }
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(18)
+                Button(action:{ follow(id:user.id) }){
+                    Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
+                        .font(.title3)
+                        .foregroundColor(AppTheme.accent)
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(AppTheme.cardGradient)
-            .cornerRadius(24)
-            .shadow(color:.black.opacity(0.1),radius:4,x:0,y:2)
+            .padding(.vertical,8)
         }
         .buttonStyle(PlainButtonStyle())
     }
