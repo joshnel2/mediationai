@@ -993,3 +993,7 @@ Publicly accessible versions (required for App Store Connect):
 
 * **Privacy Policy** – https://mediationai-3ueg.vercel.app/privacy-policy.html
 * **Terms of Service** – https://mediationai-3ueg.vercel.app/terms-of-service.html
+
+## Last front-end sync
+
+Updated on $(date)
