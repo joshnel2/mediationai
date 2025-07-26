@@ -1,88 +1,86 @@
 import SwiftUI
-#if canImport(ConfettiSwiftUI)
-import ConfettiSwiftUI
-#endif
+import Combine
 
 struct ConversationView: View {
     @EnvironmentObject var social: SocialAPIService
     let dispute: MockDispute
-    @State private var voted = false
-    @State private var votedForA = false
-    @State private var confetti = 0
+
+    // Simple chat model
+    struct ChatMsg: Identifiable { let id = UUID(); let text: String; let sender: Sender enum Sender { case a,b,ai } }
+
+    @State private var messages: [ChatMsg] = []
+    @State private var input: String = ""
+    @State private var aiThinking = false
+
+    private var meIsA: Bool { Bool.random() } // placeholder
 
     var body: some View {
         VStack {
-            #if canImport(ConfettiSwiftUI)
-            ConfettiCannon(counter: $confetti, emojis: ["🔥","🎉"], confettiSize: 20, repetitions: 1)
-            #endif
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Bubble(text: dispute.statementA, isMe: true)
-                    Bubble(text: "🤖 AI: Interesting point!", isAI: true)
-                    Bubble(text: dispute.statementB, isMe: false)
-                }
-                .padding()
-            }
-            if !voted {
-                HStack {
-                    GradientPill(title: "Vote A", gradient: [AppTheme.primary, .purple]) { cast(true) }
-                    GradientPill(title: "Vote B", gradient: [AppTheme.accent, .pink]) { cast(false) }
-                }
-                .padding()
-            } else {
-                Text("Current score \(dispute.votesA) - \(dispute.votesB)")
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing:12){
+                        ForEach(messages){ msg in bubble(for: msg) }
+                    }
                     .padding()
+                }
+                .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
             }
+
+            HStack{
+                TextField("Type your point", text:$input)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Send"){ send() }
+                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
+            }
+            .padding()
         }
         .navigationTitle(dispute.title)
-        .background(AppTheme.backgroundGradient.ignoresSafeArea())
+        .onAppear{ seed() }
     }
 
-    private func cast(_ forA: Bool) {
-        social.recordVote(disputeID: dispute.id, voteForA: forA)
-        votedForA = forA
-        voted = true
-        confetti += 1
-        #if canImport(UIKit)
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        #endif
+    private func seed(){
+        messages = [
+            ChatMsg(text: dispute.statementA, sender:.a),
+            ChatMsg(text: "AI: That’s an interesting perspective. Could you elaborate?", sender:.ai),
+            ChatMsg(text: dispute.statementB, sender:.b),
+            ChatMsg(text: "AI: I see contrasting viewpoints. Let’s explore common ground.", sender:.ai)
+        ]
     }
 
-    private struct Bubble: View {
-        let text: String
-        var isMe: Bool = false
-        var isAI: Bool = false
-        var body: some View {
-            HStack {
-                if isMe { Spacer() }
-                Text(text)
-                    .padding()
-                    .background(isAI ? Color.yellow.opacity(0.3) : (isMe ? AppTheme.primary : AppTheme.accent))
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
-                if !isMe { Spacer() }
-            }
+    private func send(){
+        let sender: Sender = meIsA ? .a : .b
+        messages.append(ChatMsg(text: input, sender: sender))
+        input = ""
+        aiRespond()
+    }
+
+    private func aiRespond(){
+        aiThinking = true
+        DispatchQueue.main.asyncAfter(deadline:.now()+1.0){
+            messages.append(ChatMsg(text:"AI: Thanks for sharing. I’d like the other party to clarify their stance on that.", sender:.ai))
+            aiThinking = false
         }
     }
 
-    private struct GradientPill: View {
-        let title: String
-        let gradient: [Color]
-        let action: ()->Void
-        var body: some View {
-            Button(action: action){
-                Text(title).bold().frame(maxWidth: .infinity).padding()
-            }
-            .background(LinearGradient(colors: gradient, startPoint: .leading, endPoint: .trailing))
-            .foregroundColor(.white)
-            .cornerRadius(28)
+    @ViewBuilder
+    private func bubble(for msg:ChatMsg)-> some View {
+        HStack{
+            if msg.sender == .a { Spacer() }
+            Text(msg.text)
+                .padding()
+                .background(msg.sender==.ai ? Color.yellow.opacity(0.3) : (msg.sender==.a ? AppTheme.primary : AppTheme.accent))
+                .foregroundColor(.white)
+                .cornerRadius(16)
+            if msg.sender == .b || msg.sender == .ai { Spacer() }
         }
     }
 }
 
+#if DEBUG
 struct ConversationView_Previews: PreviewProvider {
     static var previews: some View {
-        ConversationView(dispute: MockDispute(id: "1", title: "Debate", statementA: "A", statementB: "B", votesA: 3, votesB: 4))
+        ConversationView(dispute: MockDispute(id: "1", title: "Test", statementA: "A", statementB: "B", votesA: 0, votesB: 0))
             .environmentObject(SocialAPIService())
     }
 }
+#endif
