@@ -120,7 +120,7 @@ struct ProfileView: View {
             NavigationLink(destination: FollowingListView()){ statChip(title: "Following", count: socialService.following.count) }
             statChip(title:"Followers",count: socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])
             NavigationLink(destination: HistoryListView()){ statChip(title:"Wins",count: socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]].filter{$0.didWin}.count) }
-            statChip(title:"Disputes",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count)
+            statChip(title:"Crashouts",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count)
         }
     }
 
@@ -147,7 +147,7 @@ struct ProfileView: View {
 
     private var myDisputesSection: some View {
         VStack(alignment:.leading){
-            Text("My Disputes").font(.headline)
+            Text("My Crashouts").font(.headline)
             ForEach(socialService.disputes(for: authService.currentUser?.id.uuidString ?? "")) { disp in
                 NavigationLink(destination: ConversationView(dispute: disp)){
                     VStack(alignment:.leading){

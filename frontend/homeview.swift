@@ -159,7 +159,7 @@ struct HomeView: View {
     private var statsSection: some View {
         HStack(spacing: AppTheme.spacingMD) {
             StatCard(
-                title: "Total Disputes",
+                title: "Total Crashouts",
                 value: "\(userDisputes.count)",
                 icon: "scale.3d",
                 color: AppTheme.info
@@ -322,10 +322,11 @@ struct HomeView: View {
         .animation(.easeOut(duration: 0.6).delay(0.3), value: animateCards)
     }
     
+    // Crashouts section
     private var disputesSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingLG) {
             HStack {
-                Text("Your Disputes")
+                Text("Your Crashouts")
                     .font(AppTheme.title2())
                     .foregroundColor(AppTheme.textPrimary)
                     .fontWeight(.bold)
@@ -412,12 +413,12 @@ struct EmptyDisputesView: View {
                     .foregroundStyle(AppTheme.mainGradient)
                 
                 VStack(spacing: AppTheme.spacingSM) {
-                    Text("No disputes yet")
+                    Text("No crashouts yet")
                         .font(AppTheme.title2())
                         .foregroundColor(AppTheme.textPrimary)
                         .fontWeight(.semibold)
                     
-                    Text("Create your first dispute or join one using an invitation link to get started with AI-powered mediation.")
+                    Text("Create your first crashout or join one using an invitation link to get started with AI-powered resolution.")
                         .font(AppTheme.body())
                         .foregroundColor(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -426,10 +427,10 @@ struct EmptyDisputesView: View {
             }
             
             VStack(spacing: AppTheme.spacingMD) {
-                Button("Create Your First Dispute", action: onCreateDispute)
+                Button("Start Your First Crashout", action: onCreateDispute)
                     .primaryButton()
                 
-                Button("Join a Dispute", action: onJoinDispute)
+                Button("Join a Crashout", action: onJoinDispute)
                     .secondaryButton()
             }
         }
