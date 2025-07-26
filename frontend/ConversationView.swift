@@ -117,28 +117,36 @@ struct ConversationView: View {
     }
 
     private func seed(){
-        // Build a richer mock conversation
-        let followUpA = [
-            "Let’s be real, the post-match stats highlight everything I’ve said—numbers don’t lie.",
-            "When the pressure peaked I was the only one clutching rounds, the VOD timestamps show it.",
-            "Everyone in chat was calling the win for me mid-game, scroll up and you’ll see."
-        ].randomElement()!
+        // Build an extended mock conversation so spectators see depth
+        let sideAExtras = [
+            "I predicted their rotations every round—check my pings on minimap.",
+            "My utility usage forced their duelists to waste cooldowns early.",
+            "I won the mental game; their IGL admitted it post-match.",
+            "When you look at ADR I’m 30% ahead—impact speaks louder than K/D."
+        ].shuffled().prefix(3)
 
-        let followUpB = [
-            "Stats without context are misleading—teamplay saved half those rounds.",
-            "Your so-called ‘clutches’ happened because I softened every target first.",
-            "Chat hypes whatever is flashy, not what wins games; strategy was on my side."
-        ].randomElement()!
+        let sideBExtras = [
+            "Your ‘prediction’ was luck; I counter-flanked and caught you twice.",
+            "Utility is pointless if you burn it with no follow-up—basic economics.",
+            "We adapted mid-game and you went 3-10 afterwards—momentum lost.",
+            "ADR ignores entry damage vs finishing—context matters."
+        ].shuffled().prefix(3)
 
         messages = [
             ChatMsg(text: dispute.statementA, sender:.a),
             ChatMsg(text: "AI: Interesting opening. Could you provide concrete evidence?", sender:.ai),
-            ChatMsg(text: followUpA, sender:.a),
             ChatMsg(text: dispute.statementB, sender:.b),
-            ChatMsg(text: "AI: That’s a solid rebuttal. How do you address that point?", sender:.ai),
-            ChatMsg(text: followUpB, sender:.b),
-            ChatMsg(text: "AI: I’m detecting recurring themes around ‘stats vs impact.’ Let’s dig deeper.", sender:.ai)
         ]
+
+        // Interleave extra arguments with AI probing
+        for i in 0..<3 {
+            messages.append(ChatMsg(text: Array(sideAExtras)[i], sender:.a))
+            messages.append(ChatMsg(text: "AI: Noted. Counter-argument?", sender:.ai))
+            messages.append(ChatMsg(text: Array(sideBExtras)[i], sender:.b))
+            messages.append(ChatMsg(text: "AI: Let’s keep dissecting the core claim.", sender:.ai))
+        }
+
+        messages.append(ChatMsg(text: "AI: We’ve surfaced both micro- and macro-level concerns. Shall we move to closing statements?", sender:.ai))
         votesA = dispute.votesA
         votesB = dispute.votesB
     }

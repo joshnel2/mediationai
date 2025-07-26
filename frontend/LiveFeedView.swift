@@ -90,7 +90,7 @@ struct LiveFeedView: View {
                 ScrollView {
                     LazyVStack(spacing: 24) {
                         ForEach(list) { clash in
-                            NavigationLink(destination: ClashWatchView(clash: clash).environmentObject(socialService)) {
+                            NavigationLink(destination: destinationView(for: clash)) {
                                 FeedClashRow(clash: clash)
                                     .environmentObject(socialService)
                             }
@@ -101,6 +101,16 @@ struct LiveFeedView: View {
                     .refreshable { await refresh() }
                 }
             }
+        }
+    }
+
+    // Helper to build destination
+    private func destinationView(for clash:Clash) -> some View {
+        if let disp = socialService.dispute(withId: clash.id) {
+            return AnyView(ConversationView(dispute: disp).environmentObject(socialService))
+        } else {
+            // Fallback view still watch mode
+            return AnyView(ClashWatchView(clash: clash).environmentObject(socialService))
         }
     }
 
