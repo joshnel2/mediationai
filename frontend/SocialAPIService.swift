@@ -139,7 +139,19 @@ class SocialAPIService: ObservableObject {
         // Only seed if arrays are empty (first launch / offline)
         guard overallLeaders.isEmpty else { return }
 
-        let sampleNames = ["PixelPirate", "ValkyMindz", "ChatChamp", "LootLord", "GGWizard", "StreamQueen", "NoScopeSam", "ClipTitan"]
+        // More believable (yet still fun) user display names
+        let sampleNames = [
+            "Alex Mercer",
+            "Jamie Rivera",
+            "Morgan Lee",
+            "Taylor Brooks",
+            "Chris Jordan",
+            "Avery Kim",
+            "Riley Patel",
+            "Sydney Parker",
+            "Jordan Chen",
+            "Casey Nguyen"
+        ]
 
         overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000), wins: Int.random(in: 5...30)) }
 
@@ -157,14 +169,14 @@ class SocialAPIService: ObservableObject {
                   isPublic: true)
         }
 
-        // Controversial drama topics people love to debate
+        // Controversial drama topics people love to debate (kept light-hearted)
         let controversies: [(String,String)] = [
-            ("Israel", "Palestine"),
-            ("PS5", "Xbox Series X"),
-            ("Bitcoin", "Fiat"),
-            ("Pineapple Pizza", "Classic Pizza"),
-            ("Cats", "Dogs"),
-            ("Marvel", "DC")
+            ("iOS", "Android"),
+            ("Coffee", "Tea"),
+            ("Remote Work", "Office Work"),
+            ("Early Birds", "Night Owls"),
+            ("Streaming", "Movie Theaters"),
+            ("Cats", "Dogs")
         ]
         dramaClashes = controversies.map { pair in
             Clash(id: UUID().uuidString,
@@ -186,14 +198,30 @@ class SocialAPIService: ObservableObject {
         searchResults = overallLeaders
 
         // Seed disputes & follow counts
-        let sampleDisputeTitles = ["Who Streams Better?", "Lag Blame Game", "Clip Ownership"]
+        let sampleDisputeTitles = ["Controller vs Mouse & Keyboard", "Who Carried The Match?", "Stream Sniping Accusations", "Fair Split of Donation Revenue", "Best Strategy For Last-Circle"]
         for leader in overallLeaders {
             var arr: [MockDispute] = []
             for _ in 0..<Int.random(in: 1...3) {
+                // Create richer opening statements
+                let title = sampleDisputeTitles.randomElement()!
+                let openingA: [String] = [
+                    "I out-fragged everyone and secured the objectives, the scoreboard proves it.",
+                    "My rotations were on point and I led every decisive push—replay the VOD and you'll see.",
+                    "I maintained map control the entire game; without me we would’ve lost at the halfway mark.",
+                    "Look at the damage charts—my numbers are nearly double anyone else’s.",
+                    "I coordinated the team and called every play that turned the tide." ]
+
+                let openingB: [String] = [
+                    "Kills aren't everything—my utility and revives kept the squad alive.",
+                    "I set up every flank and fed you information, that’s why your picks looked so good.",
+                    "I managed the economy, bought the team, and clutched when it mattered.",
+                    "Damage dealt is meaningless if you over-extended and threw rounds.",
+                    "The scoreboard doesn't show macro decisions—I was controlling the macro all game." ]
+
                 arr.append(MockDispute(id: UUID().uuidString,
-                                       title: sampleDisputeTitles.randomElement()!,
-                                       statementA: "Streamer A claims victory.",
-                                       statementB: "Streamer B disagrees.",
+                                       title: title,
+                                       statementA: openingA.randomElement()!,
+                                       statementB: openingB.randomElement()!,
                                        votesA: Int.random(in: 10...200),
                                        votesB: Int.random(in: 10...200)))
             }

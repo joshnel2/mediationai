@@ -117,11 +117,27 @@ struct ConversationView: View {
     }
 
     private func seed(){
+        // Build a richer mock conversation
+        let followUpA = [
+            "Let’s be real, the post-match stats highlight everything I’ve said—numbers don’t lie.",
+            "When the pressure peaked I was the only one clutching rounds, the VOD timestamps show it.",
+            "Everyone in chat was calling the win for me mid-game, scroll up and you’ll see."
+        ].randomElement()!
+
+        let followUpB = [
+            "Stats without context are misleading—teamplay saved half those rounds.",
+            "Your so-called ‘clutches’ happened because I softened every target first.",
+            "Chat hypes whatever is flashy, not what wins games; strategy was on my side."
+        ].randomElement()!
+
         messages = [
             ChatMsg(text: dispute.statementA, sender:.a),
-            ChatMsg(text: "AI: That’s an interesting perspective. Could you elaborate?", sender:.ai),
+            ChatMsg(text: "AI: Interesting opening. Could you provide concrete evidence?", sender:.ai),
+            ChatMsg(text: followUpA, sender:.a),
             ChatMsg(text: dispute.statementB, sender:.b),
-            ChatMsg(text: "AI: I see contrasting viewpoints. Let’s explore common ground.", sender:.ai)
+            ChatMsg(text: "AI: That’s a solid rebuttal. How do you address that point?", sender:.ai),
+            ChatMsg(text: followUpB, sender:.b),
+            ChatMsg(text: "AI: I’m detecting recurring themes around ‘stats vs impact.’ Let’s dig deeper.", sender:.ai)
         ]
         votesA = dispute.votesA
         votesB = dispute.votesB
@@ -218,13 +234,20 @@ struct ConversationView: View {
         @Binding var isOn: Bool
         let color: Color
         var body: some View {
-            Text(title)
-                .font(.caption2)
-                .padding(.horizontal,10).padding(.vertical,6)
-                .background(isOn ? color : Color.white.opacity(0.2))
-                .foregroundColor(.white)
-                .cornerRadius(12)
-                .onTapGesture { withAnimation{ isOn.toggle() } }
+            HStack(spacing:4){
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(.white)
+                    .font(.caption2)
+                Text(title)
+            }
+            .font(.caption2)
+            .padding(.horizontal,10).padding(.vertical,6)
+            .background(isOn ? color : Color.white.opacity(0.15))
+            .overlay(RoundedRectangle(cornerRadius:12).stroke(Color.white.opacity(0.6), lineWidth:1))
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .opacity(isOn ? 1.0 : 0.7)
+            .onTapGesture { withAnimation{ isOn.toggle() } }
         }
     }
 }
