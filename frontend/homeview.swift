@@ -189,7 +189,7 @@ struct HomeView: View {
         Button(action: { showCreate = true }) {
             HStack {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Start a Clash")
+                    Text("Crashout")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     Text("Go live & let chat vote")
@@ -215,7 +215,7 @@ struct HomeView: View {
     
     private var trendingSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
-            Text("Trending Clashes")
+            Text("Trending Crashouts 👀")
                 .font(AppTheme.title2())
                 .foregroundColor(AppTheme.textPrimary)
                 .fontWeight(.bold)
@@ -274,7 +274,7 @@ struct HomeView: View {
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Start Clash")
+                            Text("Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
