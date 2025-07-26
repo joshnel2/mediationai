@@ -99,7 +99,15 @@ struct PeopleSearchView: View {
                         .font(.caption2)
                         .padding(.vertical,6)
                         .padding(.horizontal,16)
-                        .background(social.following.contains(user.id) ? Color.white.opacity(0.25) : AppTheme.accentGradient)
+                        .background(
+                            Group {
+                                if social.following.contains(user.id) {
+                                    Color.white.opacity(0.25)
+                                } else {
+                                    AppTheme.accentGradient
+                                }
+                            }
+                        )
                         .foregroundColor(.white)
                         .cornerRadius(18)
                 }

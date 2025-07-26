@@ -37,7 +37,6 @@ struct ConversationView: View {
     @State private var voted = false
     @State private var votesA:Int = 0
     @State private var votesB:Int = 0
-    @State private var showBothSides = false
 
     @State private var showSideA = true
     @State private var showSideB = false
@@ -142,7 +141,7 @@ struct ConversationView: View {
     }
 
     private func send(){
-        let sender: Sender = meIsA ? .a : .b
+        let sender: ChatMsg.Sender = meIsA ? .a : .b
         messages.append(ChatMsg(text: input, sender: sender))
         if sender == .a { votesA += 1 } else { votesB += 1 }
         voted = true
