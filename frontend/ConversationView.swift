@@ -38,8 +38,8 @@ struct ConversationView: View {
     @State private var votesA:Int = 0
     @State private var votesB:Int = 0
 
-    @State private var showSideA = true
-    @State private var showSideB = false
+    // Swipeable view selection: 0 = A, 1 = B, 2 = AI Resolution
+    @State private var selectedTab = 0
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -54,14 +54,19 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Top controls
-            HStack(spacing:16){
-                Text("Side A 🔥 \(votesA)")
-                Text("Side B 🔥 \(votesB)")
-                Spacer()
-                if !voted {
-                    ToggleChip(title: "A", isOn: $showSideA, color: AppTheme.primary)
-                    ToggleChip(title: "B", isOn: $showSideB, color: AppTheme.accent)
+            // Scoreboard + tab labels
+            VStack(spacing:4){
+                HStack{
+                    Text("Side A 🔥 \(votesA)").font(.caption)
+                    Spacer()
+                    Text("Side B 🔥 \(votesB)").font(.caption)
+                }
+                .foregroundColor(.secondary)
+
+                HStack(spacing:0){
+                    tabLabel(title:"A", index:0, color:AppTheme.primary)
+                    tabLabel(title:"B", index:1, color:AppTheme.accent)
+                    tabLabel(title:"Result", index:2, color:Color.yellow)
                 }
             }
             .padding(8)
@@ -69,15 +74,16 @@ struct ConversationView: View {
             .cornerRadius(16)
             .padding(.top,8)
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing:12){
-                        ForEach(messages.filter{ shouldShow($0) }){ msg in bubble(for: msg) }
-                    }
-                    .padding()
-                }
-                .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
+            // Swipeable pages
+            TabView(selection:$selectedTab){
+                chatPage(for:.a)
+                    .tag(0)
+                chatPage(for:.b)
+                    .tag(1)
+                resolutionPage
+                    .tag(2)
             }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode:.never))
 
             // Modern glass input bar
             // Input section – visible only to participants
@@ -228,14 +234,53 @@ struct ConversationView: View {
         func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
     }
 
-    private func shouldShow(_ msg:ChatMsg)->Bool {
-        if voted { return true }
-        switch msg.sender {
-        case .ai: return true
-        case .a: return showSideA
-        case .b: return showSideB
+    // Pages
+    private func chatPage(for side:ChatMsg.Sender) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing:12){
+                    ForEach(messages.filter{ $0.sender == side || $0.sender == .ai }){ msg in bubble(for: msg) }
+                }
+                .padding()
+            }
+            .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
         }
     }
+
+    private var resolutionPage: some View {
+        ScrollView{
+            VStack(alignment:.leading,spacing:12){
+                Text("AI Resolution")
+                    .font(.headline)
+                Text(resolutionText)
+            }
+            .padding()
+        }
+    }
+
+    private var resolutionText: String {
+        if votesA == votesB {
+            return "After weighing the evidence, the debate is currently tied. Both sides presented compelling but inconclusive arguments. I recommend additional data or a deciding round."
+        }
+        let winner = votesA > votesB ? "Side A" : "Side B"
+        return "Considering the presented facts, logical coherence, and audience votes, **\(winner)** made the stronger case. Key determining factors included statistical backing, situational awareness, and adaptability under pressure."
+    }
+
+    // Tab label helper
+    private func tabLabel(title:String,index:Int,color:Color)->some View{
+        VStack(spacing:2){
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(selectedTab==index ? .white : .secondary)
+            Rectangle()
+                .fill(selectedTab==index ? color : Color.clear)
+                .frame(height:2)
+        }
+        .frame(maxWidth:.infinity)
+        .onTapGesture { withAnimation{ selectedTab = index } }
+    }
+
+    // old shouldShow no longer needed
 
     private struct ToggleChip: View {
         let title: String
