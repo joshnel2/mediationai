@@ -30,13 +30,9 @@ struct ProfileView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 28) {
-                    // Header
-                    ZStack(alignment:.bottom) {
-                        LinearGradient(colors:[AppTheme.primary,AppTheme.accent],startPoint:.topLeading,endPoint:.bottomTrailing)
-                            .frame(height:160)
-                            .ignoresSafeArea()
-                        avatarSection.offset(y:40)
-                    }.padding(.bottom,40)
+                    // Avatar
+                    avatarSection
+                        .padding(.top,20)
 
                     nameSection
 
@@ -135,14 +131,32 @@ struct ProfileView: View {
     }
 
     private var requestsSection: some View {
-        VStack(alignment:.leading,spacing:8){
+        HStack(spacing:16){
             NavigationLink(destination: RequestsListView(mode: .incoming)){
-                Text("Incoming Requests (\(socialService.requestsIn[authService.currentUser?.id.uuidString ?? "", default:[]].count))")
+                requestPill(title: "Incoming", count: socialService.requestsIn[authService.currentUser?.id.uuidString ?? "", default:[]].count, gradient: [Color.green, AppTheme.primary])
             }
             NavigationLink(destination: RequestsListView(mode: .outgoing)){
-                Text("Outgoing Requests (\(socialService.requestsOut[authService.currentUser?.id.uuidString ?? "", default:[]].count))")
+                requestPill(title: "Outgoing", count: socialService.requestsOut[authService.currentUser?.id.uuidString ?? "", default:[]].count, gradient: [Color.orange, AppTheme.accent])
             }
         }
+    }
+
+    private func requestPill(title:String,count:Int,gradient:[Color])->some View{
+        HStack(spacing:6){
+            Text(title)
+                .bold()
+            Text("(\(count))")
+                .font(.caption)
+                .padding(4)
+                .background(Color.white.opacity(0.2))
+                .cornerRadius(6)
+        }
+        .padding(.vertical,10)
+        .padding(.horizontal,16)
+        .background(LinearGradient(colors:gradient,startPoint:.topLeading,endPoint:.bottomTrailing))
+        .foregroundColor(.white)
+        .cornerRadius(22)
+        .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
     }
 
     private var myDisputesSection: some View {
