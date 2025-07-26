@@ -196,7 +196,13 @@ struct DramaCardView: View {
             // Content overlay
             HStack {
                 VStack(spacing:6){
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerA)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerA)")) { phase in
+                        if let img = phase.image {
+                            img.resizable()
+                        } else {
+                            Color.white.opacity(0.2)
+                        }
+                    }
                         .frame(width:60,height:60)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white.opacity(0.8),lineWidth:2))
@@ -205,7 +211,13 @@ struct DramaCardView: View {
                 }
                 Spacer()
                 VStack(spacing:6){
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerB)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerB)")) { phase in
+                        if let img = phase.image {
+                            img.resizable()
+                        } else {
+                            Color.white.opacity(0.2)
+                        }
+                    }
                         .frame(width:60,height:60)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white.opacity(0.8),lineWidth:2))
