@@ -5,99 +5,103 @@ struct PeopleSearchView: View {
     @EnvironmentObject var authService: MockAuthService
     @State private var query: String = ""
 
+    private let grid = [GridItem(.adaptive(minimum: 140), spacing: 16)]
+
     var body: some View {
         NavigationView {
-            VStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(social.hotTopics, id: \.self) { topic in
-                                Button(action: { query = topic; social.searchUsers(query: topic) }) {
-                                    Text(topic)
-                                        .font(.caption)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(AppTheme.cardGradient)
-                                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(AppTheme.accent, lineWidth: 1))
-                                        .cornerRadius(14)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
+            VStack(spacing: 20) {
+                // Hero Search Bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.white.opacity(0.8))
+                    TextField("Search creators", text: $query, onCommit: { social.searchUsers(query: query) })
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 18)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 28)
+                        .fill(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .shadow(color:.black.opacity(0.25),radius:6,x:0,y:4)
+                )
+                .padding(.horizontal)
 
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-                        TextField("Search users", text: $query)
-                            .onSubmit { social.searchUsers(query: query) }
+                // Trending chips
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(social.hotTopics, id: \.self) { topic in
+                            Button(action: { query = topic; social.searchUsers(query: topic) }) {
+                                Text("#" + topic)
+                                    .font(.caption)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(AppTheme.cardGradient)
+                                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(AppTheme.accent,lineWidth:1))
+                                    .cornerRadius(20)
+                            }
+                        }
                     }
-                    .padding(12)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20))
                     .padding(.horizontal)
-                    if social.searchResults.isEmpty {
-                        // Show seeded users
-                        List {
-                            ForEach(social.overallLeaders) { user in
-                                row(for: user)
-                            }
+                }
+
+                // Results Grid
+                ScrollView {
+                    LazyVGrid(columns: grid, spacing: 20) {
+                        ForEach(results) { user in
+                            userCard(for: user)
                         }
-                        .listStyle(PlainListStyle())
-                        .listRowSeparator(.hidden)
-                    } else {
-                        List {
-                            ForEach(social.searchResults) { user in
-                                row(for: user)
-                            }
-                        }
-                        .listStyle(PlainListStyle())
-                        .listRowSeparator(.hidden)
                     }
+                    .padding()
                 }
             }
             .navigationTitle("People")
-            .background(AppTheme.backgroundGradient)
+            .background(AppTheme.backgroundGradient.ignoresSafeArea())
             .onAppear { social.fetchHotTopics() }
         }
     }
 
-    // DRY user row
-    private func row(for user: SocialAPIService.UserSummary) -> some View {
-        NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack(spacing:16) {
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/80?u=\(user.id)")) { phase in
-                    if let img = phase.image {
-                        img.resizable().clipShape(Circle())
-                    } else {
-                        Circle().fill(AppTheme.accent)
-                    }
-                }
-                .frame(width:60,height:60)
+    private var results: [SocialAPIService.UserSummary] {
+        social.searchResults.isEmpty ? social.overallLeaders : social.searchResults
+    }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(user.displayName)
-                        .font(.headline)
-                        .foregroundColor(AppTheme.textPrimary)
-                    Text("🏆 \(user.wins) wins")
-                        .font(.caption)
-                        .foregroundColor(AppTheme.textSecondary)
+    // Card style for grid
+    private func userCard(for user: SocialAPIService.UserSummary) -> some View {
+        NavigationLink(destination: MiniProfileView(userID: user.id)) {
+            VStack(spacing: 12) {
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/120?u=\(user.id)")) { phase in
+                    if let img = phase.image {
+                        img.resizable().scaledToFill()
+                    } else { Color.gray }
                 }
-                Spacer()
-                Button(action: { follow(id: user.id); }) {
-                    Text(social.following.contains(user.id) ? "Following" : "Follow")
-                        .font(.caption)
+                .frame(width:100,height:100)
+                .clipShape(Circle())
+                .shadow(radius:4)
+
+                Text(user.displayName)
+                    .font(.subheadline).bold()
+                    .foregroundColor(AppTheme.textPrimary)
+
+                Text("🏆 \(user.wins) Crashouts")
+                    .font(.caption2)
+                    .foregroundColor(AppTheme.textSecondary)
+
+                Button(action: { follow(id: user.id) }) {
+                    Text(social.following.contains(user.id) ? "Following" : "+ Follow")
+                        .font(.caption2)
+                        .padding(.vertical,6)
+                        .padding(.horizontal,16)
+                        .background(AppTheme.primary.opacity(0.9))
                         .foregroundColor(.white)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 14)
-                        .background(social.following.contains(user.id) ? AppTheme.primary : AppTheme.accent)
-                        .cornerRadius(20)
+                        .cornerRadius(18)
                 }
             }
-            .padding(12)
+            .padding()
+            .frame(maxWidth: .infinity)
             .background(AppTheme.cardGradient)
-            .cornerRadius(18)
-            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+            .cornerRadius(24)
+            .shadow(color:.black.opacity(0.1),radius:4,x:0,y:2)
         }
+        .buttonStyle(PlainButtonStyle())
     }
 
     private func follow(id: String) {
