@@ -81,15 +81,15 @@ struct LeaderRow: View {
             HStack(spacing:16){
                 ZStack{
                     AsyncImage(url: URL(string: "https://i.pravatar.cc/64?u=\(user.id)")) { phase in
-                        if let img = phase.image {
-                            img.resizable().clipShape(Circle())
-                        } else { Circle().fill(AppTheme.accent) }
+                        if let img = phase.image { img.resizable().clipShape(Circle()) } else { Circle().fill(AppTheme.accent) }
                     }
-                    if rank<=3 {
-                        Image(systemName: rank==1 ? "crown.fill":"crown")
-                            .foregroundColor(rank==1 ? .yellow : .gray)
-                            .offset(x:22,y:-22)
-                    }
+                    // Rank badge circle
+                    Text("#\(rank)")
+                        .font(.caption2).bold().foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.6))
+                        .clipShape(Circle())
+                        .offset(x:22,y:22)
                 }
                 .frame(width:64,height:64)
                 .shadow(radius:4)
