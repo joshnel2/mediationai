@@ -158,12 +158,15 @@ struct HomeView: View {
     
     private var statsSection: some View {
         HStack(spacing: AppTheme.spacingMD) {
-            StatCard(
-                title: "Total Crashouts",
-                value: "\(userDisputes.count)",
-                icon: "scale.3d",
-                color: AppTheme.info
-            )
+            NavigationLink(destination: CrashoutsListView().environmentObject(socialService).environmentObject(authService)) {
+                StatCard(
+                    title: "Total Crashouts",
+                    value: "\(userDisputes.count)",
+                    icon: "scale.3d",
+                    color: AppTheme.info
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
             
             StatCard(
                 title: "Resolved",
@@ -314,7 +317,7 @@ struct HomeView: View {
                             .font(.title2)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Join Clash")
+                            Text("Join Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
                             
