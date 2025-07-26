@@ -187,22 +187,43 @@ struct DramaCardView: View {
     let clash: Clash
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(LinearGradient(colors: [Color.pink.opacity(0.9), Color.indigo.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .shadow(color:.black.opacity(0.2),radius:6,x:0,y:4)
-            VStack(spacing:8){
-                Text("💥 Drama Crashout")
-                    .font(.caption).foregroundColor(.white.opacity(0.9))
-                Text("\(clash.streamerA) vs \(clash.streamerB)")
-                    .font(.headline).bold().foregroundColor(.white)
-                if let votes = clash.votes {
-                    Text("🔥 \(votes) votes")
-                        .font(.caption2).foregroundColor(.white.opacity(0.8))
+            // Split gradient background
+            HStack(spacing:0){
+                LinearGradient(colors:[Color.red,Color.orange],startPoint:.topLeading,endPoint:.bottomTrailing)
+                LinearGradient(colors:[Color.blue,Color.purple],startPoint:.topLeading,endPoint:.bottomTrailing)
+            }
+            .mask(RoundedRectangle(cornerRadius: 28))
+
+            // Content overlay
+            HStack {
+                VStack(spacing:6){
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerA)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
+                        .frame(width:60,height:60)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white,lineWidth:2))
+                    Text(clash.streamerA)
+                        .font(.caption2).bold().foregroundColor(.white)
+                }
+                Spacer()
+                VStack(spacing:6){
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerB)")){ phase in phase.image?.resizable() ?? Color.white.opacity(0.2) }
+                        .frame(width:60,height:60)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white,lineWidth:2))
+                    Text(clash.streamerB)
+                        .font(.caption2).bold().foregroundColor(.white)
                 }
             }
-            .padding()
+            .padding(.horizontal,24)
+
+            // VS label
+            Text("VS")
+                .font(.title2).bold().foregroundColor(.white.opacity(0.9))
+                .shadow(radius:4)
         }
-        .frame(maxWidth:.infinity,minHeight:110)
+        .frame(height:140)
+        .cornerRadius(28)
+        .shadow(color:.black.opacity(0.25),radius:6,x:0,y:4)
     }
 }
 
