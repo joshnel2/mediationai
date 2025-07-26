@@ -34,7 +34,7 @@ struct ConversationView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing:12){
-                        ForEach(messages){ msg in bubble(for: msg) }
+                        ForEach(messages.filter{ shouldShow($0) }){ msg in bubble(for: msg) }
                     }
                     .padding()
                 }
@@ -118,6 +118,16 @@ struct ConversationView: View {
                 .foregroundColor(.white)
                 .cornerRadius(16)
             if msg.sender == .b || msg.sender == .ai { Spacer() }
+        }
+    }
+
+    private func shouldShow(_ msg:ChatMsg)->Bool {
+        if voted { return true } // once voted show all
+        // before vote, only show AI and my side
+        switch msg.sender {
+        case .ai: return true
+        case .a: return meIsA
+        case .b: return !meIsA
         }
     }
 }
