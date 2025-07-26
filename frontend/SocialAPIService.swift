@@ -29,6 +29,21 @@ struct MockDispute: Identifiable, Codable {
     var votesB: Int
 }
 
+struct Request: Identifiable, Codable {
+    let id: String
+    let fromUser: String
+    let toUser: String
+    let dispute: MockDispute
+    var createdAt: Date = Date()
+}
+
+struct HistoryItem: Identifiable, Codable {
+    let id: String
+    let dispute: MockDispute
+    let didWin: Bool
+    var recordedAt: Date = Date()
+}
+
 @MainActor
 class SocialAPIService: ObservableObject {
     @Published var liveClashes: [Clash] = []
@@ -60,6 +75,9 @@ class SocialAPIService: ObservableObject {
 
     // New: fake disputes per user
     @Published var disputesByUser: [String: [MockDispute]] = [:]
+    @Published var requestsIn: [String: [Request]] = [:]
+    @Published var requestsOut: [String: [Request]] = [:]
+    @Published var historyByUser: [String: [HistoryItem]] = [:]
 
     func disputes(for id: String) -> [MockDispute] {
         disputesByUser[id] ?? []
@@ -71,7 +89,27 @@ class SocialAPIService: ObservableObject {
                 var updated = list[idx]
                 if voteForA { updated.votesA += 1 } else { updated.votesB += 1 }
                 disputesByUser[uid]![idx] = updated
+
+                // Update history mock XP: when votes surpass threshold decide win
+                if updated.votesA >= 5 || updated.votesB >= 5 {
+                    let didAWin = updated.votesA > updated.votesB
+                    let winner = didAWin ? updated.statementA : updated.statementB
+                    // simplistic: assume uids[0] is A, uid[1] is B (mock)
+                    let users = Array(disputesByUser.keys)
+                    if users.count >= 2 {
+                        let userA = users[0]; let userB = users[1]
+                        appendHistory(for: userA, dispute: updated, win: didAWin)
+                        appendHistory(for: userB, dispute: updated, win: !didAWin)
+                    }
+                }
             }
+        }
+    }
+
+    private func appendHistory(for user:String, dispute:MockDispute, win:Bool){
+        historyByUser[user, default: []].append(HistoryItem(id: UUID().uuidString, dispute: dispute, didWin: win))
+        if let idx = overallLeaders.firstIndex(where:{$0.id==user}){
+            if win { overallLeaders[idx].wins += 1 } else { overallLeaders[idx].wins = max(0, overallLeaders[idx].wins-1) }
         }
     }
 
