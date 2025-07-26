@@ -43,6 +43,13 @@ struct ConversationView: View {
 
     @EnvironmentObject var authService: MockAuthService
 
+    // Determine if the current signed-in user is a participant in this crash-out.
+    private var isParticipant: Bool {
+        guard let myID = authService.currentUser?.id.uuidString else { return false }
+        // A user is considered a participant if this dispute appears in their personal dispute list
+        return social.disputesByUser[myID]?.contains(where: { $0.id == dispute.id }) ?? false
+    }
+
     private var meIsA: Bool { Bool.random() } // placeholder
 
     var body: some View {
@@ -73,27 +80,36 @@ struct ConversationView: View {
             }
 
             // Modern glass input bar
-            HStack(spacing:8){
-                TextField("Type your point", text:$input)
-                    .foregroundColor(.primary)
-                Button(action: send){
-                    Image(systemName:"paperplane.fill")
-                        .rotationEffect(.degrees(45))
-                        .padding(10)
-                        .background(AppTheme.primary)
-                        .clipShape(Circle())
-                        .foregroundColor(.white)
+            // Input section – visible only to participants
+            if isParticipant {
+                HStack(spacing:8){
+                    TextField("Type your point", text:$input)
+                        .foregroundColor(.primary)
+                    Button(action: send){
+                        Image(systemName:"paperplane.fill")
+                            .rotationEffect(.degrees(45))
+                            .padding(10)
+                            .background(AppTheme.primary)
+                            .clipShape(Circle())
+                            .foregroundColor(.white)
+                    }
+                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
                 }
-                .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
-            }
-            .padding(.vertical,10)
-            .padding(.horizontal,16)
-            .background(BlurView(style:.systemUltraThinMaterial))
-            .clipShape(Capsule())
-            .padding(.horizontal)
+                .padding(.vertical,10)
+                .padding(.horizontal,16)
+                .background(BlurView(style:.systemUltraThinMaterial))
+                .clipShape(Capsule())
+                .padding(.horizontal)
 
-            if voted {
-                opponentSection
+                if voted {
+                    opponentSection
+                }
+            } else {
+                // Viewer message when not a participant
+                Text("You are watching this crashout. Only the participants can add messages.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 12)
             }
         }
         .navigationTitle(dispute.title)
