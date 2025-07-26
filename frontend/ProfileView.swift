@@ -30,13 +30,19 @@ struct ProfileView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 28) {
-                    avatarSection
+                    // Header
+                    ZStack(alignment:.bottom) {
+                        LinearGradient(colors:[AppTheme.primary,AppTheme.accent],startPoint:.topLeading,endPoint:.bottomTrailing)
+                            .frame(height:160)
+                            .ignoresSafeArea()
+                        avatarSection.offset(y:40)
+                    }.padding(.bottom,40)
 
                     nameSection
 
-                    followerStats
-
                     chipsSection
+
+                    requestsSection
 
                     myDisputesSection
 
@@ -110,14 +116,32 @@ struct ProfileView: View {
     private var followerStats: some View { EmptyView() }
 
     private var chipsSection: some View {
-        HStack(spacing:24){
-            NavigationLink(destination: FollowingListView()){
-                Text("Following \(socialService.following.count)")
-                    .font(.caption).padding(8).background(AppTheme.cardGradient).cornerRadius(12)
+        HStack(spacing:12){
+            NavigationLink(destination: FollowingListView()){ statChip(title: "Following", count: socialService.following.count) }
+            statChip(title:"Followers",count: socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])
+            NavigationLink(destination: HistoryListView()){ statChip(title:"Wins",count: socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]].filter{$0.didWin}.count) }
+            statChip(title:"Disputes",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count)
+        }
+    }
+
+    private func statChip(title:String,count:Int)->some View{
+        VStack{
+            Text("\(count)").bold()
+            Text(title).font(.caption)
+        }
+        .padding(8)
+        .background(AppTheme.cardGradient)
+        .cornerRadius(12)
+    }
+
+    private var requestsSection: some View {
+        VStack(alignment:.leading,spacing:8){
+            NavigationLink(destination: RequestsListView(mode: .incoming)){
+                Text("Incoming Requests (\(socialService.requestsIn[authService.currentUser?.id.uuidString ?? "", default:[]].count))")
             }
-            Text("Followers \(socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])")
-                .font(.caption).padding(8).background(AppTheme.cardGradient).cornerRadius(12)
-            Spacer()
+            NavigationLink(destination: RequestsListView(mode: .outgoing)){
+                Text("Outgoing Requests (\(socialService.requestsOut[authService.currentUser?.id.uuidString ?? "", default:[]].count))")
+            }
         }
     }
 
