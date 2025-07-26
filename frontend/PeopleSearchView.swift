@@ -46,6 +46,15 @@ struct PeopleSearchView: View {
 
                 // Results Grid
                 ScrollView {
+                    if social.searchResults.isEmpty {
+                        HStack{
+                            Text("Suggested creators")
+                                .font(.headline)
+                                .foregroundColor(AppTheme.textPrimary)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                    }
                     LazyVGrid(columns: grid, spacing: 20) {
                         ForEach(results) { user in
                             userCard(for: user)
@@ -90,7 +99,7 @@ struct PeopleSearchView: View {
                         .font(.caption2)
                         .padding(.vertical,6)
                         .padding(.horizontal,16)
-                        .background(AppTheme.primary.opacity(0.9))
+                        .background(social.following.contains(user.id) ? Color.white.opacity(0.25) : AppTheme.accentGradient)
                         .foregroundColor(.white)
                         .cornerRadius(18)
                 }
