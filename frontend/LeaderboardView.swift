@@ -59,10 +59,10 @@ struct LeaderboardView: View {
                         .environmentObject(social)
                         .onAppear{ if idx==0 { confetti+=1 } }
                         .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top:8, leading:0, bottom:8, trailing:0))
                 }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
         }
         .navigationTitle("Leaderboard")
         .background(AppTheme.backgroundGradient)
@@ -80,61 +80,39 @@ struct LeaderboardView: View {
     // no longer needed
 }
 
-struct LeaderRow: View {
+private struct LeaderRow: View {
     @EnvironmentObject var social: SocialAPIService
     let user: SocialAPIService.UserSummary
     let rank: Int
     let maxWins: Int
     var body: some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack(spacing:16){
-                ZStack{
-                    Circle()
-                        .stroke(Color.white.opacity(0.15), lineWidth: 4)
-                        .overlay(
-                            Circle()
-                                .trim(from: 0, to: CGFloat(user.wins)/CGFloat(maxWins))
-                                .stroke(AppTheme.primary, style: StrokeStyle(lineWidth:4, lineCap:.round))
-                                .rotationEffect(.degrees(-90))
-                                .animation(.easeOut(duration:0.6),value:user.wins)
-                        )
-                    AsyncImage(url: URL(string: "https://i.pravatar.cc/64?u=\(user.id)")) { phase in
-                        if let img = phase.image { img.resizable().clipShape(Circle()) } else { Circle().fill(AppTheme.accent) }
-                    }
+            HStack(spacing:12){
+                Text("#\(rank)")
+                    .font(.subheadline.weight(.bold))
+                    .frame(width:28)
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/60?u=\(user.id)")) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
-                .frame(width:64,height:64)
-                .shadow(radius:4)
+                .frame(width:40,height:40) .clipShape(Circle())
 
-                VStack(alignment:.leading,spacing:4){
+                VStack(alignment:.leading,spacing:2){
                     Text(user.displayName)
-                        .font(.headline)
-                    Text("🏆 \(user.wins) Crashouts")
+                        .font(.subheadline.weight(.semibold))
+                    Text("\(user.wins) wins • \(user.xp) XP")
                         .font(.caption)
-                        .foregroundColor(AppTheme.textSecondary)
+                        .foregroundColor(.secondary)
                 }
                 Spacer()
                 Button(action:{ social.toggleFollow(id: user.id) }){
-                    Text(social.following.contains(user.id) ? "Following" : "+ Follow")
-                        .font(.caption2)
-                        .padding(.vertical,6)
-                        .padding(.horizontal,10)
-                        .background(AppTheme.primary.opacity(0.85))
-                        .foregroundColor(.white)
-                        .cornerRadius(16)
+                    Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
+                        .foregroundColor(AppTheme.primary)
                 }
             }
-            .padding(10)
-            .background(rankBackground)
-            .cornerRadius(20)
-            .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
-            // Highlight champion row without external shimmer dependency
-            .overlay(
-                rank==1 ? RoundedRectangle(cornerRadius:20).stroke(Color.yellow.opacity(0.4),lineWidth:2) : nil
-            )
+            .padding(.horizontal)
         }
         .buttonStyle(PlainButtonStyle())
     }
-
     private var rankGradient: LinearGradient {
         switch rank {
         case 1:
@@ -148,16 +126,7 @@ struct LeaderRow: View {
         }
     }
 
-    // Unified lighter background for list rows while keeping special gradients for top 3
-    private var rankBackground: some View {
-        Group {
-            if rank <= 3 {
-                rankGradient
-            } else {
-                AppTheme.cardGradient
-            }
-        }
-    }
+    // Not used since rows are flat
 }
 
 struct LeaderboardView_Previews: PreviewProvider {
