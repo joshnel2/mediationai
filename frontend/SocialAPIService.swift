@@ -300,7 +300,7 @@ class SocialAPIService: ObservableObject {
         let id: String
         let displayName: String
         let xp: Int
-        let wins: Int
+        var wins: Int
     }
 
     func searchUsers(query: String) {
