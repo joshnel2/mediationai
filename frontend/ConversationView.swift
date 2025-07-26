@@ -11,11 +11,26 @@ struct ConversationView: View {
     @State private var messages: [ChatMsg] = []
     @State private var input: String = ""
     @State private var aiThinking = false
+    @State private var voted = false
+    @State private var votesA:Int = 0
+    @State private var votesB:Int = 0
+
+    @EnvironmentObject var authService: MockAuthService
 
     private var meIsA: Bool { Bool.random() } // placeholder
 
     var body: some View {
         VStack {
+            // Vote count pill
+            HStack(spacing:16){
+                Text("Side A 🔥 \(votesA)")
+                Text("Side B 🔥 \(votesB)")
+            }
+            .padding(8)
+            .background(AppTheme.cardGradient)
+            .cornerRadius(16)
+            .padding(.top,8)
+
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing:12){
@@ -33,6 +48,10 @@ struct ConversationView: View {
                     .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
             }
             .padding()
+
+            if voted {
+                opponentSection
+            }
         }
         .navigationTitle(dispute.title)
         .onAppear{ seed() }
@@ -45,11 +64,38 @@ struct ConversationView: View {
             ChatMsg(text: dispute.statementB, sender:.b),
             ChatMsg(text: "AI: I see contrasting viewpoints. Let’s explore common ground.", sender:.ai)
         ]
+        votesA = dispute.votesA
+        votesB = dispute.votesB
+    }
+
+    // Opponent suggestions
+    private var opponentSection: some View {
+        VStack(alignment:.leading,spacing:8){
+            Text("Challenge someone on the other side")
+                .font(.caption)
+            let opponents = social.opponentSuggestions(exclude: authService.currentUser?.id.uuidString ?? "")
+            ScrollView(.horizontal,showsIndicators:false){
+                HStack(spacing:12){
+                    ForEach(opponents){ u in
+                        Button(action:{ social.createClashBetween(authService.currentUser?.id.uuidString ?? "", u.id) }){
+                            VStack{
+                                AsyncImage(url: URL(string:"https://i.pravatar.cc/60?u=\(u.id)")){ phase in phase.image?.resizable() ?? Color.gray }
+                                    .frame(width:50,height:50).clipShape(Circle())
+                                Text(u.displayName).font(.caption2)
+                            }
+                        }.buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
     }
 
     private func send(){
         let sender: Sender = meIsA ? .a : .b
         messages.append(ChatMsg(text: input, sender: sender))
+        if sender == .a { votesA += 1 } else { votesB += 1 }
+        voted = true
         input = ""
         aiRespond()
     }

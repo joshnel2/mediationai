@@ -216,6 +216,12 @@ class SocialAPIService: ObservableObject {
     func activities(for id:String) -> [ActivityEvent] { activityByUser[id] ?? [] }
     func summary(for id:String) -> String { aiSummaryByUser[id] ?? "AI still analysing…" }
 
+    // Suggest opposite-side users for a crashout (mock)
+    func opponentSuggestions(exclude id:String, count:Int = 3) -> [UserSummary] {
+        let pool = overallLeaders.filter{ $0.id != id }
+        return Array(pool.shuffled().prefix(count))
+    }
+
     func fetchLiveClashes() {
         if APIConfig.enableMockData {
             liveClashes.shuffle()
