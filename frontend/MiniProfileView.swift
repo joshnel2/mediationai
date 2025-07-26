@@ -118,7 +118,8 @@ struct MiniProfileView: View {
                 .font(.headline)
             ScrollView(.horizontal,showsIndicators:false){
                 HStack(spacing:16){
-                    ForEach(social.disputes(for:userID)){ disp in
+                    // Show only disputes that involve BOTH the profile owner and the signed-in user (so the viewer sees shared history)
+                    ForEach(filteredDisputes){ disp in
                         NavigationLink(destination: ConversationView(dispute: disp)){
                             VStack(alignment:.leading,spacing:6){
                                 Text(disp.title).bold().lineLimit(1)
@@ -161,6 +162,17 @@ struct MiniProfileView: View {
         if let current = authService.currentUser?.id.uuidString {
             let _ = social.createClashBetween(current, userID)
         }
+    }
+
+    // Helper computed property
+    private var filteredDisputes: [MockDispute] {
+        // If viewing your own profile, show all of your disputes
+        guard let myID = authService.currentUser?.id.uuidString, myID != userID else {
+            return social.disputes(for: userID)
+        }
+        // Otherwise, show only clashes that include both you and the profile owner
+        let mine = Set(social.disputes(for: myID).map { $0.id })
+        return social.disputes(for: userID).filter { mine.contains($0.id) }
     }
 }
 

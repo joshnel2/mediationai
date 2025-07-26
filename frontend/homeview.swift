@@ -242,6 +242,7 @@ struct HomeView: View {
                 LazyHStack(spacing: 16) {
                     ForEach(socialService.liveClashes) { clash in
                         TrendingClashCard(clash: clash)
+                            .environmentObject(socialService)
                     }
                 }
                 .padding(.horizontal, 4)
@@ -253,32 +254,35 @@ struct HomeView: View {
     // small horizontal card
     private struct TrendingClashCard: View {
         let clash: Clash
-        @State private var showVote = false
         @EnvironmentObject var social: SocialAPIService
 
         var body: some View {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("\(clash.streamerA) vs \(clash.streamerB)")
-                    .font(.subheadline).bold()
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                Text("👀 \(clash.viewerCount) viewers")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.9))
-            }
-            .padding()
-            .frame(width: 200, height: 100)
-            .background(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .cornerRadius(18)
-            .shadow(radius: 4)
-            .onTapGesture {
-                showVote = true
-            }
-            .sheet(isPresented: $showVote) {
-                if let dispute = social.disputes(for: clash.id).first {
-                    VoteView(dispute: dispute)
-                        .environmentObject(social)
+            NavigationLink(destination: destinationView) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("\(clash.streamerA) vs \(clash.streamerB)")
+                        .font(.subheadline).bold()
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    Text("👀 \(clash.viewerCount) viewers")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.9))
                 }
+                .padding()
+                .frame(width: 200, height: 100)
+                .background(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .cornerRadius(18)
+                .shadow(radius: 4)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+
+        // Decide where to navigate (conversation or watch) depending on data availability
+        private var destinationView: some View {
+            let allDisputes = social.disputesByUser.values.flatMap { $0 }
+            if let dispute = allDisputes.first(where: { $0.id == clash.id }) {
+                return AnyView(ConversationView(dispute: dispute))
+            } else {
+                return AnyView(ClashWatchView(clash: clash))
             }
         }
     }
