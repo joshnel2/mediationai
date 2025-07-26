@@ -49,48 +49,47 @@ struct LeaderRow: View {
     let user: SocialAPIService.UserSummary
     let rank: Int
     var body: some View {
-        HStack(spacing:12){
-            ZStack{
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/48?u=\(user.id)")) { phase in
-                    if let img = phase.image {
-                        img.resizable().clipShape(Circle())
-                    } else {
-                        Circle().fill(AppTheme.accent)
+        NavigationLink(destination: MiniProfileView(userID: user.id)) {
+            HStack(spacing:16){
+                ZStack{
+                    AsyncImage(url: URL(string: "https://i.pravatar.cc/64?u=\(user.id)")) { phase in
+                        if let img = phase.image {
+                            img.resizable().clipShape(Circle())
+                        } else { Circle().fill(AppTheme.accent) }
+                    }
+                    if rank<=3 {
+                        Image(systemName: rank==1 ? "crown.fill":"crown")
+                            .foregroundColor(rank==1 ? .yellow : .gray)
+                            .offset(x:22,y:-22)
                     }
                 }
-                if rank<=3 {
-                    Image(systemName: rank==1 ? "crown.fill":"crown")
-                        .foregroundColor(rank==1 ? .yellow : .gray)
-                        .offset(x:18,y:-18).scaleEffect(1.1).opacity(0.9)
-                        .animation(.easeInOut.repeatForever(autoreverses:true),value:rank)
+                .frame(width:64,height:64)
+                .shadow(radius:4)
+
+                VStack(alignment:.leading,spacing:4){
+                    Text(user.displayName)
+                        .font(.headline)
+                    Text("🏆 \(user.wins) Crashouts")
+                        .font(.caption)
+                        .foregroundColor(AppTheme.textSecondary)
                 }
-            }.frame(width:48,height:48)
-            VStack(alignment:.leading){
-                Text(user.displayName).bold()
-                ProgressView(value: Double(user.xp%1000)/1000).progressViewStyle(LinearProgressViewStyle(tint: AppTheme.primary))
-            }
-            Spacer()
-            Text("🏆 \(user.wins)")
-            Button(action:{ social.toggleFollow(id: user.id) }){
-                Text(social.following.contains(user.id) ? "Following" : "Follow")
-                    .font(.caption)
-                    .foregroundColor(AppTheme.textPrimary)
-                    .padding(6)
-                    .background(AppTheme.glassPrimary)
-                    .cornerRadius(12)
-            }
-        }
-        .padding(8).background(AppTheme.cardGradient).cornerRadius(16)
-        .swipeActions(edge: .trailing) {
-            Button {
-                if let current = social.following.first {
-                    _ = social.createClashBetween(current, user.id)
+                Spacer()
+                Button(action:{ social.toggleFollow(id: user.id) }){
+                    Text(social.following.contains(user.id) ? "Following" : "+ Follow")
+                        .font(.caption2)
+                        .padding(.vertical,6)
+                        .padding(.horizontal,10)
+                        .background(AppTheme.primary.opacity(0.85))
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
                 }
-            } label: {
-                Text("Challenge")
             }
-            .tint(.purple)
+            .padding(10)
+            .background(AppTheme.cardGradient)
+            .cornerRadius(20)
+            .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

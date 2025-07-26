@@ -98,27 +98,25 @@ struct LiveFeedView: View {
                 if tab == 0 {
                     TabView {
                         ForEach(list) { clash in
-                            HotCardView(clash: clash)
-                                .onTapGesture {
-                                    navigateClashID = clash.id
-                                }
+                            NavigationLink(destination: ClashWatchView(clash: clash)) {
+                                HotCardView(clash: clash)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-                    .frame(height:300)
+                    .frame(height:320)
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 20) {
+                        LazyVStack(spacing: 24) {
                             ForEach(list) { clash in
-                                (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
-                                    .background(
-                                        NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: UUID().uuidString, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: clash.streamerA, statementB: clash.streamerB, votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
-                                            EmptyView()
-                                        }.opacity(0)
-                                    )
+                                NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: UUID().uuidString, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: clash.streamerA, statementB: clash.streamerB, votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
+                                    (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        .padding()
+                        .padding(.horizontal)
                         .refreshable { await refresh() }
                     }
                 }
@@ -189,20 +187,22 @@ struct DramaCardView: View {
     let clash: Clash
     var body: some View {
         ZStack {
-            HStack(spacing:0){
-                Color.red.opacity(0.8)
-                Color.blue.opacity(0.8)
-            }
-            .mask(RoundedRectangle(cornerRadius: 20))
-            VStack{
-                Text("⚔️ \(clash.streamerA) VS \(clash.streamerB)")
-                    .font(.headline).bold()
-                    .foregroundColor(.white)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(LinearGradient(colors: [Color.pink.opacity(0.9), Color.indigo.opacity(0.9)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .shadow(color:.black.opacity(0.2),radius:6,x:0,y:4)
+            VStack(spacing:8){
+                Text("💥 Drama Crashout")
+                    .font(.caption).foregroundColor(.white.opacity(0.9))
+                Text("\(clash.streamerA) vs \(clash.streamerB)")
+                    .font(.headline).bold().foregroundColor(.white)
+                if let votes = clash.votes {
+                    Text("🔥 \(votes) votes")
+                        .font(.caption2).foregroundColor(.white.opacity(0.8))
+                }
             }
             .padding()
         }
-        .frame(maxWidth:.infinity,minHeight:90)
-        .cornerRadius(20)
+        .frame(maxWidth:.infinity,minHeight:110)
     }
 }
 
@@ -211,22 +211,32 @@ struct HotCardView: View {
     var body: some View {
         ZStack{
             RoundedRectangle(cornerRadius: 30)
-                .fill(LinearGradient(colors:[.orange,.red],startPoint:.topLeading,endPoint:.bottomTrailing))
-            VStack(spacing:16){
+                .fill(LinearGradient(colors:[Color.orange,Color.red],startPoint:.topLeading,endPoint:.bottomTrailing))
+                .shadow(color:.black.opacity(0.25),radius:6,x:0,y:4)
+            VStack(spacing:20){
                 HStack{
                     Image(systemName:"flame.fill").foregroundColor(.yellow)
-                    Text("HOT NOW").bold().foregroundColor(.white)
+                    Text("Trending Crashout")
+                        .font(.subheadline).bold().foregroundColor(.white)
                     Spacer()
                     Text("👀 \(clash.viewerCount)")
-                        .foregroundColor(.white)
+                        .font(.caption).foregroundColor(.white.opacity(0.9))
                 }
                 .padding(.horizontal)
-                Text("\(clash.streamerA) vs \(clash.streamerB)")
-                    .font(.title2).bold().foregroundColor(.white)
-                Text("Tap to watch & vote")
-                    .font(.caption).foregroundColor(.white.opacity(0.8))
+                VStack(spacing:4){
+                    Text("\(clash.streamerA)").bold()
+                    Text("vs")
+                    Text("\(clash.streamerB)").bold()
+                }
+                .foregroundColor(.white).font(.title3)
+                if let votes = clash.votes {
+                    Text("🔥 \(votes) votes")
+                        .font(.caption2).foregroundColor(.white.opacity(0.85))
+                }
             }
-        }.padding(.horizontal,24)
+            .padding(.vertical,20)
+        }
+        .padding(.horizontal,24)
     }
 }
 
