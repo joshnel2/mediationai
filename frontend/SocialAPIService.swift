@@ -80,6 +80,18 @@ class SocialAPIService: ObservableObject {
     @Published var requestsIn: [String: [Request]] = [:]
     @Published var requestsOut: [String: [Request]] = [:]
     @Published var historyByUser: [String: [HistoryItem]] = [:]
+    // Activity timeline
+    struct ActivityEvent: Identifiable, Codable {
+        enum Kind: String, Codable { case started, joined, won, lost, follow, summary }
+        let id: String
+        let kind: Kind
+        let message: String
+        let date: Date
+        let relatedDisputeID: String?
+    }
+
+    @Published var activityByUser: [String:[ActivityEvent]] = [:]
+    @Published var aiSummaryByUser: [String:String] = [:]
 
     func disputes(for id: String) -> [MockDispute] {
         disputesByUser[id] ?? []
@@ -188,8 +200,21 @@ class SocialAPIService: ObservableObject {
             disputesByUser[leader.id] = arr
 
             followerCounts[leader.id] = Int.random(in: 200...5000)
+
+            // Seed activities
+            var events:[ActivityEvent] = []
+            if let first = arr.first {
+                events.append(ActivityEvent(id: UUID().uuidString, kind:.started, message:"Started crashout \(first.title)", date:Date(), relatedDisputeID:first.id))
+            }
+            events.append(ActivityEvent(id: UUID().uuidString, kind:.follow, message:"Gained 5 new followers", date:Date().addingTimeInterval(-3600), relatedDisputeID:nil))
+            activityByUser[leader.id] = events
+
+            aiSummaryByUser[leader.id] = "Known for bold, data-driven arguments and quick rebuttals."
         }
     }
+
+    func activities(for id:String) -> [ActivityEvent] { activityByUser[id] ?? [] }
+    func summary(for id:String) -> String { aiSummaryByUser[id] ?? "AI still analysing…" }
 
     func fetchLiveClashes() {
         if APIConfig.enableMockData {

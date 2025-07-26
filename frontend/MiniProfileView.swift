@@ -20,6 +20,19 @@ struct MiniProfileView: View {
 
                 actionButtons
 
+                // AI summary chip
+                HStack{
+                    Image(systemName:"brain.head.profile").foregroundColor(.yellow)
+                    Text(social.summary(for:userID))
+                        .font(.caption)
+                        .foregroundColor(AppTheme.textSecondary)
+                }
+                .padding(.vertical,10).padding(.horizontal,16)
+                .background(AppTheme.cardGradient)
+                .cornerRadius(20)
+
+                activityTimeline
+
                 recentSection
             }
             .padding()
@@ -120,6 +133,24 @@ struct MiniProfileView: View {
                             .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
                         }
                         .buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+        }
+    }
+
+    // Activity timeline
+    private var activityTimeline: some View {
+        let events = social.activities(for: userID)
+        return VStack(alignment:.leading,spacing:12){
+            Text("Activity")
+                .font(.headline)
+            ForEach(events){ ev in
+                HStack(alignment:.top,spacing:8){
+                    Circle().fill(AppTheme.primary).frame(width:6,height:6).padding(.top,6)
+                    VStack(alignment:.leading,spacing:2){
+                        Text(ev.message).font(.caption)
+                        Text(ev.date, style: .relative).font(.caption2).foregroundColor(.secondary)
                     }
                 }
             }
