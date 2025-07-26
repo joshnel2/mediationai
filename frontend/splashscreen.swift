@@ -40,7 +40,7 @@ struct SplashScreen: View {
                     .scaleEffect(showLogo ? 1 : 0.5)
                     .opacity(showLogo ? 1 : 0)
                     .animation(.spring(response: 0.6, dampingFraction: 0.7), value: showLogo)
-                Text("ClashAI")
+                Text("Crashout AI")
                     .font(.system(size: 44, weight: .heavy))
                     .foregroundColor(.white)
                     .neonGlow()

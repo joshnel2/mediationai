@@ -163,7 +163,7 @@ struct ProfileView: View {
     // MARK: - Helpers
     private func shareInvite() {
         #if canImport(UIKit)
-        let text = "Join me on ClashAI ⚡️ – it’s fire!"
+        let text = "Join me on Crashout ⚡️ – it’s fire!"
         let av = UIActivityViewController(activityItems: [text], applicationActivities: nil)
         UIApplication.shared.windows.first?.rootViewController?.present(av, animated: true)
         #endif
