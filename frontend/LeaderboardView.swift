@@ -23,33 +23,22 @@ struct LeaderboardView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
 
-            // Podium for top 3 (now tappable)
-            if !currentList.isEmpty {
-                HStack(alignment:.bottom,spacing:24){
-                    ForEach(0..<min(3,currentList.count),id:\.self){ idx in
-                        let user = currentList[idx]
-                        NavigationLink(destination: MiniProfileView(userID: user.id)) {
-                            VStack(spacing:6){
-                                AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
-                                    if let img = phase.image { img.resizable() } else { Color.gray }
-                                }
-                                .frame(width:72,height:72)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(AppTheme.accent,lineWidth:3))
-                                Text(user.displayName)
-                                    .font(.caption)
-                                    .foregroundColor(.primary)
-                                Text("🏆 \(user.wins)")
-                                    .font(.caption2).foregroundColor(.yellow)
-                            }
-                            .scaleEffect(idx==0 ? 1.2 : 1.0)
-                            .opacity(idx==0 ? 1 : 0.95)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                .padding(.vertical,12)
+            // Podium for top 3 – revamped
+            if currentList.count >= 3 {
+                PodiumView(first: currentList[0], second: currentList[1], third: currentList[2])
+                    .environmentObject(social)
+                    .padding(.bottom,8)
             }
+
+            // Fallback when <3 users
+            else if !currentList.isEmpty {
+                ForEach(0..<currentList.count,id:\.self){ idx in
+                    LeaderRow(user: currentList[idx], rank: idx+1, maxWins: maxWins)
+                        .environmentObject(social)
+                }
+            }
+
+            // Continue list ...
 
             // List body
             List {
@@ -79,6 +68,43 @@ struct LeaderboardView: View {
 
     // no longer needed
 }
+
+// MARK: - Podium
+
+private struct PodiumView: View {
+    @EnvironmentObject var social: SocialAPIService
+    let first: SocialAPIService.UserSummary
+    let second: SocialAPIService.UserSummary
+    let third: SocialAPIService.UserSummary
+
+    var body: some View {
+        HStack(alignment:.bottom,spacing:24){
+            miniColumn(for: second, height:100)
+            miniColumn(for: first, height:120, isChampion:true)
+            miniColumn(for: third, height:100)
+        }
+    }
+
+    private func miniColumn(for user:SocialAPIService.UserSummary, height:CGFloat, isChampion:Bool=false)->some View{
+        VStack(spacing:6){
+            NavigationLink(destination: MiniProfileView(userID: user.id)){
+                AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:height*0.6,height:height*0.6)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(isChampion ? Color.yellow : AppTheme.accent,lineWidth: isChampion ? 4 : 2))
+                .shadow(radius:isChampion ? 6 : 3)
+            }
+            .buttonStyle(PlainButtonStyle())
+            Text(user.displayName).font(.caption)
+            Text("🏆 \(user.wins)").font(.caption2).foregroundColor(.secondary)
+        }
+        .frame(height:height)
+    }
+}
+
+// MARK: - Leader Row
 
 private struct LeaderRow: View {
     @EnvironmentObject var social: SocialAPIService
