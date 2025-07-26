@@ -6,7 +6,7 @@ struct LiveFeedView: View {
     @State private var navigateClashID: String?
     @EnvironmentObject var viralService: ViralAPIService
     @EnvironmentObject var authService: MockAuthService
-    @State private var tab = 0
+    @State private var tab = 0 // 0 = Explore, 1 = Following
 
     var body: some View {
         NavigationView {
@@ -34,14 +34,14 @@ struct LiveFeedView: View {
                     contentView
                 }
             }
-            .navigationTitle(tab == 0 ? "Hot" : (tab == 1 ? "Drama" : "Following"))
+            // We rely on the segmented picker in the nav bar, keep title empty to avoid repetition
+            .navigationTitle("")
             .toolbar {
                 // Segmented control right under the nav bar title
                 ToolbarItem(placement: .principal) {
-                    Picker("Mode", selection: $tab) {
-                        Text("Hot").tag(0)
-                        Text("Drama").tag(1)
-                        Text("Following").tag(2)
+                    Picker("Feed", selection: $tab) {
+                        Text("Explore").tag(0)
+                        Text("Following").tag(1)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(width: 250)
@@ -65,22 +65,14 @@ struct LiveFeedView: View {
     private func loadTab(_ index:Int){
         switch index {
         case 0: socialService.fetchLiveClashes()
-        case 1: socialService.fetchDramaFeed()
         default: socialService.fetchFollowingClashes()
         }
     }
 
     private var contentView: some View {
         Group {
-            let list: [Clash] = {
-                if tab == 0 {
-                    return socialService.liveClashes.sorted { ($0.votes ?? 0) > ($1.votes ?? 0) }
-                } else if tab == 1 {
-                    return socialService.dramaClashes
-                } else {
-                    return socialService.followingClashes
-                }
-            }()
+            let list: [Clash] = tab == 0 ? socialService.liveClashes.sorted { ($0.votes ?? 0) > ($1.votes ?? 0) } : socialService.followingClashes
+
             if socialService.isLoading && list.isEmpty {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -89,37 +81,74 @@ struct LiveFeedView: View {
                     Image(systemName: "bolt.bubble")
                         .font(.system(size: 48))
                         .foregroundColor(.white.opacity(0.8))
-                    Text("No live clashes yet\nCheck back soon!")
+                    Text("No crashouts here yet\nCheck back soon!")
                         .font(.title3.weight(.semibold))
                         .multilineTextAlignment(.center)
                         .foregroundColor(.white.opacity(0.8))
                 }
             } else {
-                if tab == 0 {
-                    TabView {
+                ScrollView {
+                    LazyVStack(spacing: 24) {
                         ForEach(list) { clash in
                             NavigationLink(destination: ClashWatchView(clash: clash)) {
-                                HotCardView(clash: clash)
+                                FeedClashRow(clash: clash)
+                                    .environmentObject(socialService)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-                    .frame(height:320)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 24) {
-                            ForEach(list) { clash in
-                                NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: UUID().uuidString, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: clash.streamerA, statementB: clash.streamerB, votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
-                                    (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
-                        .padding(.horizontal)
-                        .refreshable { await refresh() }
+                    .padding(.horizontal)
+                    .refreshable { await refresh() }
+                }
+            }
+        }
+    }
+
+    // MARK: - Row
+    private struct FeedClashRow: View {
+        let clash: Clash
+        @EnvironmentObject var social: SocialAPIService
+        var body: some View {
+            VStack(alignment:.leading,spacing:8){
+                HStack{
+                    Text("\(clash.streamerA) vs \(clash.streamerB)")
+                        .font(.headline)
+                    Spacer()
+                    HStack(spacing:4){
+                        Image(systemName:"person.2")
+                        Text("\(clash.viewerCount)")
+                    }.font(.caption)
+                }
+                if let votes = clash.votes {
+                    Text("🔥 \(votes) votes")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                // Follow button
+                HStack{
+                    Spacer()
+                    Button(action:{ followStreamers() }){
+                        Text("+ Follow")
+                            .font(.caption2).bold()
+                            .padding(.vertical,6).padding(.horizontal,12)
+                            .background(AppTheme.primary)
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
                     }
                 }
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius:20).fill(AppTheme.cardGradient))
+            .shadow(radius:3)
+        }
+
+        private func followStreamers(){
+            // Follow both streamerA and streamerB if we can resolve their IDs
+            if let idA = social.overallLeaders.first(where: { $0.displayName == clash.streamerA })?.id {
+                social.toggleFollow(id: idA)
+            }
+            if let idB = social.overallLeaders.first(where: { $0.displayName == clash.streamerB })?.id {
+                social.toggleFollow(id: idB)
             }
         }
     }
