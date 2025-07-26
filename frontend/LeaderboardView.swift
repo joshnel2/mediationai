@@ -10,6 +10,7 @@ struct LeaderboardView: View {
 
     var body: some View {
         VStack {
+            Spacer(minLength: 0).frame(height: 8) // top breathing space
             #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
@@ -22,29 +23,32 @@ struct LeaderboardView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
 
-            // Podium for top 3
+            // Podium for top 3 (now tappable)
             if !currentList.isEmpty {
                 HStack(alignment:.bottom,spacing:24){
                     ForEach(0..<min(3,currentList.count),id:\.self){ idx in
                         let user = currentList[idx]
-                        VStack(spacing:6){
-                            AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
-                                if let img = phase.image { img.resizable() } else { Color.gray }
+                        NavigationLink(destination: MiniProfileView(userID: user.id)) {
+                            VStack(spacing:6){
+                                AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
+                                    if let img = phase.image { img.resizable() } else { Color.gray }
+                                }
+                                .frame(width:72,height:72)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(AppTheme.accent,lineWidth:3))
+                                Text(user.displayName)
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
+                                Text("🏆 \(user.wins)")
+                                    .font(.caption2).foregroundColor(.yellow)
                             }
-                            .frame(width:72,height:72)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(AppTheme.accent,lineWidth:3))
-                            Text(user.displayName)
-                                .font(.caption)
-                                .foregroundColor(.white)
-                            Text("🏆 \(user.wins)")
-                                .font(.caption2).foregroundColor(.yellow)
+                            .scaleEffect(idx==0 ? 1.2 : 1.0)
+                            .opacity(idx==0 ? 1 : 0.95)
                         }
-                        .scaleEffect(idx==0 ? 1.2 : 1.0)
-                        .opacity(idx==0 ? 1 : 0.9)
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
-                .padding(.vertical,8)
+                .padding(.vertical,12)
             }
 
             // List body
@@ -54,6 +58,8 @@ struct LeaderboardView: View {
                     LeaderRow(user: user, rank: idx+1, maxWins: maxWins)
                         .environmentObject(social)
                         .onAppear{ if idx==0 { confetti+=1 } }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                 }
             }
             .listStyle(PlainListStyle())
@@ -118,7 +124,7 @@ struct LeaderRow: View {
                 }
             }
             .padding(10)
-            .background(rankGradient)
+            .background(rankBackground)
             .cornerRadius(20)
             .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
             // Highlight champion row without external shimmer dependency
@@ -139,6 +145,17 @@ struct LeaderRow: View {
             return LinearGradient(colors:[Color.brown,Color.orange.opacity(0.7)],startPoint:.topLeading,endPoint:.bottomTrailing)
         default:
             return AppTheme.cardGradient
+        }
+    }
+
+    // Unified lighter background for list rows while keeping special gradients for top 3
+    private var rankBackground: some View {
+        Group {
+            if rank <= 3 {
+                rankGradient
+            } else {
+                AppTheme.cardGradient
+            }
         }
     }
 }
