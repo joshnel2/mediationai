@@ -24,7 +24,12 @@ struct ConversationView: View {
     let dispute: MockDispute
 
     // Simple chat model
-    struct ChatMsg: Identifiable { let id = UUID(); let text: String; let sender: Sender enum Sender { case a,b,ai } }
+    struct ChatMsg: Identifiable {
+        enum Sender { case a, b, ai }
+        let id = UUID()
+        let text: String
+        let sender: Sender
+    }
 
     @State private var messages: [ChatMsg] = []
     @State private var input: String = ""
@@ -118,7 +123,13 @@ struct ConversationView: View {
                     ForEach(opponents){ u in
                         Button(action:{ social.createClashBetween(authService.currentUser?.id.uuidString ?? "", u.id) }){
                             VStack{
-                                AsyncImage(url: URL(string:"https://i.pravatar.cc/60?u=\(u.id)")){ phase in phase.image?.resizable() ?? Color.gray }
+                                AsyncImage(url: URL(string: "https://i.pravatar.cc/60?u=\(u.id)")) { phase in
+                                    if let img = phase.image {
+                                        img.resizable()
+                                    } else {
+                                        Color.gray
+                                    }
+                                }
                                     .frame(width:50,height:50).clipShape(Circle())
                                 Text(u.displayName).font(.caption2)
                             }
