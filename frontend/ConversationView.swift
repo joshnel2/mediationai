@@ -32,6 +32,7 @@ struct ConversationView: View {
     @State private var voted = false
     @State private var votesA:Int = 0
     @State private var votesB:Int = 0
+    @State private var showBothSides = false
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -39,10 +40,20 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Vote count pill
+            // Top controls
             HStack(spacing:16){
                 Text("Side A 🔥 \(votesA)")
                 Text("Side B 🔥 \(votesB)")
+                Spacer()
+                if !voted {
+                    Button(showBothSides ? "Hide" : "Show Both") {
+                        withAnimation { showBothSides.toggle() }
+                    }
+                    .font(.caption2)
+                    .padding(6)
+                    .background(AppTheme.glassPrimary)
+                    .cornerRadius(12)
+                }
             }
             .padding(8)
             .background(AppTheme.cardGradient)
@@ -169,7 +180,7 @@ struct ConversationView: View {
     }
 
     private func shouldShow(_ msg:ChatMsg)->Bool {
-        if voted { return true } // once voted show all
+        if voted || showBothSides { return true }
         // before vote, only show AI and my side
         switch msg.sender {
         case .ai: return true
