@@ -98,7 +98,7 @@ struct HomeView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
-                Text("Good morning!")
+                Text(timeGreeting())
                     .font(AppTheme.title3())
                     .foregroundColor(AppTheme.textSecondary)
                 
@@ -182,6 +182,21 @@ struct HomeView: View {
         .scaleEffect(animateCards ? 1.0 : 0.95)
         .opacity(animateCards ? 1.0 : 0.0)
         .animation(.easeOut(duration: 0.6).delay(0.1), value: animateCards)
+    }
+
+    // Helper to compute greeting based on current hour
+    private func timeGreeting() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12:
+            return "Good morning!"
+        case 12..<17:
+            return "Good afternoon!"
+        case 17..<22:
+            return "Good evening!"
+        default:
+            return "Hello!"
+        }
     }
 
     // MARK: - Hero Banner
