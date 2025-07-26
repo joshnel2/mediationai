@@ -51,7 +51,7 @@ struct LeaderboardView: View {
             List {
                 ForEach(currentList.indices, id: \.self) { idx in
                     let user = currentList[idx]
-                    LeaderRow(user: user, rank: idx+1)
+                    LeaderRow(user: user, rank: idx+1, maxWins: maxWins)
                         .environmentObject(social)
                         .onAppear{ if idx==0 { confetti+=1 } }
                 }
@@ -69,6 +69,8 @@ struct LeaderboardView: View {
         return list.sorted { $0.wins > $1.wins }
     }
 
+    private var maxWins: Int { currentList.map{$0.wins}.max() ?? 1 }
+
     // no longer needed
 }
 
@@ -76,20 +78,23 @@ struct LeaderRow: View {
     @EnvironmentObject var social: SocialAPIService
     let user: SocialAPIService.UserSummary
     let rank: Int
+    let maxWins: Int
     var body: some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
             HStack(spacing:16){
                 ZStack{
+                    Circle()
+                        .stroke(Color.white.opacity(0.15), lineWidth: 4)
+                        .overlay(
+                            Circle()
+                                .trim(from: 0, to: CGFloat(user.wins)/CGFloat(maxWins))
+                                .stroke(AppTheme.primary, style: StrokeStyle(lineWidth:4, lineCap:.round))
+                                .rotationEffect(.degrees(-90))
+                                .animation(.easeOut(duration:0.6),value:user.wins)
+                        )
                     AsyncImage(url: URL(string: "https://i.pravatar.cc/64?u=\(user.id)")) { phase in
                         if let img = phase.image { img.resizable().clipShape(Circle()) } else { Circle().fill(AppTheme.accent) }
                     }
-                    // Rank badge circle
-                    Text("#\(rank)")
-                        .font(.caption2).bold().foregroundColor(.white)
-                        .padding(6)
-                        .background(Color.black.opacity(0.6))
-                        .clipShape(Circle())
-                        .offset(x:22,y:22)
                 }
                 .frame(width:64,height:64)
                 .shadow(radius:4)
@@ -116,6 +121,9 @@ struct LeaderRow: View {
             .background(rankGradient)
             .cornerRadius(20)
             .shadow(color:.black.opacity(0.12),radius:4,x:0,y:2)
+            .overlay(
+                rank==1 ? LinearGradient(colors:[.yellow.opacity(0.4),.clear],startPoint:.top,endPoint:.bottom).mask(RoundedRectangle(cornerRadius:20)).shimmer(duration:2) : nil
+            )
         }
         .buttonStyle(PlainButtonStyle())
     }
