@@ -224,6 +224,20 @@ struct DramaCardView: View {
                         .foregroundColor(.white.opacity(0.8))
                 }
             }
+
+            // Vote ratio bar
+            if let votes = clash.votes, votes > 0 {
+                let percentA = Double((clash.votes ?? 0) % 100) / Double(votes)
+                VStack{
+                    Spacer()
+                    GeometryReader{ geo in
+                        ZStack(alignment:.leading){
+                            RoundedRectangle(cornerRadius:4).fill(Color.white.opacity(0.15)).frame(height:8)
+                            RoundedRectangle(cornerRadius:4).fill(AppTheme.primary).frame(width:geo.size.width*percentA, height:8)
+                        }
+                    }.frame(height:8)
+                }.padding(.horizontal,24).padding(.bottom,16)
+            }
         }
         .frame(height:140)
         .cornerRadius(24)
