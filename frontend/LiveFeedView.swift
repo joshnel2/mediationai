@@ -119,37 +119,41 @@ struct LiveFeedView: View {
         let clash: Clash
         @EnvironmentObject var social: SocialAPIService
         var body: some View {
-            VStack(alignment:.leading,spacing:8){
-                HStack{
-                    Text("\(clash.streamerA) vs \(clash.streamerB)")
-                        .font(.headline)
-                    Spacer()
-                    HStack(spacing:4){
-                        Image(systemName:"person.2")
-                        Text("\(clash.viewerCount)")
-                    }.font(.caption)
+            HStack(alignment:.top,spacing:12){
+                // Avatar column
+                VStack(spacing:4){
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/56?u=\(clash.streamerA)")){ phase in
+                        (phase.image ?? Image(systemName:"person.circle")).resizable()
+                    }
+                    .frame(width:32,height:32).clipShape(Circle())
+                    Text("VS").font(.caption2).foregroundColor(.secondary)
+                    AsyncImage(url: URL(string:"https://i.pravatar.cc/56?u=\(clash.streamerB)")){ phase in
+                        (phase.image ?? Image(systemName:"person.circle")).resizable()
+                    }
+                    .frame(width:32,height:32).clipShape(Circle())
                 }
-                if let votes = clash.votes {
-                    Text("🔥 \(votes) votes")
-                        .font(.caption2)
+
+                // Content column
+                VStack(alignment:.leading,spacing:4){
+                    HStack{
+                        Text("\(clash.streamerA)")
+                            .font(.subheadline.bold())
+                        Text("vs")
+                        Text("\(clash.streamerB)")
+                            .font(.subheadline.bold())
+                        Spacer()
+                        if let votes = clash.votes {
+                            Text("🔥 \(votes)")
+                                .font(.caption)
+                        }
+                    }
+                    Text("👀 \(clash.viewerCount) viewers")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                // Follow button
-                HStack{
-                    Spacer()
-                    Button(action:{ followStreamers() }){
-                        Text("+ Follow")
-                            .font(.caption2).bold()
-                            .padding(.vertical,6).padding(.horizontal,12)
-                            .background(AppTheme.primary)
-                            .foregroundColor(.white)
-                            .cornerRadius(14)
-                    }
-                }
             }
-            .padding()
-            .background(RoundedRectangle(cornerRadius:20).fill(AppTheme.cardGradient))
-            .shadow(radius:3)
+            .padding(.vertical,8)
+            .contentShape(Rectangle())
         }
 
         private func followStreamers(){
