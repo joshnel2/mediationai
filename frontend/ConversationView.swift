@@ -1,6 +1,24 @@
 import SwiftUI
 import Combine
 
+// MARK: - Bubble Tail Shape
+struct BubbleTail: Shape {
+    var isMySide: Bool
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        if isMySide {
+            p.move(to: CGPoint(x: rect.maxX, y: rect.minY+10))
+            p.addLine(to: CGPoint(x: rect.maxX+6, y: rect.minY+16))
+            p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY+22))
+        } else {
+            p.move(to: CGPoint(x: rect.minX, y: rect.minY+10))
+            p.addLine(to: CGPoint(x: rect.minX-6, y: rect.minY+16))
+            p.addLine(to: CGPoint(x: rect.minX, y: rect.minY+22))
+        }
+        return p
+    }
+}
+
 struct ConversationView: View {
     @EnvironmentObject var social: SocialAPIService
     let dispute: MockDispute
@@ -41,13 +59,25 @@ struct ConversationView: View {
                 .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
             }
 
-            HStack{
+            // Modern glass input bar
+            HStack(spacing:8){
                 TextField("Type your point", text:$input)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Button("Send"){ send() }
-                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
+                    .foregroundColor(.primary)
+                Button(action: send){
+                    Image(systemName:"paperplane.fill")
+                        .rotationEffect(.degrees(45))
+                        .padding(10)
+                        .background(AppTheme.primary)
+                        .clipShape(Circle())
+                        .foregroundColor(.white)
+                }
+                .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
             }
-            .padding()
+            .padding(.vertical,10)
+            .padding(.horizontal,16)
+            .background(BlurView(style:.systemUltraThinMaterial))
+            .clipShape(Capsule())
+            .padding(.horizontal)
 
             if voted {
                 opponentSection
@@ -110,15 +140,32 @@ struct ConversationView: View {
 
     @ViewBuilder
     private func bubble(for msg:ChatMsg)-> some View {
-        HStack{
+        HStack(alignment:.bottom,spacing:4){
+            if msg.sender == .b { Spacer() }
+            VStack(alignment: msg.sender == .a ? .trailing : .leading){
+                Text(msg.text)
+                    .padding(12)
+                    .background(bubbleGradient(for: msg))
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius:20))
+                    .overlay(BubbleTail(isMySide: msg.sender == .b).fill(bubbleGradient(for: msg)))
+            }
             if msg.sender == .a { Spacer() }
-            Text(msg.text)
-                .padding()
-                .background(msg.sender==.ai ? Color.yellow.opacity(0.3) : (msg.sender==.a ? AppTheme.primary : AppTheme.accent))
-                .foregroundColor(.white)
-                .cornerRadius(16)
-            if msg.sender == .b || msg.sender == .ai { Spacer() }
         }
+        .transition(.move(edge: msg.sender == .a ? .trailing : .leading).combined(with:.opacity))
+        .id(msg.id)
+    }
+
+    private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
+        if msg.sender == .ai { return LinearGradient(colors:[Color.yellow.opacity(0.5),Color.orange.opacity(0.6)],startPoint:.top,endPoint:.bottom) }
+        return msg.sender == .a ? AppTheme.accentGradient : LinearGradient(colors:[AppTheme.primary,AppTheme.secondary], startPoint:.topLeading,endPoint:.bottomTrailing)
+    }
+
+    // Simple blur view helper
+    struct BlurView: UIViewRepresentable {
+        var style: UIBlurEffect.Style = .systemThinMaterial
+        func makeUIView(context: Context) -> UIVisualEffectView { UIVisualEffectView(effect: UIBlurEffect(style: style)) }
+        func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
     }
 
     private func shouldShow(_ msg:ChatMsg)->Bool {
