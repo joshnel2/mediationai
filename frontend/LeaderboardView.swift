@@ -35,8 +35,10 @@ struct LeaderboardView: View {
         .onAppear { social.fetchLeaderboard() }
     }
 
+    // Sort by dispute wins so that the top performers are decided by victories, not experience points
     private var currentList: [SocialAPIService.UserSummary] {
-        segment == 0 ? social.overallLeaders : social.dailyLeaders
+        let list = segment == 0 ? social.overallLeaders : social.dailyLeaders
+        return list.sorted { $0.wins > $1.wins }
     }
 
     // no longer needed

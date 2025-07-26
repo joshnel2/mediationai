@@ -49,6 +49,8 @@ class SocialAPIService: ObservableObject {
     @Published var liveClashes: [Clash] = []
     @Published var dramaClashes: [Clash] = []
     @Published var publicClashes: [Clash] = []
+    // New: feed showing clashes that involve users the current viewer follows
+    @Published var followingClashes: [Clash] = []
     @Published var isLoading = false
     @Published var searchResults: [UserSummary] = []
     @Published var overallLeaders: [UserSummary] = []
@@ -134,11 +136,32 @@ class SocialAPIService: ObservableObject {
         }
 
         liveClashes = (0..<6).map { _ in
-            Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 100...4000), startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-Double.random(in: 300...7200))), votes: nil, isPublic: true)
+            Clash(id: UUID().uuidString,
+                  streamerA: sampleNames.randomElement()!,
+                  streamerB: sampleNames.randomElement()!,
+                  viewerCount: Int.random(in: 100...4000),
+                  startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-Double.random(in: 300...7200))),
+                  votes: Int.random(in: 50...2000),
+                  isPublic: true)
         }
 
-        dramaClashes = (0..<6).map { _ in
-            Clash(id: UUID().uuidString, streamerA: sampleNames.randomElement()!, streamerB: sampleNames.randomElement()!, viewerCount: Int.random(in: 50...1000), startedAt: ISO8601DateFormatter().string(from: Date()), votes: nil, isPublic: true)
+        // Controversial drama topics people love to debate
+        let controversies: [(String,String)] = [
+            ("Israel", "Palestine"),
+            ("PS5", "Xbox Series X"),
+            ("Bitcoin", "Fiat"),
+            ("Pineapple Pizza", "Classic Pizza"),
+            ("Cats", "Dogs"),
+            ("Marvel", "DC")
+        ]
+        dramaClashes = controversies.map { pair in
+            Clash(id: UUID().uuidString,
+                  streamerA: pair.0,
+                  streamerB: pair.1,
+                  viewerCount: Int.random(in: 50...1000),
+                  startedAt: ISO8601DateFormatter().string(from: Date()),
+                  votes: Int.random(in: 50...1000),
+                  isPublic: true)
         }
 
         publicClashes = (0..<20).map { _ in
@@ -190,7 +213,7 @@ class SocialAPIService: ObservableObject {
 
     func fetchDramaFeed() {
         if APIConfig.enableMockData {
-            liveClashes.shuffle()
+            dramaClashes.shuffle()
             return
         }
         guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/drama") else { return }
@@ -232,6 +255,42 @@ class SocialAPIService: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] c in
                 self?.liveClashes = c
+                self?.isLoading = false
+            }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - Following Feed
+    /// Builds a local feed of clashes that feature streamers the viewer follows.
+    /// For the mock-data path this is generated client-side. In production you would hit a backend endpoint.
+    func fetchFollowingClashes() {
+        if APIConfig.enableMockData {
+            let followedIDs = following
+            // Map ids to display names for quick lookup
+            let idToName = Dictionary(uniqueKeysWithValues: overallLeaders.map { ($0.id, $0.displayName) })
+            let followedNames = Set(followedIDs.compactMap { idToName[$0] })
+
+            // Combine all known clash arrays then dedupe by id
+            let combined = (liveClashes + dramaClashes + publicClashes)
+            let filtered = combined.filter { followedNames.contains($0.streamerA) || followedNames.contains($0.streamerB) }
+            let deduped = Dictionary(grouping: filtered, by: { $0.id }).compactMap { $0.value.first }
+            followingClashes = deduped.sorted { ($0.votes ?? 0) > ($1.votes ?? 0) }
+            return
+        }
+
+        // Production path – call server
+        guard let url = URL(string: "\(APIConfig.baseURL)/api/clashes/following"),
+              let token = UserDefaults.standard.string(forKey: "authToken") else { return }
+        var req = URLRequest(url: url)
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        isLoading = true
+        URLSession.shared.dataTaskPublisher(for: req)
+            .map { $0.data }
+            .decode(type: [Clash].self, decoder: JSONDecoder())
+            .replaceError(with: [])
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] c in
+                self?.followingClashes = c
                 self?.isLoading = false
             }
             .store(in: &cancellables)

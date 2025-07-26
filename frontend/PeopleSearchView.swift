@@ -43,6 +43,7 @@ struct PeopleSearchView: View {
                             }
                         }
                         .listStyle(PlainListStyle())
+                        .listRowSeparator(.hidden)
                     } else {
                         List {
                             ForEach(social.searchResults) { user in
@@ -50,6 +51,7 @@ struct PeopleSearchView: View {
                             }
                         }
                         .listStyle(PlainListStyle())
+                        .listRowSeparator(.hidden)
                     }
                 }
             }
@@ -62,27 +64,39 @@ struct PeopleSearchView: View {
     // DRY user row
     private func row(for user: SocialAPIService.UserSummary) -> some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack(spacing:12) {
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/40?u=\(user.id)")) { phase in
+            HStack(spacing:16) {
+                AsyncImage(url: URL(string: "https://i.pravatar.cc/80?u=\(user.id)")) { phase in
                     if let img = phase.image {
                         img.resizable().clipShape(Circle())
                     } else {
                         Circle().fill(AppTheme.accent)
                     }
                 }
-                .frame(width:40,height:40)
-                Text(user.displayName)
-                    .foregroundColor(AppTheme.textPrimary)
+                .frame(width:60,height:60)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(user.displayName)
+                        .font(.headline)
+                        .foregroundColor(AppTheme.textPrimary)
+                    Text("🏆 \(user.wins) wins")
+                        .font(.caption)
+                        .foregroundColor(AppTheme.textSecondary)
+                }
                 Spacer()
                 Button(action: { follow(id: user.id); }) {
                     Text(social.following.contains(user.id) ? "Following" : "Follow")
                         .font(.caption)
-                        .foregroundColor(AppTheme.textPrimary)
-                        .padding(6)
-                        .background(AppTheme.glassPrimary)
-                        .cornerRadius(12)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 14)
+                        .background(social.following.contains(user.id) ? AppTheme.primary : AppTheme.accent)
+                        .cornerRadius(20)
                 }
             }
+            .padding(12)
+            .background(AppTheme.cardGradient)
+            .cornerRadius(18)
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
         }
     }
 

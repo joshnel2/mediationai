@@ -34,14 +34,14 @@ struct LiveFeedView: View {
                     contentView
                 }
             }
-            .navigationTitle(tab == 0 ? "Hot" : (tab == 1 ? "Drama" : "Public"))
+            .navigationTitle(tab == 0 ? "Hot" : (tab == 1 ? "Drama" : "Following"))
             .toolbar {
                 // Segmented control right under the nav bar title
                 ToolbarItem(placement: .principal) {
                     Picker("Mode", selection: $tab) {
                         Text("Hot").tag(0)
                         Text("Drama").tag(1)
-                        Text("Public").tag(2)
+                        Text("Following").tag(2)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(width: 250)
@@ -66,13 +66,21 @@ struct LiveFeedView: View {
         switch index {
         case 0: socialService.fetchLiveClashes()
         case 1: socialService.fetchDramaFeed()
-        default: socialService.fetchPublicClashes()
+        default: socialService.fetchFollowingClashes()
         }
     }
 
     private var contentView: some View {
         Group {
-            let list = tab == 0 ? socialService.liveClashes : (tab==1 ? socialService.dramaClashes : socialService.publicClashes)
+            let list: [Clash] = {
+                if tab == 0 {
+                    return socialService.liveClashes.sorted { ($0.votes ?? 0) > ($1.votes ?? 0) }
+                } else if tab == 1 {
+                    return socialService.dramaClashes
+                } else {
+                    return socialService.followingClashes
+                }
+            }()
             if socialService.isLoading && list.isEmpty {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
@@ -104,7 +112,7 @@ struct LiveFeedView: View {
                             ForEach(list) { clash in
                                 (tab==1 ? AnyView(DramaCardView(clash: clash)) : AnyView(ClashCardView(clash: clash)))
                                     .background(
-                                        NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: "tmp", title: clash.streamerA + " vs " + clash.streamerB, statementA: "Side A", statementB: "Side B", votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
+                                        NavigationLink(destination: tab == 1 ? AnyView(ConversationView(dispute: socialService.disputes(for: clash.streamerA).first ?? MockDispute(id: UUID().uuidString, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: clash.streamerA, statementB: clash.streamerB, votesA: 0, votesB: 0))) : AnyView(ClashWatchView(clash: clash))) {
                                             EmptyView()
                                         }.opacity(0)
                                     )
