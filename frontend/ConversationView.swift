@@ -54,18 +54,47 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Scoreboard + tab labels
-            VStack(spacing:4){
-                HStack{
-                    Text("Side A 🔥 \(votesA)").font(.caption)
+            // Neon scoreboard
+            VStack(spacing:8){
+                HStack(alignment:.center){
+                    VStack(spacing:2){
+                        Text("🔥 \(votesA)")
+                            .font(.title3.bold())
+                            .foregroundColor(AppTheme.primary)
+                        Text("A")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                     Spacer()
-                    Text("Side B 🔥 \(votesB)").font(.caption)
+                    VStack(spacing:2){
+                        Text("🔥 \(votesB)")
+                            .font(.title3.bold())
+                            .foregroundColor(AppTheme.accent)
+                        Text("B")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .foregroundColor(.secondary)
 
+                // Progress bar with glow
+                GeometryReader { geo in
+                    ZStack(alignment:.leading){
+                        RoundedRectangle(cornerRadius:4)
+                            .fill(Color.white.opacity(0.15))
+                        let total = max(1, votesA + votesB)
+                        let percentA = CGFloat(votesA) / CGFloat(total)
+                        RoundedRectangle(cornerRadius:4)
+                            .fill(AppTheme.primary)
+                            .frame(width: geo.size.width * percentA)
+                            .shadow(color: AppTheme.primary.opacity(0.6), radius:6)
+                    }
+                }
+                .frame(height:8)
+
+                // Tab chooser
                 HStack(spacing:0){
-                    tabLabel(title:"A", index:0, color:AppTheme.primary)
-                    tabLabel(title:"B", index:1, color:AppTheme.accent)
+                    tabLabel(title:"Side A", index:0, color:AppTheme.primary)
+                    tabLabel(title:"Side B", index:1, color:AppTheme.accent)
                     tabLabel(title:"Result", index:2, color:Color.yellow)
                 }
             }
@@ -268,16 +297,19 @@ struct ConversationView: View {
 
     // Tab label helper
     private func tabLabel(title:String,index:Int,color:Color)->some View{
-        VStack(spacing:2){
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(selectedTab==index ? .white : .secondary)
-            Rectangle()
-                .fill(selectedTab==index ? color : Color.clear)
-                .frame(height:2)
-        }
-        .frame(maxWidth:.infinity)
-        .onTapGesture { withAnimation{ selectedTab = index } }
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundColor(selectedTab==index ? Color.white : Color.white.opacity(0.6))
+            .padding(.vertical,6)
+            .frame(maxWidth:.infinity)
+            .background(
+                ZStack{
+                    if selectedTab==index {
+                        RoundedRectangle(cornerRadius:12).fill(color.opacity(0.8)).shadow(radius:4)
+                    }
+                }
+            )
+            .onTapGesture { withAnimation(.easeInOut){ selectedTab = index } }
     }
 
     // old shouldShow no longer needed
