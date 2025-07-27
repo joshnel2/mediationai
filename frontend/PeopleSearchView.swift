@@ -13,17 +13,20 @@ struct PeopleSearchView: View {
                 // Hero Search Bar
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.secondary)
                     TextField("Search creators", text: $query, onCommit: { social.searchUsers(query: query) })
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                 }
                 .padding(.horizontal, 18)
-                .padding(.vertical, 14)
+                .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 28)
-                        .fill(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .shadow(color:.black.opacity(0.25),radius:6,x:0,y:4)
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white.opacity(0.05))
+                        .background(
+                            RoundedRectangle(cornerRadius:24).stroke(Color.white.opacity(0.08), lineWidth:1)
+                        )
                 )
+                .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
                 .padding(.horizontal)
 
                 // Trending chips
