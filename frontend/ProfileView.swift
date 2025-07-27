@@ -65,7 +65,7 @@ struct ProfileView: View {
                 img.resizable().scaledToFill()
             } else {
                 Circle()
-                    .fill(AppTheme.accent)
+                    .fill(Color.gray.opacity(0.3))
                     .overlay(
                         Image(systemName: "person.fill")
                             .font(.system(size: 60))
