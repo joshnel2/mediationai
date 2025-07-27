@@ -7,6 +7,8 @@ struct MiniProfileView: View {
     let userID: String
     @Environment(\.dismiss) var dismiss
 
+    @State private var navDispute: MockDispute?
+
     private var user: SocialAPIService.UserSummary? {
         social.overallLeaders.first { $0.id == userID }
     }
@@ -152,34 +154,20 @@ struct MiniProfileView: View {
                     .cornerRadius(24)
             }
         }
+        .background(
+            NavigationLink(destination: navDestination, isActive: Binding(
+                get: { navDispute != nil },
+                set: { if !$0 { navDispute = nil } }
+            )) { EmptyView() }
+            .hidden()
+        )
     }
 
-    private var recentSection: some View {
-        VStack(alignment:.leading,spacing:12){
-            Text("Recent Crashouts")
-                .font(.headline)
-            ScrollView(.horizontal,showsIndicators:false){
-                HStack(spacing:16){
-                    // Show only disputes that involve BOTH the profile owner and the signed-in user (so the viewer sees shared history)
-                    ForEach(filteredDisputes){ disp in
-                        NavigationLink(destination: ConversationView(dispute: disp)){
-                            VStack(alignment:.leading,spacing:6){
-                                Text(disp.title).bold().lineLimit(1)
-                                Text("Score: \(disp.votesA)-\(disp.votesB)")
-                                    .font(.caption2)
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                            .padding()
-                            .frame(width:160,height:100)
-                            .background(AppTheme.cardGradient)
-                            .cornerRadius(20)
-                            .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-            }
+    private var navDestination: some View {
+        if let d = navDispute {
+            return AnyView(ConversationView(dispute: d))
         }
+        return AnyView(EmptyView())
     }
 
     // Activity timeline
@@ -202,7 +190,8 @@ struct MiniProfileView: View {
 
     private func requestClash(){
         if let current = authService.currentUser?.id.uuidString {
-            let _ = social.createClashBetween(current, userID)
+            let disp = social.createClashBetween(current, userID)
+            navDispute = disp
         }
     }
 
