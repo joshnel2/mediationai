@@ -210,7 +210,7 @@ struct ConversationView: View {
                     ForEach(opponents){ u in
                         Button(action:{ social.createClashBetween(authService.currentUser?.id.uuidString ?? "", u.id) }){
                             VStack{
-                                AsyncImage(url: URL(string: "https://i.pravatar.cc/60?u=\(u.id)")) { phase in
+                                AsyncImage(url: social.avatarURL(id:u.id, size:60)) { phase in
                                     if let img = phase.image {
                                         img.resizable()
                                     } else {

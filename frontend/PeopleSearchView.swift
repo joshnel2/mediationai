@@ -69,7 +69,7 @@ struct PeopleSearchView: View {
     private func userRow(for user: SocialAPIService.UserSummary) -> some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
             HStack(spacing:12){
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/120?u=\(user.id)") ) { phase in
+                AsyncImage(url: social.avatarURL(id:user.id, size:120) ) { phase in
                     (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
                 .frame(width:46,height:46).clipShape(Circle())

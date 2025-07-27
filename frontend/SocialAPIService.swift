@@ -450,6 +450,13 @@ class SocialAPIService: ObservableObject {
         overallLeaders.first { $0.id == id }?.displayName ?? "Anon"
     }
 
+    // MARK: - Avatar helper (DiceBear – cartoon style)
+    func avatarURL(id: String, size:Int = 96) -> URL? {
+        let safe = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
+        let urlStr = "https://api.dicebear.com/7.x/adventurer/png?seed=\(safe)&size=\(size)&radius=50"
+        return URL(string: urlStr)
+    }
+
     // MARK: - Helpers
     /// Find a dispute anywhere in the mock storage using its id.
     func dispute(withId id:String) -> MockDispute? {

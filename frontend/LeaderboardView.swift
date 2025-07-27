@@ -88,7 +88,7 @@ private struct PodiumView: View {
     private func miniColumn(for user:SocialAPIService.UserSummary, height:CGFloat, isChampion:Bool=false)->some View{
         VStack(spacing:6){
             NavigationLink(destination: MiniProfileView(userID: user.id)){
-                AsyncImage(url: URL(string:"https://i.pravatar.cc/96?u=\(user.id)")) { phase in
+                AsyncImage(url: social.avatarURL(id:user.id, size:96)) { phase in
                     (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
                 .frame(width:height*0.6,height:height*0.6)
@@ -119,7 +119,7 @@ private struct LeaderRow: View {
                 Text("#\(rank)")
                     .font(.subheadline.weight(.bold))
                     .frame(width:28)
-                AsyncImage(url: URL(string: "https://i.pravatar.cc/60?u=\(user.id)")) { phase in
+                AsyncImage(url: social.avatarURL(id:user.id, size:60)) { phase in
                     (phase.image ?? Image(systemName:"person.circle")).resizable()
                 }
                 .frame(width:40,height:40) .clipShape(Circle())

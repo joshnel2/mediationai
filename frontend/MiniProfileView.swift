@@ -54,7 +54,7 @@ struct MiniProfileView: View {
                 .shadow(color:.black.opacity(0.25),radius:8,x:0,y:4)
 
             VStack(spacing:12){
-                AsyncImage(url: URL(string:"https://i.pravatar.cc/160?u=\(userID)")){ phase in
+                AsyncImage(url: social.avatarURL(id:userID, size:160)){ phase in
                     if let img = phase.image { img.resizable().scaledToFill() } else { Color.gray }
                 }
                 .frame(width:120,height:120)

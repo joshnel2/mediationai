@@ -138,12 +138,12 @@ struct LiveFeedView: View {
             HStack(alignment:.top,spacing:12){
                 // Avatar column
                 VStack(spacing:4){
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/56?u=\(clash.streamerA)")){ phase in
+                    AsyncImage(url: social.avatarURL(id:clash.streamerA, size:56)){ phase in
                         (phase.image ?? Image(systemName:"person.circle")).resizable()
                     }
                     .frame(width:32,height:32).clipShape(Circle())
                     Text("VS").font(.caption2).foregroundColor(.secondary)
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/56?u=\(clash.streamerB)")){ phase in
+                    AsyncImage(url: social.avatarURL(id:clash.streamerB, size:56)){ phase in
                         (phase.image ?? Image(systemName:"person.circle")).resizable()
                     }
                     .frame(width:32,height:32).clipShape(Circle())
@@ -280,7 +280,7 @@ struct DramaCardView: View {
             // Content overlay
             HStack {
                 VStack(spacing:6){
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerA)")) { phase in
+                    AsyncImage(url: social.avatarURL(id:clash.streamerA, size:80)) { phase in
                         if let img = phase.image {
                             img.resizable()
                         } else {
@@ -295,7 +295,7 @@ struct DramaCardView: View {
                 }
                 Spacer()
                 VStack(spacing:6){
-                    AsyncImage(url: URL(string:"https://i.pravatar.cc/80?u=\(clash.streamerB)")) { phase in
+                    AsyncImage(url: social.avatarURL(id:clash.streamerB, size:80)) { phase in
                         if let img = phase.image {
                             img.resizable()
                         } else {
