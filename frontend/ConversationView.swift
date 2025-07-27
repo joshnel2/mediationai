@@ -140,11 +140,24 @@ struct ConversationView: View {
                     opponentSection
                 }
             } else {
-                // Viewer message when not a participant
-                Text("You are watching this crashout. Only the participants can add messages.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, 12)
+                // Viewer message + watch toggle
+                VStack(spacing:6){
+                    Text("You are watching this crashout. Only the participants can add messages.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                    Button(action:{ social.toggleWatch(disputeID: dispute.id) }){
+                        HStack(spacing:4){
+                            Image(systemName: social.watchedDisputeIDs.contains(dispute.id) ? "bell.fill" : "bell")
+                            Text( social.watchedDisputeIDs.contains(dispute.id) ? "Following" : "Follow updates" )
+                        }
+                        .font(.caption)
+                        .padding(.horizontal,12).padding(.vertical,6)
+                        .background(AppTheme.primary.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(14)
+                    }
+                }
+                .padding(.vertical, 12)
             }
         }
         .navigationTitle(dispute.title)

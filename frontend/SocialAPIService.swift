@@ -93,6 +93,14 @@ class SocialAPIService: ObservableObject {
     @Published var activityByUser: [String:[ActivityEvent]] = [:]
     @Published var aiSummaryByUser: [String:String] = [:]
 
+    // Users can watch specific disputes for updates
+    @Published var watchedDisputeIDs: Set<String> = []
+
+    func toggleWatch(disputeID:String){
+        if watchedDisputeIDs.contains(disputeID){ watchedDisputeIDs.remove(disputeID) }
+        else { watchedDisputeIDs.insert(disputeID) }
+    }
+
     func disputes(for id: String) -> [MockDispute] {
         disputesByUser[id] ?? []
     }
