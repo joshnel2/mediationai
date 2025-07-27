@@ -421,6 +421,8 @@ struct StatCard: View {
                     .font(AppTheme.caption())
                     .foregroundColor(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
             }
         }
         .frame(maxWidth: .infinity)
