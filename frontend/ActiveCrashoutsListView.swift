@@ -29,3 +29,4 @@ struct ActiveCrashoutsListView_Previews: PreviewProvider {
         ActiveCrashoutsListView().environmentObject(SocialAPIService()).environmentObject(MockAuthService())
     }
 }
+#endif

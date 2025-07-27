@@ -59,12 +59,7 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
-    @Published var following: Set<String> = {
-        if let ids = try? JSONDecoder().decode(Set<String>.self, from: storedFollowing) {
-            return ids
-        }
-        return []
-    }() {
+    @Published var following: Set<String> = [] {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
