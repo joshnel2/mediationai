@@ -118,6 +118,7 @@ struct LiveFeedView: View {
     private struct FeedClashRow: View {
         let clash: Clash
         @EnvironmentObject var social: SocialAPIService
+        @State private var isPressed = false
         var body: some View {
             HStack(alignment:.top,spacing:12){
                 // Avatar column
@@ -161,8 +162,14 @@ struct LiveFeedView: View {
                             .stroke(Color.white.opacity(0.08),lineWidth:1)
                     )
             )
-            .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
+            .shadow(color:.black.opacity( isPressed ? 0 : 0.15),radius: isPressed ? 0 : 4,x:0,y: isPressed ? 0 : 2)
+            .scaleEffect(isPressed ? 0.97 : 1.0)
+            .animation(.spring(response:0.3,dampingFraction:0.7),value:isPressed)
             .contentShape(Rectangle())
+            .simultaneousGesture(TapGesture().onEnded{
+                HapticManager.impact(.light)
+            })
+            .gesture(DragGesture(minimumDistance:0).onChanged{ _ in isPressed = true }.onEnded{ _ in isPressed = false })
         }
 
         private func followStreamers(){
