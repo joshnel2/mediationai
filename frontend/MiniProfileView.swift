@@ -18,6 +18,8 @@ struct MiniProfileView: View {
 
                 statRow
 
+                funFactsSection
+
                 actionButtons
 
                 // AI summary chip
@@ -72,6 +74,46 @@ struct MiniProfileView: View {
             statChip(icon:"trophy.fill", label:"Crashouts", value:user?.wins ?? 0, gradient:[Color.yellow,Color.orange])
             statChip(icon:"person.2.fill", label:"Followers", value:social.followerCounts[userID, default:0], gradient:[Color.purple,Color.blue])
         }
+    }
+
+    // MARK: - Fun facts for Gen-Z flair
+    private var funFactsSection: some View {
+        HStack(spacing:12){
+            funChip(title:"Streak", subtitle:"🔥 \(winStreak)")
+            funChip(title:"Fav Emoji", subtitle:favoriteEmoji)
+            funChip(title:"Hype", subtitle:"\(hypeScore)%")
+        }
+    }
+
+    private func funChip(title:String, subtitle:String)->some View{
+        VStack(spacing:4){
+            Text(subtitle).font(.headline)
+            Text(title).font(.caption2).foregroundColor(.secondary)
+        }
+        .padding(.vertical,10).padding(.horizontal,12)
+        .background(AppTheme.cardGradient)
+        .cornerRadius(14)
+    }
+
+    private var favoriteEmoji: String {
+        let emojis = ["🔥","😂","👏","💯","😤","🤯"]
+        guard let first = emojis.randomElement() else { return "🔥" }
+        // deterministic using hashValue
+        let idx = abs(userID.hashValue) % emojis.count
+        return emojis[idx]
+    }
+
+    private var hypeScore: Int {
+        min(100, max(20, (user?.xp ?? 0) / 80))
+    }
+
+    private var winStreak: Int {
+        let hist = social.historyByUser[userID] ?? []
+        var count = 0
+        for item in hist.reversed(){
+            if item.didWin { count += 1 } else { break }
+        }
+        return count
     }
 
     private func statChip(icon:String,label:String,value:Int,gradient:[Color])->some View{
