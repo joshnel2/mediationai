@@ -28,6 +28,27 @@ struct CreateDisputeView: View {
     @State private var useGhostDemo = false
     @State private var showSignatureView = false
     @State private var creatorSignature: UIImage?
+
+    // Youthful quick presets
+    private let presetTitles = [
+        "Who Carried The Squad?",
+        "Lag Blame Showdown",
+        "Clip Ownership Drama",
+        "Ping Advantage Debate"
+    ]
+
+    private func presetDefaultDescription(_ preset:String)->String{
+        switch preset {
+        case "Who Carried The Squad?":
+            return "Player A claims top frag & clutch, Player B says macro play won the game."
+        case "Lag Blame Showdown":
+            return "Is 200ms ping a legit excuse or skill issue?"
+        case "Clip Ownership Drama":
+            return "Who gets credit (and ad rev) for the viral play?"
+        default:
+            return "State your arguments and let AI mediate!"
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -219,6 +240,24 @@ struct CreateDisputeView: View {
                     .fontWeight(.semibold)
                 
                 VStack(spacing: AppTheme.spacingLG) {
+                    // Quick preset chips
+                    ScrollView(.horizontal,showsIndicators:false){
+                        HStack(spacing:8){
+                            ForEach(presetTitles,id:\.self){ preset in
+                                Text(preset)
+                                    .font(.caption2)
+                                    .padding(.vertical,6).padding(.horizontal,12)
+                                    .background(AppTheme.cardGradient)
+                                    .overlay(RoundedRectangle(cornerRadius:16).stroke(AppTheme.accent,lineWidth:1))
+                                    .cornerRadius(16)
+                                    .onTapGesture {
+                                        title = preset
+                                        description = presetDefaultDescription(preset)
+                                    }
+                            }
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: AppTheme.spacingSM) {
                         Text("Title")
                             .font(AppTheme.caption())
@@ -240,6 +279,22 @@ struct CreateDisputeView: View {
                             .frame(minHeight: 100)
                     }
                     
+                    // Live preview card
+                    if !title.isEmpty {
+                        VStack(alignment:.leading,spacing:8){
+                            Text("Preview")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            VStack(alignment:.leading,spacing:4){
+                                Text(title).bold()
+                                if !description.isEmpty { Text(description).font(.caption) }
+                            }
+                            .padding()
+                            .background(AppTheme.cardGradient)
+                            .cornerRadius(16)
+                        }
+                    }
+
                     // Additional Options
                     VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                         Text("Additional Options")
