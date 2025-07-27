@@ -111,8 +111,9 @@ struct ProfileView: View {
         HStack(spacing:12){
             NavigationLink(destination: FollowingListView()){ statChip(title: "Following", count: socialService.following.count) }
             statChip(title:"Followers",count: socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])
-            NavigationLink(destination: HistoryListView()){ statChip(title:"Wins",count: socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]].filter{$0.didWin}.count) }
-            statChip(title:"Crashouts",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count)
+            NavigationLink(destination: HistoryListView()){ statChip(title:"Resolved",count: socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]].count) }
+            NavigationLink(destination: ActiveCrashoutsListView()){ statChip(title:"Active",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count - socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]].count) }
+            NavigationLink(destination: CrashoutsListView()){ statChip(title:"Total",count: socialService.disputes(for: authService.currentUser?.id.uuidString ?? "").count) }
         }
     }
 
@@ -122,6 +123,7 @@ struct ProfileView: View {
             Text(title).font(.caption)
         }
         .padding(8)
+        .frame(minWidth:80)
         .background(AppTheme.cardGradient)
         .cornerRadius(12)
     }
