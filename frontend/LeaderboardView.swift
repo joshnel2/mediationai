@@ -97,6 +97,7 @@ private struct PodiumView: View {
                 .shadow(radius:isChampion ? 6 : 3)
             }
             .buttonStyle(PlainButtonStyle())
+            .simultaneousGesture(TapGesture().onEnded{ HapticManager.impact(.light) })
             Text(user.displayName).font(.caption)
             Text("🏆 \(user.wins)").font(.caption2).foregroundColor(.secondary)
         }
@@ -111,6 +112,7 @@ private struct LeaderRow: View {
     let user: SocialAPIService.UserSummary
     let rank: Int
     let maxWins: Int
+    @State private var isPressed = false
     var body: some View {
         NavigationLink(destination: MiniProfileView(userID: user.id)) {
             HStack(spacing:12){
@@ -136,8 +138,12 @@ private struct LeaderRow: View {
                 }
             }
             .padding(.horizontal)
+            .scaleEffect(isPressed ? 0.97 : 1.0)
+            .animation(.spring(response:0.3,dampingFraction:0.7),value:isPressed)
         }
         .buttonStyle(PlainButtonStyle())
+        .simultaneousGesture(TapGesture().onEnded{ HapticManager.impact(.light) })
+        .gesture(DragGesture(minimumDistance:0).onChanged{ _ in isPressed = true }.onEnded{ _ in isPressed = false })
     }
     private var rankGradient: LinearGradient {
         switch rank {
