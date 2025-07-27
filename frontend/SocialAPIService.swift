@@ -59,7 +59,12 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
-    @Published var following: Set<String> = [] {
+    @Published var following: Set<String> = {
+        if let ids = try? JSONDecoder().decode(Set<String>.self, from: storedFollowing) {
+            return ids
+        }
+        return []
+    }() {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
@@ -97,8 +102,13 @@ class SocialAPIService: ObservableObject {
     @Published var watchedDisputeIDs: Set<String> = []
 
     func toggleWatch(disputeID:String){
-        if watchedDisputeIDs.contains(disputeID){ watchedDisputeIDs.remove(disputeID) }
-        else { watchedDisputeIDs.insert(disputeID) }
+        if watchedDisputeIDs.contains(disputeID){
+            watchedDisputeIDs.remove(disputeID)
+        } else {
+            watchedDisputeIDs.insert(disputeID)
+            // Schedule a sample notification in 1s (placeholder for real push)
+            NotificationManager.shared.scheduleUpdate(for: disputeID, title: "We’ll alert you when something happens.")
+        }
     }
 
     func disputes(for id: String) -> [MockDispute] {
