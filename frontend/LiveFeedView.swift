@@ -269,6 +269,7 @@ struct ClashCardView: View {
 
 struct DramaCardView: View {
     let clash: Clash
+    @EnvironmentObject var social: SocialAPIService
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 24)
