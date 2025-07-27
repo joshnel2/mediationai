@@ -7,6 +7,10 @@ struct LiveFeedView: View {
     @EnvironmentObject var viralService: ViralAPIService
     @EnvironmentObject var authService: MockAuthService
     @State private var tab = 0 // 0 = Explore, 1 = Following
+    @State private var exploreFeed:[Clash] = []
+    @State private var followingFeed:[Clash] = []
+
+    private let batchSize = 20
 
     var body: some View {
         NavigationView {
@@ -67,11 +71,16 @@ struct LiveFeedView: View {
         case 0: socialService.fetchLiveClashes()
         default: socialService.fetchFollowingClashes()
         }
+        DispatchQueue.main.asyncAfter(deadline:.now()+0.1){
+            exploreFeed = socialService.liveClashes
+            followingFeed = socialService.followingClashes
+        }
     }
 
     private var contentView: some View {
         Group {
-            let list: [Clash] = tab == 0 ? socialService.liveClashes.sorted { ($0.votes ?? 0) > ($1.votes ?? 0) } : socialService.followingClashes
+            let listBinding = tab == 0 ? $exploreFeed : $followingFeed
+            let list = listBinding.wrappedValue
 
             if socialService.isLoading && list.isEmpty {
                 ProgressView()
@@ -89,12 +98,18 @@ struct LiveFeedView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 24) {
-                        ForEach(list) { clash in
+                        ForEach(list.indices, id: \ .self) { idx in
+                            let clash = list[idx]
                             NavigationLink(destination: destinationView(for: clash)) {
                                 FeedClashRow(clash: clash)
                                     .environmentObject(socialService)
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .onAppear{
+                                if idx >= list.count - 3 {
+                                    appendMoreItems()
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -190,6 +205,16 @@ struct LiveFeedView: View {
         // simple delay to end refresh animation
         try? await Task.sleep(nanoseconds: 600_000_000)
         isRefreshing = false
+    }
+
+    private func appendMoreItems(){
+        if tab==0 {
+            let extras = socialService.liveClashes.shuffled().prefix(batchSize)
+            exploreFeed.append(contentsOf: extras)
+        } else {
+            let extras = socialService.followingClashes.shuffled().prefix(batchSize)
+            followingFeed.append(contentsOf: extras)
+        }
     }
 }
 
