@@ -152,7 +152,16 @@ struct LiveFeedView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(.vertical,8)
+            .padding(.vertical,12).padding(.horizontal,14)
+            .background(
+                RoundedRectangle(cornerRadius:18)
+                    .fill(Color.white.opacity(0.05))
+                    .background(
+                        RoundedRectangle(cornerRadius:18)
+                            .stroke(Color.white.opacity(0.08),lineWidth:1)
+                    )
+            )
+            .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
             .contentShape(Rectangle())
         }
 
