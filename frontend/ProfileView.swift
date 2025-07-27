@@ -120,7 +120,7 @@ struct ProfileView: View {
     private func statChip(title:String,count:Int)->some View{
         VStack{
             Text("\(count)").bold()
-            Text(title).font(.caption)
+            Text(title).font(.caption).lineLimit(1)
         }
         .padding(8)
         .frame(minWidth:80)
