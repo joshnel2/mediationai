@@ -210,7 +210,7 @@ struct HomeView: View {
                     Text("Crashout")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
-                    Text("Go live & let chat vote")
+                    Text("Debate and let AI decide")
                         .font(.headline)
                         .foregroundColor(.white.opacity(0.9))
                 }
