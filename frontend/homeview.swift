@@ -168,19 +168,25 @@ struct HomeView: View {
             }
             .buttonStyle(PlainButtonStyle())
             
-            StatCard(
-                title: "Resolved",
-                value: "\(userDisputes.filter { $0.isResolved }.count)",
-                icon: "checkmark.seal.fill",
-                color: AppTheme.success
-            )
+            NavigationLink(destination: HistoryListView().environmentObject(socialService).environmentObject(authService)) {
+                StatCard(
+                    title: "Resolved",
+                    value: "\(userDisputes.filter { $0.isResolved }.count)",
+                    icon: "checkmark.seal.fill",
+                    color: AppTheme.success
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
             
-            StatCard(
-                title: "Active",
-                value: "\(userDisputes.filter { !$0.isResolved }.count)",
-                icon: "clock.fill",
-                color: AppTheme.warning
-            )
+            NavigationLink(destination: ActiveCrashoutsListView().environmentObject(socialService).environmentObject(authService)) {
+                StatCard(
+                    title: "Active",
+                    value: "\(userDisputes.filter { !$0.isResolved }.count)",
+                    icon: "clock.fill",
+                    color: AppTheme.warning
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .scaleEffect(animateCards ? 1.0 : 0.95)
         .opacity(animateCards ? 1.0 : 0.0)

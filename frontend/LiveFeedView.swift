@@ -110,6 +110,11 @@ struct LiveFeedView: View {
                                     appendMoreItems()
                                 }
                             }
+                            // Divider between rows
+                            if idx < list.count - 1 {
+                                Divider()
+                                    .background(Color.white.opacity(0.1))
+                            }
                         }
                     }
                     .padding(.horizontal)
@@ -184,7 +189,7 @@ struct LiveFeedView: View {
             .simultaneousGesture(TapGesture().onEnded{
                 HapticManager.impact(.light)
             })
-            .gesture(DragGesture(minimumDistance:0).onChanged{ _ in isPressed = true }.onEnded{ _ in isPressed = false })
+            // Removed drag gesture that interfered with NavigationLink activation
         }
 
         private func followStreamers(){
