@@ -233,7 +233,6 @@ struct ConversationView: View {
         messages.append(ChatMsg(text: input, sender: sender))
         if sender == .a { votesA += 1 } else { votesB += 1 }
         voted = true
-        showSideA = true; showSideB = true
         input = ""
         aiRespond()
     }
