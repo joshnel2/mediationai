@@ -137,7 +137,15 @@ private struct LeaderRow: View {
                         .foregroundColor(AppTheme.primary)
                 }
             }
-            .padding(.horizontal)
+            .padding(.vertical,10).padding(.horizontal,14)
+            .background(
+                RoundedRectangle(cornerRadius:14)
+                    .fill(Color.white.opacity(0.03))
+                    .background(
+                        RoundedRectangle(cornerRadius:14).stroke(Color.white.opacity(0.06),lineWidth:1)
+                    )
+            )
+            .shadow(color:.black.opacity(isPressed ? 0 : 0.08),radius:3,x:0,y:2)
             .scaleEffect(isPressed ? 0.97 : 1.0)
             .animation(.spring(response:0.3,dampingFraction:0.7),value:isPressed)
         }
