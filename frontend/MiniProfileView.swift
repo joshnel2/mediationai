@@ -118,6 +118,30 @@ struct MiniProfileView: View {
         return count
     }
 
+    // MARK: - Recent Crashouts Section (shared history)
+    private var recentSection: some View {
+        VStack(alignment:.leading,spacing:12){
+            Text("Recent Crashouts").font(.headline)
+            ScrollView(.horizontal,showsIndicators:false){
+                HStack(spacing:16){
+                    ForEach(filteredDisputes){ disp in
+                        NavigationLink(destination: ConversationView(dispute: disp)){
+                            VStack(alignment:.leading,spacing:6){
+                                Text(disp.title).bold().lineLimit(1)
+                                Text("Score: \(disp.votesA)-\(disp.votesB)").font(.caption2).foregroundColor(.secondary)
+                            }
+                            .padding()
+                            .frame(width:160,height:100)
+                            .background(AppTheme.cardGradient)
+                            .cornerRadius(20)
+                            .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
+                        }.buttonStyle(PlainButtonStyle())
+                    }
+                }
+            }
+        }
+    }
+
     private func statChip(icon:String,label:String,value:Int,gradient:[Color])->some View{
         VStack(spacing:4){
             HStack(spacing:4){
