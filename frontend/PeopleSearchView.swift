@@ -14,7 +14,7 @@ struct PeopleSearchView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("Search creators", text: $query, onCommit: { social.searchUsers(query: query) })
+                    TextField("Search Users", text: $query, onCommit: { social.searchUsers(query: query) })
                         .foregroundColor(.primary)
                 }
                 .padding(.horizontal, 18)
@@ -55,7 +55,7 @@ struct PeopleSearchView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationTitle("People")
+            .navigationTitle("")
             .background(AppTheme.backgroundGradient.ignoresSafeArea())
             .onAppear { social.fetchHotTopics() }
         }
