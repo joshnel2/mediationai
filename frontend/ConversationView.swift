@@ -198,8 +198,18 @@ struct ConversationView: View {
                 .padding(.vertical, 12)
             }
         }
+        // End of ZStack content
+        }
         .navigationTitle(dispute.title)
         .onAppear{ seed(); updateSummary() }
+    }
+
+    // MARK: - Live Summary Helper
+    private func updateSummary(){
+        let plain = messages.map { $0.text }
+        SummarizationService.generateSummary(for: plain) { sum in
+            DispatchQueue.main.async { argumentSummary = sum }
+        }
     }
 
     // Reaction helper
