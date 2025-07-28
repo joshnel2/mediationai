@@ -41,6 +41,9 @@ struct ConversationView: View {
     // Swipeable view selection: 0 = A, 1 = B, 2 = AI Resolution
     @State private var selectedTab = 0
 
+    // Live summary of the debate
+    @State private var argumentSummary: String = "No summary yet"
+
     @EnvironmentObject var authService: MockAuthService
 
     // Determine if the current signed-in user is a participant in this crash-out.
@@ -62,13 +65,22 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Topic title & scoreboard
+            // Topic title & scoreboard + live summary
             VStack(spacing:8){
                 Text(dispute.title)
                     .font(.headline)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.white)
                     .frame(maxWidth:.infinity)
+
+                if !argumentSummary.isEmpty {
+                    Text(argumentSummary)
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(.horizontal,8).padding(.vertical,4)
+                        .background(Color.white.opacity(0.15))
+                        .clipShape(Capsule())
+                }
 
                 HStack(alignment:.center){
                     VStack(spacing:2){
@@ -177,7 +189,7 @@ struct ConversationView: View {
             }
         }
         .navigationTitle(dispute.title)
-        .onAppear{ seed() }
+        .onAppear{ seed(); updateSummary() }
     }
 
     private func seed(){
@@ -246,11 +258,15 @@ struct ConversationView: View {
 
     private func send(){
         let sender: ChatMsg.Sender = meIsA ? .a : .b
+        // Moderation check
+        guard ModerationService.isClean(input) else { input = ""; return }
+
         messages.append(ChatMsg(text: input, sender: sender))
         if sender == .a { votesA += 1 } else { votesB += 1 }
         voted = true
         input = ""
         aiRespond()
+        updateSummary()
     }
 
     private func aiRespond(){
