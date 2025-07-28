@@ -138,6 +138,7 @@ struct LiveFeedView: View {
     private struct FeedClashRow: View {
         let clash: Clash
         @EnvironmentObject var social: SocialAPIService
+        @EnvironmentObject var authService: MockAuthService
         var body: some View {
             HStack(alignment: .center, spacing: 12) {
                 // Avatars
@@ -181,10 +182,10 @@ struct LiveFeedView: View {
         private func followStreamers(){
             // Follow both streamerA and streamerB if we can resolve their IDs
             if let idA = social.overallLeaders.first(where: { $0.displayName == clash.streamerA })?.id {
-                social.toggleFollow(id: idA)
+                social.toggleFollow(id: idA, followerID: authService.currentUser?.id.uuidString ?? "")
             }
             if let idB = social.overallLeaders.first(where: { $0.displayName == clash.streamerB })?.id {
-                social.toggleFollow(id: idB)
+                social.toggleFollow(id: idB, followerID: authService.currentUser?.id.uuidString ?? "")
             }
         }
     }

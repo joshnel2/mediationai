@@ -94,6 +94,7 @@ private struct PodiumView: View {
 
 private struct LeaderRow: View {
     @EnvironmentObject var social: SocialAPIService
+    @EnvironmentObject var authService: MockAuthService
     let user: SocialAPIService.UserSummary
     let rank: Int
     let maxWins: Int
@@ -117,7 +118,7 @@ private struct LeaderRow: View {
                         .foregroundColor(.secondary)
                 }
                 Spacer()
-                Button(action:{ social.toggleFollow(id: user.id) }){
+                Button(action:{ social.toggleFollow(id: user.id, followerID: authService.currentUser?.id.uuidString ?? "") }){
                     Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
                         .foregroundColor(AppTheme.primary)
                 }

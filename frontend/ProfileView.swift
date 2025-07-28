@@ -110,7 +110,7 @@ struct ProfileView: View {
     private var chipsSection: some View {
         HStack(spacing:12){
             NavigationLink(destination: FollowingListView()){ statChip(title: "Following", count: socialService.following.count) }
-            statChip(title:"Followers",count: socialService.followerCounts[authService.currentUser?.id.uuidString ?? "", default:0])
+            NavigationLink(destination: FollowersListView()){ statChip(title:"Followers",count: socialService.followersByUser[authService.currentUser?.id.uuidString ?? ""]?.count ?? 0) }
         }
     }
 
@@ -173,8 +173,14 @@ struct ProfileView: View {
     private var heroHeader: some View {
         ZStack(alignment:.bottom){
             RoundedRectangle(cornerRadius:32)
-                .fill(AppTheme.cardGradient)
-                .frame(height:260)
+                .fill(LinearGradient(colors:[AppTheme.primary,AppTheme.accent,AppTheme.primary],startPoint:.topLeading,endPoint:.bottomTrailing))
+                .frame(height:300)
+                .overlay(
+                    Circle().fill(Color.white.opacity(0.08)).frame(width:120).offset(x:-110,y:-90)
+                )
+                .overlay(
+                    Circle().fill(Color.white.opacity(0.05)).frame(width:80).offset(x:140,y:-70)
+                )
                 .shadow(color:.black.opacity(0.15),radius:8,x:0,y:4)
 
             VStack(spacing:12){
