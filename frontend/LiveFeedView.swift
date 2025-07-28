@@ -98,7 +98,7 @@ struct LiveFeedView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(list.indices, id: \ .self) { idx in
+                        ForEach(list.indices, id: \.self) { idx in
                             let clash = list[idx]
                             NavigationLink(destination: destinationView(for: clash)) {
                                 FeedClashRow(clash: clash)
@@ -138,58 +138,44 @@ struct LiveFeedView: View {
     private struct FeedClashRow: View {
         let clash: Clash
         @EnvironmentObject var social: SocialAPIService
-        @State private var isPressed = false
         var body: some View {
-            HStack(alignment:.top,spacing:12){
-                // Avatar column
-                VStack(spacing:4){
-                    AsyncImage(url: social.avatarURL(id:clash.streamerA, size:56)){ phase in
-                        (phase.image ?? Image(systemName:"person.circle")).resizable()
-                    }
-                    .frame(width:32,height:32).clipShape(Circle())
-                    Text("VS").font(.caption2).foregroundColor(.secondary)
-                    AsyncImage(url: social.avatarURL(id:clash.streamerB, size:56)){ phase in
-                        (phase.image ?? Image(systemName:"person.circle")).resizable()
-                    }
-                    .frame(width:32,height:32).clipShape(Circle())
+            HStack(alignment: .center, spacing: 12) {
+                // Avatars
+                AsyncImage(url: social.avatarURL(id: clash.streamerA, size: 80)) { phase in
+                    (phase.image ?? Image(systemName: "person.circle")).resizable()
                 }
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
 
-                // Content column
-                VStack(alignment:.leading,spacing:4){
-                    HStack{
-                        Text("\(clash.streamerA)")
-                            .font(.subheadline.bold())
+                AsyncImage(url: social.avatarURL(id: clash.streamerB, size: 80)) { phase in
+                    (phase.image ?? Image(systemName: "person.circle")).resizable()
+                }
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text("\(clash.streamerA)").bold()
                         Text("vs")
-                        Text("\(clash.streamerB)")
-                            .font(.subheadline.bold())
-                        Spacer()
+                        Text("\(clash.streamerB)").bold()
                         if let votes = clash.votes {
                             Text("🔥 \(votes)")
                                 .font(.caption)
                         }
                     }
+                    .font(.subheadline)
+
                     Text("👀 \(clash.viewerCount) viewers")
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+
+                Spacer()
             }
-            .padding(.vertical,12).padding(.horizontal,14)
-            .background(
-                RoundedRectangle(cornerRadius:18)
-                    .fill(Color.white.opacity(0.05))
-                    .background(
-                        RoundedRectangle(cornerRadius:18)
-                            .stroke(Color.white.opacity(0.08),lineWidth:1)
-                    )
-            )
-            .shadow(color:.black.opacity( isPressed ? 0 : 0.15),radius: isPressed ? 0 : 4,x:0,y: isPressed ? 0 : 2)
-            .scaleEffect(isPressed ? 0.97 : 1.0)
-            .animation(.spring(response:0.3,dampingFraction:0.7),value:isPressed)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
             .contentShape(Rectangle())
-            .simultaneousGesture(TapGesture().onEnded{
-                HapticManager.impact(.light)
-            })
-            // Removed drag gesture that interfered with NavigationLink activation
+            .simultaneousGesture(TapGesture().onEnded { HapticManager.impact(.light) })
         }
 
         private func followStreamers(){
