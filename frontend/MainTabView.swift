@@ -5,10 +5,13 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            LeaderboardView()
-                .tabItem {
-                    Image(systemName: "trophy.fill")
-                }
+            NavigationView {
+                LeaderboardView()
+            }
+            .navigationViewStyle(.stack)
+            .tabItem {
+                Image(systemName: "trophy.fill")
+            }
 
             LiveFeedView()
                 .tabItem {
@@ -20,10 +23,13 @@ struct MainTabView: View {
                     Image(systemName: "magnifyingglass")
                 }
 
-            HomeView()
-                .tabItem {
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                }
+            NavigationView {
+                HomeView()
+            }
+            .navigationViewStyle(.stack)
+            .tabItem {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+            }
 
             ProfileView()
                 .tabItem {

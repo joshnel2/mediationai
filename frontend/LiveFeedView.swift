@@ -97,7 +97,7 @@ struct LiveFeedView: View {
                 }
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 24) {
+                    LazyVStack(spacing: 0) {
                         ForEach(list.indices, id: \ .self) { idx in
                             let clash = list[idx]
                             NavigationLink(destination: destinationView(for: clash)) {
@@ -109,6 +109,11 @@ struct LiveFeedView: View {
                                 if idx >= list.count - 3 {
                                     appendMoreItems()
                                 }
+                            }
+                            // Divider between rows
+                            if idx < list.count - 1 {
+                                Divider()
+                                    .background(Color.white.opacity(0.1))
                             }
                         }
                     }
@@ -184,7 +189,7 @@ struct LiveFeedView: View {
             .simultaneousGesture(TapGesture().onEnded{
                 HapticManager.impact(.light)
             })
-            .gesture(DragGesture(minimumDistance:0).onChanged{ _ in isPressed = true }.onEnded{ _ in isPressed = false })
+            // Removed drag gesture that interfered with NavigationLink activation
         }
 
         private func followStreamers(){

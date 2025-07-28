@@ -151,7 +151,7 @@ private struct LeaderRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .simultaneousGesture(TapGesture().onEnded{ HapticManager.impact(.light) })
-        .gesture(DragGesture(minimumDistance:0).onChanged{ _ in isPressed = true }.onEnded{ _ in isPressed = false })
+        // Removed drag gesture that interfered with NavigationLink activation
     }
     private var rankGradient: LinearGradient {
         switch rank {
