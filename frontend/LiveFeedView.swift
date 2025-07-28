@@ -117,8 +117,8 @@ struct LiveFeedView: View {
         if let disp = socialService.dispute(withId: clash.id) {
             return AnyView(ConversationView(dispute: disp).environmentObject(socialService))
         } else {
-            // Fallback view still watch mode
-            return AnyView(ClashWatchView(clash: clash).environmentObject(socialService))
+            let placeholder = MockDispute(id: clash.id, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: "", statementB: "", votesA: clash.votes ?? 0, votesB: 0)
+            return AnyView(ConversationView(dispute: placeholder).environmentObject(socialService))
         }
     }
 
