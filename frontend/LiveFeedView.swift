@@ -97,7 +97,7 @@ struct LiveFeedView: View {
                 }
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 24) {
+                    LazyVStack(spacing: 0) {
                         ForEach(list.indices, id: \ .self) { idx in
                             let clash = list[idx]
                             NavigationLink(destination: destinationView(for: clash)) {
