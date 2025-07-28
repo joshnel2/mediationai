@@ -342,13 +342,32 @@ struct ConversationView: View {
 
     private var resolutionPage: some View {
         ScrollView{
-            VStack(alignment:.leading,spacing:12){
+            VStack(alignment:.leading,spacing:20){
                 Text("AI Resolution")
                     .font(.headline)
                 Text(resolutionText)
+
+                Button(action:{ showShare = true }){
+                    Label("Share Result", systemImage: "square.and.arrow.up")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth:.infinity)
+                        .padding()
+                        .background(AppTheme.accent)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
             }
             .padding()
         }
+        .sheet(isPresented: $showShare){
+            ActivityViewController(activityItems: [shareMessage])
+        }
+    }
+
+    @State private var showShare = false
+
+    private var shareMessage: String {
+        "Crashout debate: \(sideAName) vs \(sideBName) — Verdict: \(resolutionText) #Crashout"
     }
 
     private var resolutionText: String {
