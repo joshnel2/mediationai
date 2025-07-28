@@ -37,8 +37,6 @@ struct ProfileView: View {
 
                     requestsSection
 
-                    myDisputesSection
-
                     Spacer(minLength: 60)
                 }
                 .padding()
