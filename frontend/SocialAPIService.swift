@@ -63,6 +63,8 @@ class SocialAPIService: ObservableObject {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
+    // Track exact follower IDs per user for mock data
+    @Published var followersByUser: [String:Set<String>] = [:]
 
     private func loadFollowing() {
         if let ids = try? JSONDecoder().decode(Set<String>.self, from: storedFollowing) {
@@ -241,6 +243,7 @@ class SocialAPIService: ObservableObject {
             disputesByUser[leader.id] = arr
 
             followerCounts[leader.id] = Int.random(in: 200...5000)
+            followersByUser[leader.id] = Set(Array(0..<Int.random(in: 10...50)).map { UUID().uuidString })
 
             // Seed activities
             var events:[ActivityEvent] = []
@@ -412,14 +415,21 @@ class SocialAPIService: ObservableObject {
     }
 
     // MARK: - Follow Logic
-    func toggleFollow(id: String) {
-        if following.contains(id) {
-            following.remove(id)
-            followerCounts[id, default: 0] = max(0, followerCounts[id, default: 0] - 1)
+    /// Toggle following status of `targetID` by the signed-in user `followerID`.
+    func toggleFollow(id targetID: String, followerID: String) {
+        if following.contains(targetID) {
+            following.remove(targetID)
+            followersByUser[targetID, default: []].remove(followerID)
         } else {
-            following.insert(id)
-            followerCounts[id, default: 0] += 1
+            following.insert(targetID)
+            followersByUser[targetID, default: []].insert(followerID)
         }
+        followerCounts[targetID] = followersByUser[targetID]?.count ?? 0
+    }
+
+    // Backwards-compat wrapper (non-tracking)
+    func toggleFollow(id: String) {
+        toggleFollow(id: id, followerID: "anonymous")
     }
 
     func followUser(id: String) {

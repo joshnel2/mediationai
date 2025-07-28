@@ -158,7 +158,7 @@ struct MiniProfileView: View {
 
     private var actionButtons: some View {
         HStack(spacing:16){
-            Button(action:{ social.toggleFollow(id:userID)}){
+            Button(action:{ social.toggleFollow(id:userID, followerID: authService.currentUser?.id.uuidString ?? "")}){
                 Text(social.following.contains(userID) ? "Following" : "+ Follow")
                     .font(.subheadline).bold()
                     .frame(maxWidth:.infinity)
