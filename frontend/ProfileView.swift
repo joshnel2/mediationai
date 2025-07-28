@@ -31,6 +31,7 @@ struct ProfileView: View {
             ScrollView {
                 VStack(spacing: 28) {
                     heroHeader
+                    quickLinks
 
                     chipsSection
 
@@ -44,18 +45,8 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
             }
             .background(AppTheme.backgroundGradient.ignoresSafeArea())
-            .navigationTitle("Profile")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gearshape.fill")
-                    }
-                }
-            }
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-        }
+        .sheet(isPresented: $showSettings) { SettingsView() }
     }
 
     // MARK: - Subviews
@@ -188,6 +179,28 @@ struct ProfileView: View {
                 nameSection
             }
             .padding(.bottom,32)
+        }
+    }
+
+    // Quick Links Section
+    private var quickLinks: some View {
+        HStack(spacing:16){
+            Button(action:{ showSettings = true }){
+                VStack(spacing:6){
+                    Image(systemName:"gearshape.fill").font(.title)
+                    Text("Settings").font(.caption)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth:.infinity).padding().background(AppTheme.cardGradient).cornerRadius(20)
+            }
+            NavigationLink(destination: HistoryListView()){
+                VStack(spacing:6){
+                    Image(systemName:"chart.bar.xaxis").font(.title)
+                    Text("Insights").font(.caption)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth:.infinity).padding().background(AppTheme.cardGradient).cornerRadius(20)
+            }
         }
     }
 
