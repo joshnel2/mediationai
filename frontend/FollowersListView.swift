@@ -35,3 +35,4 @@ struct FollowersListView_Previews: PreviewProvider {
         FollowersListView().environmentObject(SocialAPIService()).environmentObject(MockAuthService())
     }
 }
+#endif
