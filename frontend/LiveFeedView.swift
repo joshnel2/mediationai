@@ -24,36 +24,23 @@ struct LiveFeedView: View {
                             if let token = authService.jwtToken {
                                 viralService.startDrama(token: token) { id in
                                     if let id = id {
-                                        // navigate to clash watch
-                                        DispatchQueue.main.async {
-                                            navigateClashID = id
-                                        }
+                                        DispatchQueue.main.async { navigateClashID = id }
                                     }
                                 }
                             }
                         }
                         .padding(.top)
                     }
-                    // Picker moved to toolbar
+
+                    // Fancy toggle
+                    CapsuleToggle(selection: $tab, titles: ["Explore","Following"])
+                        .padding(.vertical,4)
+
                     contentView
                 }
             }
-            // We rely on the segmented picker in the nav bar, keep title empty to avoid repetition
             .navigationTitle("")
             .toolbar {
-                // Segmented control right under the nav bar title
-                ToolbarItem(placement: .principal) {
-                    Picker("Feed", selection: $tab) {
-                        Text("Explore").tag(0)
-                        Text("Following").tag(1)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .frame(width: 250)
-                    .onChange(of: tab) { newVal in
-                        loadTab(newVal)
-                    }
-                }
-
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { Task { await refresh() } }) {
                         Image(systemName: "arrow.clockwise.circle")
@@ -64,6 +51,7 @@ struct LiveFeedView: View {
             }
         }
         .onAppear { loadTab(tab) }
+        .onChange(of: tab) { idx in loadTab(idx) }
     }
 
     private func loadTab(_ index:Int){
@@ -207,6 +195,36 @@ struct LiveFeedView: View {
             let extras = socialService.followingClashes.shuffled().prefix(batchSize)
             followingFeed.append(contentsOf: extras)
         }
+    }
+}
+
+// MARK: CapsuleToggle
+
+private struct CapsuleToggle: View {
+    @Binding var selection: Int
+    let titles: [String]
+    @Namespace private var ns
+    var body: some View {
+        HStack(spacing:0){
+            ForEach(titles.indices, id: \.self){ idx in
+                ZStack{
+                    if selection == idx {
+                        RoundedRectangle(cornerRadius:12)
+                            .fill(AppTheme.accent)
+                            .matchedGeometryEffect(id:"feedtog", in: ns)
+                    }
+                    Text(titles[idx])
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(selection==idx ? .white : .white.opacity(0.7))
+                        .frame(maxWidth:.infinity)
+                        .padding(.vertical,8)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { withAnimation(.spring()) { selection = idx } }
+            }
+        }
+        .background(RoundedRectangle(cornerRadius:12).fill(Color.white.opacity(0.15)))
+        .padding(.horizontal)
     }
 }
 

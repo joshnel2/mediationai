@@ -15,13 +15,8 @@ struct LeaderboardView: View {
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
 
-            // Segmented selector
-            Picker("Leaderboard", selection: $segment) {
-                Text("Overall").tag(0)
-                Text("Today").tag(1)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding(.horizontal)
+            // Fancy capsule selector
+            CapsuleToggle(selection: $segment, titles: ["Overall","Today"])
 
             // Leader list
 
@@ -52,6 +47,36 @@ struct LeaderboardView: View {
     private var maxWins: Int { currentList.map{$0.wins}.max() ?? 1 }
 
     // no longer needed
+}
+
+// MARK: - Capsule Toggle
+
+private struct CapsuleToggle: View {
+    @Binding var selection: Int
+    let titles: [String]
+    @Namespace private var ns
+    var body: some View {
+        HStack(spacing:0){
+            ForEach(titles.indices, id: \.self){ idx in
+                ZStack{
+                    if selection == idx {
+                        RoundedRectangle(cornerRadius:12)
+                            .fill(AppTheme.accent)
+                            .matchedGeometryEffect(id:"tog", in: ns)
+                    }
+                    Text(titles[idx])
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(selection==idx ? .white : .white.opacity(0.7))
+                        .frame(maxWidth:.infinity)
+                        .padding(.vertical,8)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { withAnimation(.spring()) { selection = idx } }
+            }
+        }
+        .background(RoundedRectangle(cornerRadius:12).fill(Color.white.opacity(0.15)))
+        .padding(.horizontal)
+    }
 }
 
 // MARK: - Podium
