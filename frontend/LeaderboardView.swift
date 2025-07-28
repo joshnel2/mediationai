@@ -23,22 +23,7 @@ struct LeaderboardView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
 
-            // Podium for top 3 – revamped
-            if currentList.count >= 3 {
-                PodiumView(first: currentList[0], second: currentList[1], third: currentList[2])
-                    .environmentObject(social)
-                    .padding(.bottom,8)
-            }
-
-            // Fallback when <3 users
-            else if !currentList.isEmpty {
-                ForEach(0..<currentList.count,id:\.self){ idx in
-                    LeaderRow(user: currentList[idx], rank: idx+1, maxWins: maxWins)
-                        .environmentObject(social)
-                }
-            }
-
-            // Continue list ...
+            // Leader list
 
             // List body
             List {
@@ -150,8 +135,6 @@ private struct LeaderRow: View {
             .animation(.spring(response:0.3,dampingFraction:0.7),value:isPressed)
         }
         .buttonStyle(PlainButtonStyle())
-        .simultaneousGesture(TapGesture().onEnded{ HapticManager.impact(.light) })
-        // Removed drag gesture that interfered with NavigationLink activation
     }
     private var rankGradient: LinearGradient {
         switch rank {
