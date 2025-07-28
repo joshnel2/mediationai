@@ -52,17 +52,32 @@ struct ConversationView: View {
 
     private var meIsA: Bool { Bool.random() } // placeholder
 
+    // Attempt to infer participant names from the title formatted like "Alice vs Bob"
+    private var sideAName: String {
+        dispute.title.components(separatedBy: " vs ").first ?? "Side A"
+    }
+    private var sideBName: String {
+        dispute.title.components(separatedBy: " vs ").last ?? "Side B"
+    }
+
     var body: some View {
         VStack {
-            // Neon scoreboard
+            // Topic title & scoreboard
             VStack(spacing:8){
+                Text(dispute.title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .frame(maxWidth:.infinity)
+
                 HStack(alignment:.center){
                     VStack(spacing:2){
                         Text("🔥 \(votesA)")
                             .font(.title3.bold())
                             .foregroundColor(AppTheme.primary)
-                        Text("A")
+                        Text(sideAName)
                             .font(.caption2)
+                            .lineLimit(1)
                             .foregroundColor(.secondary)
                     }
                     Spacer()
@@ -70,8 +85,9 @@ struct ConversationView: View {
                         Text("🔥 \(votesB)")
                             .font(.title3.bold())
                             .foregroundColor(AppTheme.accent)
-                        Text("B")
+                        Text(sideBName)
                             .font(.caption2)
+                            .lineLimit(1)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -93,8 +109,8 @@ struct ConversationView: View {
 
                 // Tab chooser
                 HStack(spacing:0){
-                    tabLabel(title:"Side A", index:0, color:AppTheme.primary)
-                    tabLabel(title:"Side B", index:1, color:AppTheme.accent)
+                    tabLabel(title:sideAName, index:0, color:AppTheme.primary)
+                    tabLabel(title:sideBName, index:1, color:AppTheme.accent)
                     tabLabel(title:"Result", index:2, color:Color.yellow)
                 }
             }
@@ -311,6 +327,8 @@ struct ConversationView: View {
     private func tabLabel(title:String,index:Int,color:Color)->some View{
         Text(title)
             .font(.subheadline.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .foregroundColor(selectedTab==index ? Color.white : Color.white.opacity(0.6))
             .padding(.vertical,6)
             .frame(maxWidth:.infinity)
