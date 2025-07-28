@@ -243,7 +243,7 @@ class SocialAPIService: ObservableObject {
             disputesByUser[leader.id] = arr
 
             followerCounts[leader.id] = Int.random(in: 200...5000)
-            followersByUser[leader.id] = Set(Array(0..<Int.random(in: 10...50)).map { UUID().uuidString })
+            followersByUser[leader.id] = Set(Array(0..<Int.random(in: 10...50)).map { _ in UUID().uuidString })
 
             // Seed activities
             var events:[ActivityEvent] = []
