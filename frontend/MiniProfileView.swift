@@ -7,7 +7,7 @@ struct MiniProfileView: View {
     let userID: String
     @Environment(\.dismiss) var dismiss
 
-    @State private var navDispute: MockDispute?
+    @State private var showRequest = false
 
     private var user: SocialAPIService.UserSummary? {
         social.overallLeaders.first { $0.id == userID }
@@ -168,7 +168,7 @@ struct MiniProfileView: View {
                     .cornerRadius(24)
             }
 
-            Button(action:{ requestClash()}){
+            Button(action:{ showRequest = true }){
                 Text("Crashout ⚡️")
                     .font(.subheadline).bold()
                     .frame(maxWidth:.infinity)
@@ -179,19 +179,13 @@ struct MiniProfileView: View {
             }
         }
         .background(
-            NavigationLink(destination: navDestination, isActive: Binding(
-                get: { navDispute != nil },
-                set: { if !$0 { navDispute = nil } }
-            )) { EmptyView() }
-            .hidden()
+            EmptyView()
         )
-    }
-
-    private var navDestination: some View {
-        if let d = navDispute {
-            return AnyView(ConversationView(dispute: d))
+        .sheet(isPresented: $showRequest){
+            CrashoutRequestView(targetID: userID)
+                .environmentObject(social)
+                .environmentObject(authService)
         }
-        return AnyView(EmptyView())
     }
 
     // Activity timeline
@@ -209,13 +203,6 @@ struct MiniProfileView: View {
                     }
                 }
             }
-        }
-    }
-
-    private func requestClash(){
-        if let current = authService.currentUser?.id.uuidString {
-            let disp = social.createClashBetween(current, userID)
-            navDispute = disp
         }
     }
 

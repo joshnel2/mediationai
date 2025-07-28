@@ -461,6 +461,15 @@ class SocialAPIService: ObservableObject {
         return disp
     }
 
+    // MARK: - Requests
+    /// Create a request for a crashout between two users. The dispute is only added after acceptance.
+    func sendCrashoutRequest(from fromID: String, to toID: String, title: String, statementA: String, statementB: String="Let’s go!") {
+        let disp = MockDispute(id: UUID().uuidString, title: title, statementA: statementA, statementB: statementB, votesA: 0, votesB: 0)
+        let req = Request(id: UUID().uuidString, fromUser: fromID, toUser: toID, dispute: disp)
+        requestsOut[fromID, default: []].append(req)
+        requestsIn[toID, default: []].append(req)
+    }
+
     private func userName(_ id: String) -> String {
         overallLeaders.first { $0.id == id }?.displayName ?? "Anon"
     }
