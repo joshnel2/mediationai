@@ -10,6 +10,14 @@ import SwiftUI
 
 @main
 struct MediationAIApp: App {
+    init() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
     @UIApplicationDelegateAdaptor(PushDelegate.self) var pushDelegate
     @StateObject var authService = MockAuthService()
     @StateObject var disputeService = MockDisputeService()
