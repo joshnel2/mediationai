@@ -47,7 +47,6 @@ struct ConversationView: View {
 
     // Live summary of the debate
     @State private var argumentSummary: String = "No summary yet"
-    @State private var activeReactions: [String] = []
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -69,11 +68,6 @@ struct ConversationView: View {
     }
 
     var body: some View {
-        ZStack{
-            // Flying reactions
-            ForEach(activeReactions.indices, id: \.self){ idx in
-                ReactionOverlay(reaction: activeReactions[idx])
-            }
         VStack {
             // Topic title & scoreboard + live summary
             VStack(spacing:8){
@@ -183,40 +177,8 @@ struct ConversationView: View {
                     opponentSection
                 }
             } else {
-                VStack(spacing:12){
-                    // Watch toggle
-                    Button(action:{ social.toggleWatch(disputeID: dispute.id) }){
-                        HStack(spacing:4){
-                            Image(systemName: social.watchedDisputeIDs.contains(dispute.id) ? "bell.fill" : "bell")
-                            Text( social.watchedDisputeIDs.contains(dispute.id) ? "Following" : "Follow" )
-                        }
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal,12).padding(.vertical,6)
-                        .background(Color.white.opacity(0.15))
-                        .foregroundColor(.white)
-                        .cornerRadius(14)
-                    }
-
-                    if !viewerVoted {
-                        HStack(spacing:0){
-                            voteButton(side:.a, label: sideAName)
-                            voteButton(side:.b, label: sideBName)
-                        }
-                        .clipShape(Capsule())
-                        .overlay(Capsule().stroke(Color.white.opacity(0.25),lineWidth:1))
-                    }
-
-                    // Reaction bar
-                    HStack(spacing:24){
-                        reactionButton("🔥")
-                        reactionButton("😂")
-                        reactionButton("👍")
-                    }
-                }
-                .padding(.vertical, 12)
+                EmptyView() // viewer mode: no controls below chat
             }
-        }
-        // End of ZStack content
         }
         .navigationTitle(dispute.title)
         .onAppear{ seed(); updateSummary() }
@@ -237,25 +199,24 @@ struct ConversationView: View {
     private func reactionButton(_ emoji:String)->some View{
         Text(emoji).font(.title)
             .onTapGesture {
-                activeReactions.append(emoji)
+                // activeReactions.append(emoji) // Removed reaction state
                 // remove after animation duration
-                DispatchQueue.main.asyncAfter(deadline: .now()+2.4){ activeReactions.removeFirst() }
+                DispatchQueue.main.asyncAfter(deadline: .now()+2.4){ /* activeReactions.removeFirst() */ }
             }
     }
 
     // Quick vote
-    @State private var viewerVoted = false
     private func voteButton(side:ChatMsg.Sender,label:String)->some View{
         Text(label)
             .font(.caption.bold())
             .foregroundColor(.white)
             .padding(.vertical,6)
             .padding(.horizontal,20)
-            .background(viewerVoted ? Color.clear : (side == .a ? AppTheme.primary : AppTheme.accent))
+            .background(voted ? Color.clear : (side == .a ? AppTheme.primary : AppTheme.accent))
             .onTapGesture {
-                guard !viewerVoted else { return }
+                guard voted else { return }
                 if side == .a { votesA += 1 } else { votesB += 1 }
-                viewerVoted = true
+                voted = true
             }
     }
 
