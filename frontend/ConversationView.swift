@@ -99,7 +99,7 @@ struct ConversationView: View {
                         Text(sideAName)
                             .font(.caption2)
                             .lineLimit(1)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.textPrimary)
                     }
                     Spacer()
                     VStack(spacing:2){
@@ -109,7 +109,7 @@ struct ConversationView: View {
                         Text(sideBName)
                             .font(.caption2)
                             .lineLimit(1)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(AppTheme.textPrimary)
                     }
                 }
 
@@ -132,7 +132,7 @@ struct ConversationView: View {
                 HStack(spacing:0){
                     tabLabel(title:sideAName, index:0, color:AppTheme.primary)
                     tabLabel(title:sideBName, index:1, color:AppTheme.accent)
-                    tabLabel(title:"Result", index:2, color:Color.yellow)
+                    tabLabel(title:"Result", index:2, color:AppTheme.success)
                 }
             }
             .padding(8)
