@@ -37,6 +37,8 @@ struct ProfileView: View {
 
                     requestsSection
 
+                    winsLossesSection
+
                     Spacer(minLength: 60)
                 }
                 .padding()
@@ -198,6 +200,37 @@ struct ProfileView: View {
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth:.infinity).padding().background(AppTheme.cardGradient).cornerRadius(20)
+            }
+        }
+    }
+
+    // MARK: - Wins / Losses
+    private var winsLossesSection: some View {
+        VStack(alignment:.leading,spacing:12){
+            Text("Record")
+                .font(.headline)
+                .foregroundColor(AppTheme.textPrimary)
+
+            let items = socialService.historyByUser[authService.currentUser?.id.uuidString ?? "", default:[]]
+            if items.isEmpty {
+                Text("No crashouts yet.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(items){ item in
+                    HStack{
+                        Image(systemName: item.didWin ? "checkmark.seal.fill" : "xmark.seal")
+                            .foregroundColor(item.didWin ? .green : .red)
+                        VStack(alignment:.leading){
+                            Text(item.dispute.title).font(.subheadline.bold())
+                            Text(item.recordedAt, style: .date).font(.caption2).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(8)
+                    .background(AppTheme.cardGradient)
+                    .cornerRadius(12)
+                }
             }
         }
     }
