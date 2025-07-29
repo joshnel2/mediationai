@@ -45,7 +45,7 @@ struct LiveFeedView: View {
                     Button(action: { Task { await refresh() } }) {
                         Image(systemName: "arrow.clockwise.circle")
                             .imageScale(.large)
-                            .foregroundColor(.white)
+                            .foregroundColor(.primary)
                     }
                 }
             }
@@ -72,16 +72,16 @@ struct LiveFeedView: View {
 
             if socialService.isLoading && list.isEmpty {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.primary))
             } else if list.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "bolt.bubble")
                         .font(.system(size: 48))
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.secondary)
                     Text("No crashouts here yet\nCheck back soon!")
                         .font(.title3.weight(.semibold))
                         .multilineTextAlignment(.center)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.secondary)
                 }
             } else {
                 ScrollView {
@@ -215,7 +215,7 @@ private struct CapsuleToggle: View {
                     }
                     Text(titles[idx])
                         .font(.subheadline.weight(.semibold))
-                        .foregroundColor(selection==idx ? .white : .white.opacity(0.7))
+                        .foregroundColor(selection==idx ? .white : .primary.opacity(0.8))
                         .frame(maxWidth:.infinity)
                         .padding(.vertical,4)
                 }
