@@ -300,6 +300,8 @@ struct HomeView: View {
                             Text("Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             
                                                 Text("Go live with friends")
                         .font(AppTheme.caption())
@@ -325,6 +327,8 @@ struct HomeView: View {
                             Text("Join Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             
                             Text("Watch & chat live")
                                 .font(AppTheme.caption())
