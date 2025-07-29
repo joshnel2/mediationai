@@ -282,8 +282,9 @@ class SocialAPIService: ObservableObject {
             .replaceError(with: [])
             .receive(on: DispatchQueue.main)
             .sink { [weak self] clashes in
-                self?.liveClashes = clashes
-                self?.isLoading = false
+                guard let self = self else { return }
+                self.liveClashes = clashes.isEmpty ? self.liveClashes : clashes
+                self.isLoading = false
             }
             .store(in: &cancellables)
     }
