@@ -10,37 +10,120 @@ struct CrashoutRequestView: View {
     @State private var myStatement: String = ""
     @State private var sent = false
 
+    // Quick presets to speed up topic selection (mirrors CreateDisputeView)
+    private let presetTitles = [
+        "Who Carried The Squad?",
+        "Lag Blame Showdown",
+        "Clip Ownership Drama",
+        "Ping Advantage Debate"
+    ]
+
     private var targetName: String {
         social.overallLeaders.first(where: { $0.id == targetID })?.displayName ?? "Streamer"
     }
 
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Challenge \(targetName)")
-                .font(.title2.bold())
+        ZStack {
+            AppTheme.backgroundGradient.ignoresSafeArea()
 
-            TextField("Crashout topic (e.g. Who carried the match?)", text: $title)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            VStack(spacing: 0) {
+                // Header – consistent with CreateDisputeView
+                headerSection
 
-            TextEditor(text: $myStatement)
-                .frame(height: 120)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.3)))
-                .padding(.horizontal)
+                ScrollView {
+                    VStack(spacing: AppTheme.spacingXL) {
+                        // Title
+                        VStack(spacing: AppTheme.spacingSM) {
+                            Text("Request Crashout")
+                                .font(AppTheme.title())
+                                .foregroundColor(AppTheme.textPrimary)
+                                .fontWeight(.bold)
 
-            Button(action: send) {
-                Text(sent ? "Sent!" : "Send Crashout Request")
-                    .bold()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(sent ? Color.green : AppTheme.accent)
-                    .foregroundColor(.white)
-                    .cornerRadius(14)
+                            Text("Challenge \(targetName) to a fiery debate – pick a topic and share your opening statement.")
+                                .font(AppTheme.body())
+                                .foregroundColor(AppTheme.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+
+                        // Preset quick chips
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(presetTitles, id: \.self) { preset in
+                                    Text(preset)
+                                        .font(.caption2)
+                                        .padding(.vertical, 6)
+                                        .padding(.horizontal, 12)
+                                        .background(AppTheme.cardGradient)
+                                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(AppTheme.accent, lineWidth: 1))
+                                        .cornerRadius(16)
+                                        .onTapGesture {
+                                            title = preset
+                                        }
+                                }
+                            }
+                            .padding(.horizontal, AppTheme.spacingSM)
+                        }
+
+                        // Form Fields
+                        VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                            Text("Topic")
+                                .font(AppTheme.caption())
+                                .foregroundColor(AppTheme.textSecondary)
+
+                            TextField("Crashout topic (e.g. Who carried the match?)", text: $title)
+                                .modernTextField()
+
+                            Text("Your Opening Statement")
+                                .font(AppTheme.caption())
+                                .foregroundColor(AppTheme.textSecondary)
+
+                            TextField("Share your first punchline…", text: $myStatement, axis: .vertical)
+                                .modernTextField()
+                                .frame(minHeight: 100)
+                        }
+
+                        // Send button
+                        Button(action: send) {
+                            Label(sent ? "Request Sent!" : "Send Crashout Request", systemImage: sent ? "checkmark.circle.fill" : "paperplane.fill")
+                        }
+                        .accentButton()
+                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || myStatement.trimmingCharacters(in: .whitespaces).isEmpty || sent)
+                        .opacity(sent ? 0.7 : 1)
+                    }
+                    .padding(.horizontal, AppTheme.spacingLG)
+                    .padding(.top, AppTheme.spacingLG)
+                    .padding(.bottom, AppTheme.spacingXL)
+                }
             }
-            .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || myStatement.trimmingCharacters(in: .whitespaces).isEmpty || sent)
-            Spacer()
         }
-        .padding()
-        .background(AppTheme.backgroundGradient.ignoresSafeArea())
+    }
+
+    // MARK: - Header
+    private var headerSection: some View {
+        HStack {
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.textPrimary)
+                    .frame(width: 32, height: 32)
+                    .background(AppTheme.glassPrimary)
+                    .cornerRadius(AppTheme.radiusSM)
+            }
+
+            Spacer()
+
+            Text("Request Crashout")
+                .font(AppTheme.title3())
+                .foregroundColor(AppTheme.textPrimary)
+                .fontWeight(.semibold)
+
+            Spacer()
+
+            // Placeholder to balance layout
+            Color.clear.frame(width: 32, height: 32)
+        }
+        .padding(.horizontal, AppTheme.spacingLG)
+        .padding(.top, AppTheme.spacingSM)
     }
 
     private func send() {
