@@ -58,11 +58,11 @@ struct AppTheme {
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
-    
+    // Card backgrounds now have a subtle twitter-blue tint so white text stays readable
     static let cardGradient = LinearGradient(
         gradient: Gradient(colors: [
-            Color.white.opacity(0.85),
-            Color(red: 0.93, green: 0.95, blue: 1.00)
+            Color(red: 0.80, green: 0.90, blue: 1.00), // light blue
+            Color(red: 0.65, green: 0.82, blue: 1.00)  // slightly darker blue
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
