@@ -70,15 +70,9 @@ struct ConversationView: View {
     var body: some View {
         VStack {
             // Topic title & scoreboard + live summary
-            VStack(spacing:8){
-                // Avatars + VS
-                HStack(spacing:8){
-                    AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:80)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
-                        .frame(width:40,height:40).clipShape(Circle()).overlay(Circle().stroke(Color.primary,lineWidth:1))
-                    Text("vs").font(.subheadline.weight(.bold)).foregroundColor(.primary)
-                    AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:80)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
-                        .frame(width:40,height:40).clipShape(Circle()).overlay(Circle().stroke(Color.primary,lineWidth:1))
-                }
+            VStack(spacing:AppTheme.spacingSM){
+                // Clean VS layout
+                versusSection
 
                 // Topic capsule
                 Text(dispute.title)
@@ -330,9 +324,12 @@ struct ConversationView: View {
             if msg.sender == .b { Spacer() }
             VStack(alignment: msg.sender == .a ? .trailing : .leading){
                 content(for: msg)
-                    .padding(12)
+                    .font(AppTheme.body())
+                    .foregroundColor(AppTheme.textPrimary)
+                    .padding(AppTheme.spacingMD)
                     .background(bubbleGradient(for: msg))
                     .clipShape(RoundedRectangle(cornerRadius:20))
+                    .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
             }
             if msg.sender == .a { Spacer() }
         }
@@ -371,13 +368,45 @@ struct ConversationView: View {
     }
 
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
-        if msg.sender == .ai {
-            return LinearGradient(colors:[Color(UIColor.secondarySystemBackground)], startPoint:.top, endPoint:.bottom)
+        switch msg.sender {
+        case .ai:
+            return LinearGradient(colors:[Color(UIColor.secondarySystemBackground)], startPoint:.topLeading, endPoint:.bottomTrailing)
+        case .a:
+            return LinearGradient(colors:[AppTheme.primary.opacity(0.15), AppTheme.primary.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
+        case .b:
+            return LinearGradient(colors:[AppTheme.accent.opacity(0.15), AppTheme.accent.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
         }
-        if msg.sender == .a {
-            return LinearGradient(colors:[Color(UIColor.systemGray6)], startPoint:.top, endPoint:.bottom)
+    }
+
+    // MARK: - Versus Header
+    private var versusSection: some View {
+        HStack(alignment:.center, spacing:16){
+            VStack(spacing:4){
+                AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:120)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
+                    .frame(width:56,height:56)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(AppTheme.primary,lineWidth:2))
+                Text(sideAName)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+            }
+
+            Text("VS")
+                .font(.caption.weight(.bold))
+                .foregroundColor(.secondary)
+
+            VStack(spacing:4){
+                AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:120)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
+                    .frame(width:56,height:56)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(AppTheme.accent,lineWidth:2))
+                Text(sideBName)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+            }
         }
-        return LinearGradient(colors:[Color(UIColor.systemGray5)], startPoint:.top, endPoint:.bottom)
     }
 
     // Simple blur view helper
