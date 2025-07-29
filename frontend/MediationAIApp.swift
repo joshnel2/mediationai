@@ -28,6 +28,7 @@ struct MediationAIApp: App {
                 .environmentObject(badgeService)
                 .environmentObject(viralService)
                 .environmentObject(socialService)
+                .preferredColorScheme(.light)
         }
     }
 }

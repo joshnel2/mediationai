@@ -59,7 +59,12 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
-    @Published var following: Set<String> = [] {
+    @Published var following: Set<String> = {
+        if let ids = try? JSONDecoder().decode(Set<String>.self, from: storedFollowing) {
+            return ids
+        }
+        return []
+    }() {
         didSet { saveFollowing() }
     }
     @Published var followerCounts: [String: Int] = [:]
@@ -397,12 +402,21 @@ class SocialAPIService: ObservableObject {
         if APIConfig.enableMockData { return }
         guard let url1 = URL(string: "\(APIConfig.baseURL)/api/leaderboard/overall"),
               let url2 = URL(string: "\(APIConfig.baseURL)/api/leaderboard/daily") else { return }
+
+        // Overall leaderboard fetch with fallback to mock
         URLSession.shared.dataTaskPublisher(for: url1)
             .map { $0.data }
             .decode(type: [UserSummary].self, decoder: JSONDecoder())
             .replaceError(with: [])
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] arr in self?.overallLeaders = arr }
+            .sink { [weak self] arr in
+                guard let self = self else { return }
+                if arr.isEmpty {
+                    if self.overallLeaders.isEmpty { self.seedMockData() }
+                } else {
+                    self.overallLeaders = arr
+                }
+            }
             .store(in: &cancellables)
 
         URLSession.shared.dataTaskPublisher(for: url2)
@@ -410,7 +424,14 @@ class SocialAPIService: ObservableObject {
             .decode(type: [UserSummary].self, decoder: JSONDecoder())
             .replaceError(with: [])
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] arr in self?.dailyLeaders = arr }
+            .sink { [weak self] arr in
+                guard let self = self else { return }
+                if arr.isEmpty {
+                    if self.dailyLeaders.isEmpty { self.seedMockData() }
+                } else {
+                    self.dailyLeaders = arr
+                }
+            }
             .store(in: &cancellables)
     }
 
