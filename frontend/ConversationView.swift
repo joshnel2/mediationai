@@ -71,11 +71,22 @@ struct ConversationView: View {
         VStack {
             // Topic title & scoreboard + live summary
             VStack(spacing:8){
+                // Avatars + VS
+                HStack(spacing:8){
+                    AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:80)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
+                        .frame(width:40,height:40).clipShape(Circle()).overlay(Circle().stroke(Color.primary,lineWidth:1))
+                    Text("vs").font(.subheadline.weight(.bold)).foregroundColor(.primary)
+                    AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:80)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
+                        .frame(width:40,height:40).clipShape(Circle()).overlay(Circle().stroke(Color.primary,lineWidth:1))
+                }
+
+                // Topic capsule
                 Text(dispute.title)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
+                    .font(.caption.bold())
                     .foregroundColor(.white)
-                    .frame(maxWidth:.infinity)
+                    .padding(.horizontal,12).padding(.vertical,4)
+                    .background(AppTheme.accent)
+                    .clipShape(Capsule())
 
                 if !argumentSummary.isEmpty {
                     Text(argumentSummary)
