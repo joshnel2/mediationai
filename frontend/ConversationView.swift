@@ -362,7 +362,6 @@ struct ConversationView: View {
                     .background(bubbleGradient(for: msg))
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius:20))
-                    .overlay(BubbleTail(isMySide: msg.sender == .b).fill(bubbleGradient(for: msg)))
             }
             if msg.sender == .a { Spacer() }
         }
@@ -380,7 +379,7 @@ struct ConversationView: View {
 
     @ViewBuilder private func content(for msg:ChatMsg)-> some View{
         switch msg.kind {
-        case .text(let t): Text(t)
+        case .text(let t): Text(t).font(.body)
         case .image(let u): Image(uiImage:u).resizable().scaledToFill().frame(maxWidth:200,maxHeight:200).clipped().cornerRadius(12)
         }
     }
@@ -401,8 +400,13 @@ struct ConversationView: View {
     }
 
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
-        if msg.sender == .ai { return LinearGradient(colors:[Color.yellow.opacity(0.5),Color.orange.opacity(0.6)],startPoint:.top,endPoint:.bottom) }
-        return msg.sender == .a ? AppTheme.accentGradient : LinearGradient(colors:[AppTheme.primary,AppTheme.secondary], startPoint:.topLeading,endPoint:.bottomTrailing)
+        if msg.sender == .ai {
+            return LinearGradient(colors:[Color(UIColor.secondarySystemBackground)], startPoint:.top, endPoint:.bottom)
+        }
+        if msg.sender == .a {
+            return LinearGradient(colors:[Color(UIColor.systemGray6)], startPoint:.top, endPoint:.bottom)
+        }
+        return LinearGradient(colors:[Color(UIColor.systemGray5)], startPoint:.top, endPoint:.bottom)
     }
 
     // Simple blur view helper

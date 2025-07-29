@@ -32,8 +32,8 @@ struct LiveFeedView: View {
                         .padding(.top)
                     }
 
-                    // Fancy toggle
-                    CapsuleToggle(selection: $tab, titles: ["Explore","Following"])
+                    // Sleek underline toggle
+                    UnderlineToggle(selection: $tab, titles: ["Explore","Following"])
                         .padding(.vertical,4)
 
                     contentView

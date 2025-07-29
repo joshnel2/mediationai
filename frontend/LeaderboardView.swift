@@ -15,8 +15,8 @@ struct LeaderboardView: View {
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
 
-            // Fancy capsule selector
-            CapsuleToggle(selection: $segment, titles: ["Overall","Today"])
+            // Twitter-style underline selector
+            UnderlineToggle(selection: $segment, titles: ["Overall","Today"])
 
             // Leader list
 
