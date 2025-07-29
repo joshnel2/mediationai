@@ -432,15 +432,73 @@ from sqlalchemy import func, desc, Date
 
 @router.get("/leaderboard/overall")
 async def overall_leaderboard(limit: int = 20, db: Session = Depends(get_db)):
-    users = db.query(DBUser).order_by(DBUser.xp_points.desc()).limit(limit).all()
-    return [{"userId": u.id, "xp": u.xp_points} for u in users]
+    """Return top users by total XP in the shape expected by the mobile app.
+
+    The SwiftUI client expects the following keys for each leaderboard entry:
+
+    id           – user id
+    displayName  – human-readable name
+    xp           – experience points (total or today depending on endpoint)
+    wins         – number of dispute wins
+    """
+
+    users = (
+        db.query(DBUser)
+        .order_by(DBUser.xp_points.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": u.id,
+            "displayName": u.display_name or "Anonymous",
+            "xp": u.xp_points,
+            "wins": u.disputes_won,
+        }
+        for u in users
+    ]
 
 @router.get("/leaderboard/daily")
 async def daily_leaderboard(limit: int = 20, db: Session = Depends(get_db)):
+    """Return top users by XP earned *today* in the shape expected by the mobile app."""
+
     today = datetime.utcnow().date()
-    subq = db.query(XPLog.user_id, func.sum(XPLog.points).label("points")).filter(func.date(XPLog.created_at)==today).group_by(XPLog.user_id).subquery()
-    rows = db.query(subq.c.user_id, subq.c.points).order_by(subq.c.points.desc()).limit(limit).all()
-    return [{"userId": r.user_id, "xpToday": r.points} for r in rows]
+
+    # Aggregate XP earned today per user
+    subq = (
+        db.query(
+            XPLog.user_id.label("user_id"),
+            func.sum(XPLog.points).label("xp_today"),
+        )
+        .filter(func.date(XPLog.created_at) == today)
+        .group_by(XPLog.user_id)
+        .subquery()
+    )
+
+    # Join with the users table so we can include display name and win count
+    rows = (
+        db.query(
+            DBUser.id,
+            DBUser.display_name,
+            DBUser.disputes_won,
+            subq.c.xp_today,
+        )
+        .join(subq, DBUser.id == subq.c.user_id)
+        .order_by(subq.c.xp_today.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        {
+            "id": r.id,
+            "displayName": r.display_name or "Anonymous",
+            "xp": int(r.xp_today),
+            "wins": r.disputes_won,
+        }
+        for r in rows
+    ]
 
 # ----------------------------
 # USER SEARCH
