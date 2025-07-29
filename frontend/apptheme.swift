@@ -11,8 +11,9 @@ struct AppTheme {
     // MARK: - Colors (Neon Streamer Theme)
     // Electric neon palette aimed at streaming culture (Twitch / Kick vibe)
     // Trendy Twitch + Twitter inspired palette
-    static let primary = Color(red: 0.57, green: 0.27, blue: 1.00) // Twitch Purple #9146FF
-    static let secondary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
+    // Primary & secondary now use blue tones (Twitter branding)
+    static let primary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
+    static let secondary = Color(red: 0.37, green: 0.75, blue: 0.97) // Lighter Twitter Blue
     // Accent now matches Twitter Blue instead of pink
     static let accent = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
     
@@ -42,8 +43,7 @@ struct AppTheme {
     static let mainGradient = LinearGradient(
         gradient: Gradient(colors: [
             primary,
-            secondary,
-            accent
+            secondary
         ]),
         startPoint: .topLeading,
         endPoint: .bottomTrailing
