@@ -12,7 +12,7 @@ struct UnderlineToggle: View {
                     VStack(spacing:4){
                         Text(titles[idx])
                             .font(.subheadline.weight(selection == idx ? .bold : .regular))
-                            .foregroundColor(selection == idx ? .white : .white.opacity(0.6))
+                            .foregroundColor(selection == idx ? AppTheme.accent : Color.primary.opacity(0.6))
                         ZStack{
                             if selection == idx {
                                 Rectangle()

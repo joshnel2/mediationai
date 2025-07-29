@@ -139,7 +139,7 @@ struct ConversationView: View {
             .padding(8)
             .background(AppTheme.cardGradient)
             .cornerRadius(16)
-            .padding(.top,8)
+            .padding(.top,2)
 
             // Swipeable pages
             TabView(selection:$selectedTab){
@@ -360,7 +360,6 @@ struct ConversationView: View {
                 content(for: msg)
                     .padding(12)
                     .background(bubbleGradient(for: msg))
-                    .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius:20))
             }
             if msg.sender == .a { Spacer() }
@@ -379,7 +378,7 @@ struct ConversationView: View {
 
     @ViewBuilder private func content(for msg:ChatMsg)-> some View{
         switch msg.kind {
-        case .text(let t): Text(t).font(.body)
+        case .text(let t): Text(t).font(.body).foregroundColor(.primary)
         case .image(let u): Image(uiImage:u).resizable().scaledToFill().frame(maxWidth:200,maxHeight:200).clipped().cornerRadius(12)
         }
     }
