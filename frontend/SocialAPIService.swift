@@ -370,8 +370,9 @@ class SocialAPIService: ObservableObject {
             .replaceError(with: [])
             .receive(on: DispatchQueue.main)
             .sink { [weak self] c in
-                self?.followingClashes = c
-                self?.isLoading = false
+                guard let self = self else { return }
+                self.followingClashes = c.isEmpty ? self.followingClashes : c
+                self.isLoading = false
             }
             .store(in: &cancellables)
     }
