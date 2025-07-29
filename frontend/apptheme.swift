@@ -13,7 +13,8 @@ struct AppTheme {
     // Trendy Twitch + Twitter inspired palette
     static let primary = Color(red: 0.57, green: 0.27, blue: 1.00) // Twitch Purple #9146FF
     static let secondary = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
-    static let accent = Color(red: 1.00, green: 0.38, blue: 0.96) // Hot Pink #FF61F6
+    // Accent now matches Twitter Blue instead of pink
+    static let accent = Color(red: 0.11, green: 0.63, blue: 0.95) // Twitter Blue #1DA1F2
     
     // Background colors - Deep sophisticated gradients
     static let background = Color(red: 0.05, green: 0.05, blue: 0.08) // Near-black
@@ -23,7 +24,7 @@ struct AppTheme {
     // Glass-morphism backgrounds with subtle color tints
     static let glassPrimary = Color.white.opacity(0.12)
     static let glassSecondary = Color.white.opacity(0.06)
-    static let glassAccent = Color(red: 0.45, green: 0.30, blue: 0.95).opacity(0.08)
+    static let glassAccent = Color(red: 0.11, green: 0.63, blue: 0.95).opacity(0.08)
     
     // Text colors - High contrast for readability
     static let textPrimary = Color.black
