@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import PhotosUI
 
 // MARK: - Bubble Tail Shape
 struct BubbleTail: Shape {
@@ -26,12 +27,15 @@ struct ConversationView: View {
     // Simple chat model
     struct ChatMsg: Identifiable {
         enum Sender { case a, b, ai }
+        enum Kind { case text(String), image(UIImage) }
         let id = UUID()
-        let text: String
+        let kind: Kind
         let sender: Sender
     }
 
     @State private var messages: [ChatMsg] = []
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var pickedImage: UIImage?
     @State private var input: String = ""
     @State private var aiThinking = false
     @State private var voted = false
@@ -152,6 +156,11 @@ struct ConversationView: View {
             // Input section – visible only to participants
             if isParticipant {
                 HStack(spacing:8){
+                    PhotosPicker(selection:$pickerItem, matching:.images, photoLibrary:.shared()){
+                        Image(systemName:"photo.on.rectangle").font(.title2)
+                    }
+                    .onChange(of: pickerItem){ _ in loadPickedImage() }
+
                     TextField("Type your point", text:$input)
                         .foregroundColor(.primary)
                     Button(action: send){
@@ -206,7 +215,7 @@ struct ConversationView: View {
 
     // MARK: - Live Summary Helper
     private func updateSummary(){
-        let plain = messages.map { $0.text }
+        let plain = messages.map { $0.kind }
         SummarizationService.generateSummary(for: plain) { sum in
             DispatchQueue.main.async { argumentSummary = sum }
         }
@@ -239,20 +248,19 @@ struct ConversationView: View {
         ].shuffled().prefix(3)
 
         messages = [
-            ChatMsg(text: dispute.statementA, sender:.a),
-            ChatMsg(text: "AI: Interesting opening. Could you provide concrete evidence?", sender:.ai),
-            ChatMsg(text: dispute.statementB, sender:.b),
+            ChatMsg(kind: .text(dispute.statementA), sender:.a),
+            ChatMsg(kind: .text(dispute.statementB), sender:.b),
         ]
 
         // Interleave extra arguments with AI probing
         for i in 0..<3 {
-            messages.append(ChatMsg(text: Array(sideAExtras)[i], sender:.a))
-            messages.append(ChatMsg(text: "AI: Noted. Counter-argument?", sender:.ai))
-            messages.append(ChatMsg(text: Array(sideBExtras)[i], sender:.b))
-            messages.append(ChatMsg(text: "AI: Let’s keep dissecting the core claim.", sender:.ai))
+            messages.append(ChatMsg(kind: .text(Array(sideAExtras)[i]), sender:.a))
+            messages.append(ChatMsg(kind: .text("AI: Noted. Counter-argument?"), sender:.ai))
+            messages.append(ChatMsg(kind: .text(Array(sideBExtras)[i]), sender:.b))
+            messages.append(ChatMsg(kind: .text("AI: Let’s keep dissecting the core claim."), sender:.ai))
         }
 
-        messages.append(ChatMsg(text: "AI: We’ve surfaced both micro- and macro-level concerns. Shall we move to closing statements?", sender:.ai))
+        messages.append(ChatMsg(kind: .text("AI: We’ve surfaced both micro- and macro-level concerns. Shall we move to closing statements?"), sender:.ai))
         votesA = dispute.votesA
         votesB = dispute.votesB
     }
@@ -288,10 +296,19 @@ struct ConversationView: View {
 
     private func send(){
         let sender: ChatMsg.Sender = meIsA ? .a : .b
+        // If sending image
+        if let img = pickedImage {
+            messages.append(ChatMsg(kind:.image(img), sender: sender))
+            pickedImage = nil
+            pickerItem = nil
+            updateSummary()
+            return
+        }
+
         // Moderation check
         guard ModerationService.isClean(input) else { input = ""; return }
 
-        messages.append(ChatMsg(text: input, sender: sender))
+        messages.append(ChatMsg(kind:.text(input), sender: sender))
         if sender == .a { votesA += 1 } else { votesB += 1 }
         voted = true
         input = ""
@@ -302,7 +319,7 @@ struct ConversationView: View {
     private func aiRespond(){
         aiThinking = true
         DispatchQueue.main.asyncAfter(deadline:.now()+1.0){
-            messages.append(ChatMsg(text:"AI: Thanks for sharing. I’d like the other party to clarify their stance on that.", sender:.ai))
+            messages.append(ChatMsg(kind: .text("AI: Thanks for sharing. I’d like the other party to clarify their stance on that."), sender:.ai))
             aiThinking = false
         }
     }
@@ -312,7 +329,7 @@ struct ConversationView: View {
         HStack(alignment:.bottom,spacing:4){
             if msg.sender == .b { Spacer() }
             VStack(alignment: msg.sender == .a ? .trailing : .leading){
-                Text(msg.text)
+                content(for: msg)
                     .padding(12)
                     .background(bubbleGradient(for: msg))
                     .foregroundColor(.white)
@@ -323,6 +340,36 @@ struct ConversationView: View {
         }
         .transition(.move(edge: msg.sender == .a ? .trailing : .leading).combined(with:.opacity))
         .id(msg.id)
+        .contextMenu{
+            switch msg.kind {
+            case .text(let t):
+                Button{ UIPasteboard.general.string = t } label:{ Text("Copy") }
+                Button{ shareText(t) } label:{ Label("Share",systemImage:"square.and.arrow.up") }
+            default: EmptyView()
+            }
+        }
+    }
+
+    @ViewBuilder private func content(for msg:ChatMsg)-> some View{
+        switch msg.kind {
+        case .text(let t): Text(t)
+        case .image(let u): Image(uiImage:u).resizable().scaledToFill().frame(maxWidth:200,maxHeight:200).clipped().cornerRadius(12)
+        }
+    }
+
+    private func shareText(_ text:String){
+        guard let window = UIApplication.shared.windows.first else { return }
+        let av = UIActivityViewController(activityItems:[text], applicationActivities:nil)
+        window.rootViewController?.present(av, animated:true)
+    }
+
+    private func loadPickedImage(){
+        guard let item = pickerItem else { return }
+        Task {
+            if let data = try? await item.loadTransferable(type: Data.self), let ui = UIImage(data:data){
+                pickedImage = ui
+            }
+        }
     }
 
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
