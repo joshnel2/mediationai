@@ -37,12 +37,6 @@ struct HomeView: View {
             
             ScrollView {
                 VStack(spacing: AppTheme.spacingXL) {
-                    // Invite banner
-                    InviteBanner()
-                        .environmentObject(viralService)
-                        .environmentObject(badgeService)
-                        .padding(.bottom, AppTheme.spacingLG)
-
                     // Header section
                     headerSection
                     
