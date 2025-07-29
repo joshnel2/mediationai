@@ -68,13 +68,13 @@ private struct CapsuleToggle: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(selection==idx ? .white : .white.opacity(0.7))
                         .frame(maxWidth:.infinity)
-                        .padding(.vertical,8)
+                        .padding(.vertical,4)
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { withAnimation(.spring()) { selection = idx } }
             }
         }
-        .background(RoundedRectangle(cornerRadius:12).fill(Color.white.opacity(0.15)))
+        .background(RoundedRectangle(cornerRadius:12).stroke(Color.white.opacity(0.3),lineWidth:1).background(Color.white.opacity(0.05)))
         .padding(.horizontal)
     }
 }
