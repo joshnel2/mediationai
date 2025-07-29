@@ -224,7 +224,10 @@ struct ConversationView: View {
 
     // MARK: - Live Summary Helper
     private func updateSummary(){
-        let plain = messages.map { $0.kind }
+        let plain = messages.compactMap { msg -> String? in
+            if case let .text(t) = msg.kind { return t }
+            return nil
+        }
         SummarizationService.generateSummary(for: plain) { sum in
             DispatchQueue.main.async { argumentSummary = sum }
         }
