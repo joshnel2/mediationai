@@ -444,8 +444,8 @@ struct ConversationView: View {
             .font(.subheadline.weight(.semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
-            // Use the provided color when not selected so labels remain visible on light backgrounds
-            .foregroundColor(selectedTab==index ? Color.white : color.opacity(0.8))
+            // Keep selected tab white text; unselected uses its theme color for full contrast on white background
+            .foregroundColor(selectedTab==index ? Color.white : color)
             .padding(.vertical,6)
             .frame(maxWidth:.infinity)
             .background(
