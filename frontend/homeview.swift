@@ -286,9 +286,10 @@ struct HomeView: View {
         private var destinationView: some View {
             let allDisputes = social.disputesByUser.values.flatMap { $0 }
             if let dispute = allDisputes.first(where: { $0.id == clash.id }) {
-                return AnyView(ConversationView(dispute: dispute))
+                return AnyView(ConversationView(dispute: dispute).environmentObject(social))
             } else {
-                return AnyView(ClashWatchView(clash: clash).environmentObject(social))
+                let placeholder = MockDispute(id: clash.id, title: "\(clash.streamerA) vs \(clash.streamerB)", statementA: "", statementB: "", votesA: clash.votes ?? 0, votesB: 0)
+                return AnyView(ConversationView(dispute: placeholder).environmentObject(social))
             }
         }
     }
