@@ -251,7 +251,7 @@ struct ConversationView: View {
             .foregroundColor(.white)
             .padding(.vertical,6)
             .padding(.horizontal,20)
-            .background(viewerVoted ? Color.clear : (side==.a ? AppTheme.primary : AppTheme.accent))
+            .background(viewerVoted ? Color.clear : (side == .a ? AppTheme.primary : AppTheme.accent))
             .onTapGesture {
                 guard !viewerVoted else { return }
                 if side == .a { votesA += 1 } else { votesB += 1 }
