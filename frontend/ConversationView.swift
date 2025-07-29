@@ -197,6 +197,15 @@ struct ConversationView: View {
                         .cornerRadius(14)
                     }
 
+                    if !viewerVoted {
+                        HStack(spacing:0){
+                            voteButton(side:.a, label: sideAName)
+                            voteButton(side:.b, label: sideBName)
+                        }
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Color.white.opacity(0.25),lineWidth:1))
+                    }
+
                     // Reaction bar
                     HStack(spacing:24){
                         reactionButton("🔥")
@@ -228,6 +237,22 @@ struct ConversationView: View {
                 activeReactions.append(emoji)
                 // remove after animation duration
                 DispatchQueue.main.asyncAfter(deadline: .now()+2.4){ activeReactions.removeFirst() }
+            }
+    }
+
+    // Quick vote
+    @State private var viewerVoted = false
+    private func voteButton(side:ChatMsg.Sender,label:String)->some View{
+        Text(label)
+            .font(.caption.bold())
+            .foregroundColor(.white)
+            .padding(.vertical,6)
+            .padding(.horizontal,20)
+            .background(viewerVoted ? Color.clear : (side==.a ? AppTheme.primary : AppTheme.accent))
+            .onTapGesture {
+                guard !viewerVoted else { return }
+                if side == .a { votesA += 1 } else { votesB += 1 }
+                viewerVoted = true
             }
     }
 
