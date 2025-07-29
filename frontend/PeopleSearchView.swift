@@ -21,9 +21,10 @@ struct PeopleSearchView: View {
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.white.opacity(0.05))
-                        .background(
-                            RoundedRectangle(cornerRadius:24).stroke(Color.white.opacity(0.08), lineWidth:1)
+                        .fill(Color(.systemGray5))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24)
+                                .stroke(AppTheme.primary.opacity(0.2), lineWidth: 1)
                         )
                 )
                 .shadow(color:.black.opacity(0.15),radius:4,x:0,y:2)
