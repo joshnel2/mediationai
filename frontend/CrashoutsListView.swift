@@ -9,20 +9,34 @@ struct CrashoutsListView: View {
     }
 
     var body: some View {
-        List {
-            ForEach(myCrashouts) { disp in
-                NavigationLink(destination: ConversationView(dispute: disp)) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(disp.title).bold()
-                        Text("Score: \(disp.votesA) - \(disp.votesB)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+        if myCrashouts.isEmpty {
+            VStack(spacing:16){
+                Image(systemName:"info.circle")
+                    .font(.system(size:48))
+                    .foregroundColor(AppTheme.primary)
+                Text("You don't have any crashouts yet")
+                    .font(AppTheme.body())
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth:.infinity,maxHeight:.infinity)
+            .background(AppTheme.backgroundGradient)
+        } else {
+            List {
+                ForEach(myCrashouts) { disp in
+                    NavigationLink(destination: ConversationView(dispute: disp)) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(disp.title).bold()
+                            Text("Score: \(disp.votesA) - \(disp.votesB)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(8)
                     }
-                    .padding(8)
                 }
             }
+            .listStyle(.plain)
+            .navigationTitle("My Crashouts")
         }
-        .navigationTitle("My Crashouts")
     }
 }
 

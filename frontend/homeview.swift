@@ -37,12 +37,6 @@ struct HomeView: View {
             
             ScrollView {
                 VStack(spacing: AppTheme.spacingXL) {
-                    // Invite banner
-                    InviteBanner()
-                        .environmentObject(viralService)
-                        .environmentObject(badgeService)
-                        .padding(.bottom, AppTheme.spacingLG)
-
                     // Header section
                     headerSection
                     
@@ -306,6 +300,8 @@ struct HomeView: View {
                             Text("Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             
                                                 Text("Go live with friends")
                         .font(AppTheme.caption())
@@ -331,6 +327,8 @@ struct HomeView: View {
                             Text("Join Crashout")
                                 .font(AppTheme.headline())
                                 .fontWeight(.semibold)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             
                             Text("Watch & chat live")
                                 .font(AppTheme.caption())
@@ -422,8 +420,8 @@ struct StatCard: View {
                     .font(AppTheme.caption())
                     .foregroundColor(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
         }
         .frame(maxWidth: .infinity)

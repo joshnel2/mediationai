@@ -57,6 +57,56 @@ class SocialAPIService: ObservableObject {
     @Published var dailyLeaders: [UserSummary] = []
     @Published var hotTopics: [String] = []
 
+    // MARK: - Live WebSocket (Leaderboard)
+    private var leaderboardSocket: URLSessionWebSocketTask?
+
+    /// Connects to /ws/leaderboard and keeps follower counts in sync in real-time.
+    func startLeaderboardLive() {
+        guard leaderboardSocket == nil else { return }
+        guard let base = URL(string: APIConfig.baseURL) else { return }
+        var comps = URLComponents(url: base, resolvingAgainstBaseURL: false)
+        comps?.scheme = base.scheme == "https" ? "wss" : "ws"
+        comps?.path = "/ws/leaderboard"
+        guard let url = comps?.url else { return }
+
+        leaderboardSocket = URLSession.shared.webSocketTask(with: url)
+        leaderboardSocket?.resume()
+
+        listenLeaderboard()
+    }
+
+    private func listenLeaderboard() {
+        leaderboardSocket?.receive { [weak self] res in
+            switch res {
+            case .failure:
+                self?.leaderboardSocket = nil // will reconnect on next foreground
+            case .success(let msg):
+                if case .string(let text) = msg,
+                   let data = text.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String:Any],
+                   json["type"] as? String == "leaderboard",
+                   let arr = json["data"] as? [[String:Any]] {
+                    DispatchQueue.main.async {
+                        self?.applyLeaderboardSnapshot(arr)
+                    }
+                }
+                self?.listenLeaderboard()
+            }
+        }
+    }
+
+    private func applyLeaderboardSnapshot(_ snapshot: [[String:Any]]) {
+        // Update followerCounts and reorder overallLeaders based on snapshot
+        for item in snapshot {
+            if let userId = item["userId"] as? String, let followers = item["followers"] as? Int {
+                followerCounts[userId] = followers
+            }
+        }
+        overallLeaders.sort { (lhs, rhs) -> Bool in
+            (followerCounts[lhs.id] ?? 0) > (followerCounts[rhs.id] ?? 0)
+        }
+    }
+
     // MARK: - Social Graph
     @AppStorage("followingIDs") private var storedFollowing: Data = Data()
     // Set of user IDs the current viewer follows.
@@ -156,18 +206,18 @@ class SocialAPIService: ObservableObject {
         // Only seed if arrays are empty (first launch / offline)
         guard overallLeaders.isEmpty else { return }
 
-        // More believable (yet still fun) user display names
+        // Youthful streamer-style handles
         let sampleNames = [
-            "Alex Mercer",
-            "Jamie Rivera",
-            "Morgan Lee",
-            "Taylor Brooks",
-            "Chris Jordan",
-            "Avery Kim",
-            "Riley Patel",
-            "Sydney Parker",
-            "Jordan Chen",
-            "Casey Nguyen"
+            "ShadowSlayer",
+            "NovaBurst",
+            "PixelPanda",
+            "RogueKnight",
+            "FrostByte",
+            "SolarBlitz",
+            "EchoRift",
+            "VibeViper",
+            "NeonNinja",
+            "AeroAce"
         ]
 
         overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000), wins: Int.random(in: 5...30)) }
@@ -496,8 +546,9 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Avatar helper (DiceBear – cartoon style)
     func avatarURL(id: String, size:Int = 96) -> URL? {
+        // Use DiceBear "shapes" style for stylized gamer avatars (non-cartoon, non-photo)
         let safe = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
-        let urlStr = "https://api.dicebear.com/7.x/adventurer/png?seed=\(safe)&size=\(size)&radius=50"
+        let urlStr = "https://api.dicebear.com/7.x/shapes/png?seed=\(safe)&size=\(size)"
         return URL(string: urlStr)
     }
 

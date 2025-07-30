@@ -64,6 +64,7 @@ struct JoinDisputeView: View {
                         }
                         .pickerStyle(SegmentedPickerStyle())
                         .padding(.horizontal)
+                        .tint(AppTheme.primary) // Use Twitter blue accent
                         
                         VStack(alignment: .leading, spacing: 8) {
                             if selectedInputType == .link {

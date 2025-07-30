@@ -50,6 +50,13 @@ struct LiveFeedView: View {
                 }
             }
         }
+        // Keep local feed arrays in sync with latest data from the service
+        .onReceive(socialService.$liveClashes) { clashes in
+            exploreFeed = clashes
+        }
+        .onReceive(socialService.$followingClashes) { clashes in
+            followingFeed = clashes
+        }
         .onAppear { loadTab(tab) }
         .onChange(of: tab) { idx in loadTab(idx) }
     }

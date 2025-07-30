@@ -50,6 +50,11 @@ struct ConversationView: View {
 
     @EnvironmentObject var authService: MockAuthService
 
+    // MARK: - Live WS Typing Indicator
+    @State private var wsTask: URLSessionWebSocketTask?
+    @State private var opponentTyping = false
+    @State private var lastTypingSent = Date(timeIntervalSince1970: 0)
+
     // Determine if the current signed-in user is a participant in this crash-out.
     private var isParticipant: Bool {
         guard let myID = authService.currentUser?.id.uuidString else { return false }
@@ -68,125 +73,140 @@ struct ConversationView: View {
     }
 
     var body: some View {
-        VStack {
-            // Topic title & scoreboard + live summary
-            VStack(spacing:AppTheme.spacingSM){
-                // Clean VS layout
-                versusSection
+        ZStack {
+            AppTheme.backgroundGradient.ignoresSafeArea()
+            VStack {
+                // Header card
+                VStack(spacing:AppTheme.spacingSM){
+                    // Clean VS layout
+                    versusSection
 
-                // Topic capsule
-                Text(dispute.title)
-                    .font(.caption.bold())
-                    .foregroundColor(.white)
-                    .padding(.horizontal,12).padding(.vertical,4)
-                    .background(AppTheme.accent)
-                    .clipShape(Capsule())
-
-                if !argumentSummary.isEmpty {
-                    Text(argumentSummary)
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding(.horizontal,8).padding(.vertical,4)
-                        .background(Color.white.opacity(0.15))
+                    // Topic capsule
+                    Text(dispute.title)
+                        .font(.caption.bold())
+                        .foregroundColor(.white)
+                        .padding(.horizontal,12).padding(.vertical,4)
+                        .background(AppTheme.accent)
                         .clipShape(Capsule())
-                }
 
-                HStack(alignment:.center){
-                    VStack(spacing:2){
-                        Text("🔥 \(votesA)")
-                            .font(.title3.bold())
-                            .foregroundColor(AppTheme.primary)
-                        Text(sideAName)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
+                    if !argumentSummary.isEmpty {
+                        Text(argumentSummary)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(.horizontal,8).padding(.vertical,4)
+                            .background(Color.gray.opacity(0.15))
+                            .clipShape(Capsule())
                     }
-                    Spacer()
-                    VStack(spacing:2){
-                        Text("🔥 \(votesB)")
-                            .font(.title3.bold())
-                            .foregroundColor(AppTheme.accent)
-                        Text(sideBName)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
+
+                    HStack(alignment:.center){
+                        VStack(spacing:2){
+                            Text("🔥 \(votesA)")
+                                .font(.title3.bold())
+                                .foregroundColor(AppTheme.primary)
+                            Text(sideAName)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                        Spacer()
+                        VStack(spacing:2){
+                            Text("🔥 \(votesB)")
+                                .font(.title3.bold())
+                                .foregroundColor(AppTheme.accent)
+                            Text(sideBName)
+                                .font(.caption2)
+                                .lineLimit(1)
+                                .foregroundColor(AppTheme.textPrimary)
+                        }
+                    }
+
+                    // Progress bar with glow
+                    GeometryReader { geo in
+                        ZStack(alignment:.leading){
+                            RoundedRectangle(cornerRadius:4)
+                                .fill(Color.gray.opacity(0.15))
+                            let total = max(1, votesA + votesB)
+                            let percentA = CGFloat(votesA) / CGFloat(total)
+                            RoundedRectangle(cornerRadius:4)
+                                .fill(AppTheme.primary)
+                                .frame(width: geo.size.width * percentA)
+                                .shadow(color: AppTheme.primary.opacity(0.6), radius:6)
+                        }
+                    }
+                    .frame(height:8)
+
+                    // Tab chooser
+                    HStack(spacing:0){
+                        tabLabel(title:sideAName, index:0, color:AppTheme.primary)
+                        tabLabel(title:sideBName, index:1, color:AppTheme.accent)
+                        tabLabel(title:"Result", index:2, color:AppTheme.success)
                     }
                 }
-
-                // Progress bar with glow
-                GeometryReader { geo in
-                    ZStack(alignment:.leading){
-                        RoundedRectangle(cornerRadius:4)
-                            .fill(Color.white.opacity(0.15))
-                        let total = max(1, votesA + votesB)
-                        let percentA = CGFloat(votesA) / CGFloat(total)
-                        RoundedRectangle(cornerRadius:4)
-                            .fill(AppTheme.primary)
-                            .frame(width: geo.size.width * percentA)
-                            .shadow(color: AppTheme.primary.opacity(0.6), radius:6)
-                    }
-                }
-                .frame(height:8)
-
-                // Tab chooser
-                HStack(spacing:0){
-                    tabLabel(title:sideAName, index:0, color:AppTheme.primary)
-                    tabLabel(title:sideBName, index:1, color:AppTheme.accent)
-                    tabLabel(title:"Result", index:2, color:Color.yellow)
-                }
-            }
-            .padding(8)
-            .background(AppTheme.cardGradient)
-            .cornerRadius(16)
-            .padding(.top,2)
-
-            // Swipeable pages
-            TabView(selection:$selectedTab){
-                chatPage(for:.a)
-                    .tag(0)
-                chatPage(for:.b)
-                    .tag(1)
-                resolutionPage
-                    .tag(2)
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode:.never))
-
-            // Modern glass input bar
-            // Input section – visible only to participants
-            if isParticipant {
-                HStack(spacing:8){
-                    PhotosPicker(selection:$pickerItem, matching:.images, photoLibrary:.shared()){
-                        Image(systemName:"photo.on.rectangle").font(.title2)
-                    }
-                    .onChange(of: pickerItem){ _ in loadPickedImage() }
-
-                    TextField("Type your point", text:$input)
-                        .foregroundColor(.primary)
-                    Button(action: send){
-                        Image(systemName:"paperplane.fill")
-                            .rotationEffect(.degrees(45))
-                            .padding(10)
-                            .background(AppTheme.primary)
-                            .clipShape(Circle())
-                            .foregroundColor(.white)
-                    }
-                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
-                }
-                .padding(.vertical,10)
-                .padding(.horizontal,16)
-                .background(BlurView(style:.systemUltraThinMaterial))
-                .clipShape(Capsule())
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius:24)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.05), radius:6, x:0, y:2)
+                )
                 .padding(.horizontal)
 
-                if voted {
-                    opponentSection
+                // Swipeable pages
+                TabView(selection:$selectedTab){
+                    chatPage(for:.a)
+                        .tag(0)
+                    chatPage(for:.b)
+                        .tag(1)
+                    resolutionPage
+                        .tag(2)
                 }
-            } else {
-                EmptyView() // viewer mode: no controls below chat
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode:.never))
+
+                // Modern glass input bar
+                // Input section – visible only to participants
+                if isParticipant {
+                    HStack(spacing:8){
+                        PhotosPicker(selection:$pickerItem, matching:.images, photoLibrary:.shared()){
+                            Image(systemName:"photo.on.rectangle").font(.title2)
+                        }
+                        .onChange(of: pickerItem){ _ in loadPickedImage() }
+
+                        TextField("Type your point", text:$input)
+                            .foregroundColor(.primary)
+                            .onChange(of: input) { _ in sendTypingPing() }
+                        Button(action: send){
+                            Image(systemName:"paperplane.fill")
+                                .rotationEffect(.degrees(45))
+                                .padding(10)
+                                .background(AppTheme.primary)
+                                .clipShape(Circle())
+                                .foregroundColor(.white)
+                        }
+                        .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
+                    }
+                    .padding(.vertical,10)
+                    .padding(.horizontal,16)
+                    .background(BlurView(style:.systemUltraThinMaterial))
+                    .clipShape(Capsule())
+                    .padding(.horizontal)
+
+                    if opponentTyping {
+                        TypingIndicator()
+                            .transition(.opacity)
+                            .padding(.horizontal)
+                    }
+
+                    if voted {
+                        opponentSection
+                    }
+                } else {
+                    EmptyView() // viewer mode: no controls below chat
+                }
             }
         }
         .navigationTitle(dispute.title)
-        .onAppear{ seed(); updateSummary() }
+        .onAppear { seed(); updateSummary() }
+        .onAppear { connectWebSocket() }
+        .onDisappear { wsTask?.cancel() }
     }
 
     // MARK: - Live Summary Helper
@@ -323,13 +343,14 @@ struct ConversationView: View {
         HStack(alignment:.bottom,spacing:4){
             if msg.sender == .b { Spacer() }
             VStack(alignment: msg.sender == .a ? .trailing : .leading){
+                let txtColor: Color = (msg.sender == .a) ? .white : .black
                 content(for: msg)
-                    .font(AppTheme.body())
-                    .foregroundColor(AppTheme.textPrimary)
-                    .padding(AppTheme.spacingMD)
+                    .font(.body)
+                    .foregroundColor(txtColor)
+                    .padding(12)
                     .background(bubbleGradient(for: msg))
-                    .clipShape(RoundedRectangle(cornerRadius:20))
-                    .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
+                    .clipShape(RoundedRectangle(cornerRadius:18))
+                    .shadow(color: Color.black.opacity(0.06), radius:3, x:0, y:1)
             }
             if msg.sender == .a { Spacer() }
         }
@@ -370,11 +391,11 @@ struct ConversationView: View {
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
         switch msg.sender {
         case .ai:
-            return LinearGradient(colors:[Color(UIColor.secondarySystemBackground)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[Color(UIColor.systemGray5), Color(UIColor.systemGray4)], startPoint:.topLeading, endPoint:.bottomTrailing)
         case .a:
-            return LinearGradient(colors:[AppTheme.primary.opacity(0.15), AppTheme.primary.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[AppTheme.primary.opacity(0.9), AppTheme.primary.opacity(0.8)], startPoint:.topLeading, endPoint:.bottomTrailing)
         case .b:
-            return LinearGradient(colors:[AppTheme.accent.opacity(0.15), AppTheme.accent.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[Color(UIColor.systemGray6), Color(UIColor.systemGray5)], startPoint:.topLeading, endPoint:.bottomTrailing)
         }
     }
 
@@ -418,14 +439,36 @@ struct ConversationView: View {
 
     // Pages
     private func chatPage(for side:ChatMsg.Sender) -> some View {
-        ScrollViewReader { proxy in
+        let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
+        let avatarA = social.avatarURL(id: dispute.id + "a", size: 96)
+        let avatarB = social.avatarURL(id: dispute.id + "b", size: 96)
+
+        return ScrollViewReader { proxy in
             ScrollView {
-                VStack(spacing:12){
-                    ForEach(messages.filter{ $0.sender == side || $0.sender == .ai }){ msg in bubble(for: msg) }
+                LazyVStack(spacing: 2) {
+                    ForEach(filtered) { msg in
+                        MessageBubble(
+                            text: messageText(msg),
+                            isMine: msg.sender == .a,
+                            showAvatar: true,
+                            avatarURL: msg.sender == .a ? avatarA : (msg.sender == .b ? avatarB : nil),
+                            isAI: msg.sender == .ai
+                        )
+                    }
                 }
-                .padding()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
-            .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
+            .onChange(of: messages.count) { _ in
+                withAnimation { proxy.scrollTo(messages.last?.id, anchor: .bottom) }
+            }
+        }
+    }
+
+    private func messageText(_ msg: ChatMsg) -> String {
+        switch msg.kind {
+        case .text(let t): return t
+        case .image: return "[Image]" // placeholder text for now
         }
     }
 
@@ -508,6 +551,53 @@ struct ConversationView: View {
             .cornerRadius(12)
             .opacity(isOn ? 1.0 : 0.7)
             .onTapGesture { withAnimation{ isOn.toggle() } }
+        }
+    }
+
+    // MARK: - Typing WS Helpers
+    private func connectWebSocket() {
+        guard wsTask == nil else { return }
+        guard let base = URL(string: APIConfig.baseURL) else { return }
+        var comps = URLComponents(url: base, resolvingAgainstBaseURL: false)
+        comps?.scheme = base.scheme == "https" ? "wss" : "ws"
+        comps?.path = "/ws/clash/\(dispute.id)"
+        guard let url = comps?.url else { return }
+        wsTask = URLSession.shared.webSocketTask(with: url)
+        wsTask?.resume()
+        listenWS()
+    }
+
+    private func listenWS() {
+        wsTask?.receive { [weak self] res in
+            switch res {
+            case .failure:
+                break
+            case .success(let msg):
+                if case .string(let text) = msg,
+                   let data = text.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String:Any],
+                   let type = json["type"] as? String, type == "typing",
+                   let uid = json["userId"] as? String,
+                   uid != self?.authService.currentUser?.id.uuidString {
+                    DispatchQueue.main.async {
+                        self?.opponentTyping = true
+                        // auto-hide after 3s
+                        DispatchQueue.main.asyncAfter(deadline: .now()+3) { self?.opponentTyping = false }
+                    }
+                }
+            }
+            self?.listenWS()
+        }
+    }
+
+    private func sendTypingPing() {
+        // Limit pings to once every 2 seconds
+        guard Date().timeIntervalSince(lastTypingSent) > 2 else { return }
+        lastTypingSent = Date()
+        guard let uid = authService.currentUser?.id.uuidString else { return }
+        let obj: [String:Any] = ["type":"typing", "userId": uid]
+        if let data = try? JSONSerialization.data(withJSONObject: obj), let str = String(data: data, encoding: .utf8) {
+            wsTask?.send(.string(str)) { _ in }
         }
     }
 }

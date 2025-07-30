@@ -47,28 +47,34 @@ struct MiniProfileView: View {
 
     // MARK: - Components
     private var heroHeader: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
+            // Banner background
             RoundedRectangle(cornerRadius: 32)
-                .fill(LinearGradient(colors:[AppTheme.primary,AppTheme.accent],startPoint:.topLeading,endPoint:.bottomTrailing))
-                .frame(height:180)
-                .shadow(color:.black.opacity(0.25),radius:8,x:0,y:4)
+                .fill(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(height: 220)
+                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
 
-            VStack(spacing:12){
-                AsyncImage(url: social.avatarURL(id:userID, size:160)){ phase in
-                    if let img = phase.image { img.resizable().scaledToFill() } else { Color.gray }
+            // Avatar + name overlay
+            VStack(spacing: 12) {
+                AsyncImage(url: social.avatarURL(id: userID, size: 160)) { phase in
+                    if let img = phase.image {
+                        img.resizable().scaledToFill()
+                    } else {
+                        Color.gray
+                    }
                 }
-                .frame(width:120,height:120)
+                .frame(width: 120, height: 120)
                 .clipShape(Circle())
-                .overlay(Circle().stroke(Color.white,lineWidth:3))
-                .shadow(radius:6)
+                .overlay(Circle().stroke(Color.white, lineWidth: 3))
+                .shadow(radius: 6)
 
                 Text(user?.displayName ?? "Streamer")
                     .font(.title3).bold().foregroundColor(.white)
             }
-            .offset(y:70)
+            .padding(.bottom, 28) // pull avatar & name slightly into banner
         }
-        .padding(.top,40)
-        .padding(.bottom,60)
+        .padding(.top, 40)
+        .padding(.bottom, 40)
     }
 
     private var statRow: some View {
