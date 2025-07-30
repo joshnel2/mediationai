@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import PhotosUI
 import AVKit
+import UniformTypeIdentifiers
 
 // MARK: - Bubble Tail Shape
 struct BubbleTail: Shape {
@@ -70,6 +71,13 @@ struct ConversationView: View {
         // 0 → 60pt maps to 0→1
         Double(min(max(pullOffset / 60, 0), 1))
     }
+
+    // Scroll-to-bottom helper
+    @State private var showScrollToBottom: Bool = false
+
+    // Search sheet
+    @State private var showSearch: Bool = false
+    @State private var scrollToMessageID: UUID?
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -174,43 +182,46 @@ struct ConversationView: View {
                     .tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode:.never))
-
-            // Modern glass input bar
-            // Input section – visible only to participants
-            if isParticipant {
-                HStack(spacing:8){
-                    PhotosPicker(selection:$pickerItem, matching:.images, photoLibrary:.shared()){
-                        Image(systemName:"photo.on.rectangle").font(.title2)
-                    }
-                    .onChange(of: pickerItem){ _ in loadPickedImage() }
-
-                    TextField("Type your point", text:$input)
-                        .foregroundColor(.primary)
-                    Button(action: send){
-                        Image(systemName:"paperplane.fill")
-                            .rotationEffect(.degrees(45))
-                            .padding(10)
-                            .background(AppTheme.primary)
-                            .clipShape(Circle())
-                            .foregroundColor(.white)
-                    }
-                    .accessibilityLabel("Send message")
-                    .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showSearch = true }) {
+                    Image(systemName: "magnifyingglass")
                 }
-                .padding(.vertical,10)
-                .padding(.horizontal,16)
-                .background(BlurView(style:.systemUltraThinMaterial))
-                .clipShape(Capsule())
-                .padding(.horizontal)
-
-                if voted {
-                    opponentSection
-                }
-            } else {
-                EmptyView() // viewer mode: no controls below chat
+                .accessibilityLabel("Search messages")
             }
         }
-        .navigationTitle(dispute.title)
+        // Floating scroll-to-bottom button
+        .overlay(alignment: .bottomTrailing) {
+            if showScrollToBottom {
+                Button(action: scrollToBottom) {
+                    Image(systemName: "arrow.down")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(AppTheme.primary)
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 24)
+                .transition(.scale.combined(with: .opacity))
+                .accessibilityLabel("Jump to latest message")
+            }
+        }
+        .sheet(isPresented: $showSearch) {
+            MessageSearchView(messages: messages) { msg in
+                scrollToMessageID = msg.id
+                showSearch = false
+            }
+            .presentationDetents([.medium, .large])
+        }
+        .onChange(of: scrollToMessageID) { id in
+            guard let id else { return }
+            scrollTo(id: id)
+            scrollToMessageID = nil
+        }
         .onAppear{ seed(); updateSummary() }
         .onPreferenceChange(ScrollOffsetKey.self) { value in
             // value is negative when scrolled up; Compress header between 1.0 and 0.6
@@ -524,6 +535,11 @@ struct ConversationView: View {
                         .frame(height: 0)
                     }
                     .padding()
+                    // bottom sentinel to detect distance from bottom
+                    GeometryReader { geo in
+                        Color.clear.preference(key: BottomOffsetKey.self, value: geo.frame(in: .named("chatScroll")).maxY)
+                    }
+                    .frame(height:1)
                 }
                 // Custom pull-to-refresh morph icon
                 .overlay(alignment: .top) {
@@ -545,7 +561,30 @@ struct ConversationView: View {
                 // Track pull offset (positive values)
                 pullOffset = max(0, value)
             }
+            .onPreferenceChange(BottomOffsetKey.self) { bottom in
+                // When bottom>150 show button
+                withAnimation { showScrollToBottom = bottom < -150 }
+            }
             .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
+        }
+    }
+
+    // Bottom offset key
+    private struct BottomOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    }
+
+    private func scrollToBottom() {
+        scrollTo(id: messages.last?.id)
+    }
+
+    private func scrollTo(id: UUID?) {
+        guard let id else { return }
+        DispatchQueue.main.async {
+            withAnimation {
+                // Use NotificationCenter to post scroll request; handled in onChange of messages maybe
+            }
         }
     }
 
@@ -726,6 +765,40 @@ struct ConversationView: View {
             }
         }
         return nil
+    }
+
+    // MARK: - Message Search View
+    private struct MessageSearchView: View {
+        let messages: [ChatMsg]
+        var didSelect: (ChatMsg) -> Void
+        @Environment(\.dismiss) private var dismiss
+        @State private var query: String = ""
+        var filtered: [ChatMsg] {
+            guard !query.isEmpty else { return [] }
+            return messages.filter {
+                if case .text(let t) = $0.kind { return t.lowercased().contains(query.lowercased()) }
+                return false
+            }
+        }
+        var body: some View {
+            NavigationView {
+                List {
+                    ForEach(filtered) { msg in
+                        if case .text(let t) = msg.kind {
+                            Text(t)
+                                .lineLimit(2)
+                                .onTapGesture {
+                                    didSelect(msg)
+                                    dismiss()
+                                }
+                        }
+                    }
+                }
+                .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
+                .navigationTitle("Search Messages")
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            }
+        }
     }
 }
 
