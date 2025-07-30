@@ -8,6 +8,18 @@
 import SwiftUI
 import UIKit
 
+enum AppearanceOption: String, CaseIterable, Identifiable {
+    case system, light, dark
+    var id: String { rawValue }
+    var displayName: String {
+        switch self {
+        case .system: return "System"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
+
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.presentationMode) var presentationMode
@@ -22,6 +34,7 @@ struct SettingsView: View {
     @State private var showNewPrivacyPolicy = false
     @State private var showNewTermsOfService = false
     @State private var showLegalHub = false
+    @AppStorage("appearanceMode") private var appearanceMode: String = "system"
     
     var body: some View {
         NavigationView {
@@ -50,6 +63,22 @@ struct SettingsView: View {
                     }
                     .modernCard()
                     
+                    // Appearance Section
+                    VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
+                        Text("Appearance")
+                            .font(AppTheme.headline())
+                            .foregroundColor(AppTheme.textPrimary)
+                            .fontWeight(.semibold)
+
+                        Picker("Appearance", selection: $appearanceMode) {
+                            ForEach(AppearanceOption.allCases) { option in
+                                Text(option.displayName).tag(option.rawValue)
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                    }
+                    .modernCard()
+
                     // Security Section
                     VStack(alignment: .leading, spacing: AppTheme.spacingMD) {
                         Text("Security")

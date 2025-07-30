@@ -13,8 +13,8 @@ struct MediationAIApp: App {
     init() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
@@ -26,7 +26,17 @@ struct MediationAIApp: App {
     @StateObject var viralService = ViralAPIService.shared
     @StateObject var socialService = SocialAPIService()
 
-    
+    // Persistent appearance mode: "system", "light", "dark"
+    @AppStorage("appearanceMode") private var appearanceMode: String = "system"
+
+    private var preferredScheme: ColorScheme? {
+        switch appearanceMode {
+        case "light": return .light
+        case "dark": return .dark
+        default: return nil // system setting
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -36,7 +46,7 @@ struct MediationAIApp: App {
                 .environmentObject(badgeService)
                 .environmentObject(viralService)
                 .environmentObject(socialService)
-                .preferredColorScheme(.light)
+                .preferredColorScheme(preferredScheme)
         }
     }
 }

@@ -27,10 +27,10 @@ struct AppTheme {
     static let glassSecondary = Color.white.opacity(0.06)
     static let glassAccent = Color(red: 0.11, green: 0.63, blue: 0.95).opacity(0.08)
     
-    // Text colors - High contrast for readability
-    static let textPrimary = Color.black
-    static let textSecondary = Color.black.opacity(0.85)
-    static let textTertiary = Color.black.opacity(0.60)
+    // Text colors – use semantic colors that automatically adapt to Light / Dark modes
+    static let textPrimary = Color.primary
+    static let textSecondary = Color.secondary
+    static let textTertiary = Color.secondary.opacity(0.6)
     
     // Status colors - Modern and vibrant
     static let success = Color(red: 0.0, green: 0.85, blue: 0.40) // Vibrant green #00D966
