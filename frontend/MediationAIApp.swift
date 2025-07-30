@@ -15,6 +15,7 @@ struct MediationAIApp: App {
         appearance.configureWithOpaqueBackground()
         appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
+        appearance.shadowColor = .clear // remove bottom hairline
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }

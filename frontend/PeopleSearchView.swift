@@ -68,29 +68,35 @@ struct PeopleSearchView: View {
 
     // Twitter-like row
     private func userRow(for user: SocialAPIService.UserSummary) -> some View {
-        NavigationLink(destination: MiniProfileView(userID: user.id)) {
-            HStack(spacing:12){
-                AsyncImage(url: social.avatarURL(id:user.id, size:120) ) { phase in
-                    (phase.image ?? Image(systemName:"person.circle")).resizable()
-                }
-                .frame(width:46,height:46).clipShape(Circle())
+        VStack(spacing:0){
+            NavigationLink(destination: MiniProfileView(userID: user.id)) {
+                HStack(spacing:12){
+                    AsyncImage(url: social.avatarURL(id:user.id, size:120) ) { phase in
+                        (phase.image ?? Image(systemName:"person.circle")).resizable()
+                    }
+                    .frame(width:46,height:46).clipShape(Circle())
 
-                VStack(alignment:.leading,spacing:2){
-                    Text(user.displayName).font(.subheadline.bold())
-                    Text("\(user.wins) wins • {user.xp} XP").font(.caption).foregroundColor(.secondary)
-                }
+                    VStack(alignment:.leading,spacing:2){
+                        Text(user.displayName).font(.subheadline.bold())
+                        Text("\(user.wins) wins • \(user.xp) XP").font(.caption).foregroundColor(.secondary)
+                    }
 
-                Spacer()
+                    Spacer()
 
-                Button(action:{ follow(id:user.id) }){
-                    Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
-                        .font(.title3)
-                        .foregroundColor(AppTheme.accent)
+                    Button(action:{ follow(id:user.id) }){
+                        Image(systemName: social.following.contains(user.id) ? "checkmark.circle.fill" : "plus.circle")
+                            .font(.title3)
+                            .foregroundColor(AppTheme.accent)
+                    }
                 }
+                .padding(.vertical,10)
             }
-            .padding(.vertical,8)
+            .buttonStyle(PlainButtonStyle())
+
+            Divider()
+                .padding(.leading, 58)
+                .background(Color.gray.opacity(0.3))
         }
-        .buttonStyle(PlainButtonStyle())
     }
 
     private func follow(id: String) {

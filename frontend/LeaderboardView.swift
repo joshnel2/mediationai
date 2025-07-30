@@ -10,7 +10,8 @@ struct LeaderboardView: View {
 
     var body: some View {
         VStack {
-            Spacer(minLength: 0).frame(height: 8) // top breathing space
+            // top padding removed for tighter header
+            Spacer().frame(height: 0)
             #if canImport(ConfettiSwiftUI)
             ConfettiCannon(counter: $confetti, num: 20, confettiSize: 8)
             #endif
@@ -27,11 +28,12 @@ struct LeaderboardView: View {
                     LeaderRow(user: user, rank: idx+1, maxWins: maxWins)
                         .environmentObject(social)
                         .onAppear{ if idx==0 { confetti+=1 } }
-                        .listRowSeparator(.hidden)
+                        .listRowSeparator(.visible)
                         .listRowInsets(EdgeInsets(top:8, leading:0, bottom:8, trailing:0))
                 }
             }
             .listStyle(.plain)
+            .listRowSeparatorTint(Color.gray.opacity(0.3))
         }
         .navigationTitle("Leaderboard")
         .background(AppTheme.backgroundGradient)
