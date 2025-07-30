@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import PhotosUI
+import AVKit
 
 // MARK: - Bubble Tail Shape
 struct BubbleTail: Shape {
@@ -400,8 +401,21 @@ struct ConversationView: View {
 
     @ViewBuilder private func content(for msg:ChatMsg)-> some View{
         switch msg.kind {
-        case .text(let t): Text(t).font(.body).foregroundColor(.primary)
-        case .image(let u): Image(uiImage:u).resizable().scaledToFill().frame(maxWidth:200,maxHeight:200).clipped().cornerRadius(12)
+        case .text(let t):
+            if let video = videoURL(from: t), let thumb = youtubeThumbnailURL(from: video) {
+                VideoPreviewView(videoURL: video, thumbnailURL: thumb) {
+                    videoToPlay = video
+                }
+            } else {
+                Text(t).font(.body).foregroundColor(.primary)
+            }
+        case .image(let u):
+            Image(uiImage:u)
+                .resizable()
+                .scaledToFill()
+                .frame(maxWidth:200,maxHeight:200)
+                .clipped()
+                .cornerRadius(12)
         }
     }
 
@@ -614,6 +628,35 @@ struct ConversationView: View {
                 }
             }
         }
+    }
+
+    // Video player sheet
+    @State private var videoToPlay: URL? = nil
+
+    // Helper to detect supported video links (YouTube for now)
+    private func videoURL(from text: String) -> URL? {
+        guard let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
+        let host = url.host ?? ""
+        if host.contains("youtu.be") || host.contains("youtube.com") {
+            return url
+        }
+        return nil
+    }
+
+    // MARK: - Video thumbnail helper
+    private func youtubeThumbnailURL(from url: URL) -> URL? {
+        // Extract video ID from common YouTube URL patterns
+        let urlString = url.absoluteString
+        if let range = urlString.range(of: "youtu.be/") {
+            let id = String(urlString[range.upperBound...]).components(separatedBy: ["?", "&"]).first ?? ""
+            return URL(string: "https://img.youtube.com/vi/\(id)/hqdefault.jpg")
+        }
+        if let comp = URLComponents(url: url, resolvingAgainstBaseURL: false), comp.host?.contains("youtube.com") == true {
+            if let id = comp.queryItems?.first(where: { $0.name == "v" })?.value {
+                return URL(string: "https://img.youtube.com/vi/\(id)/hqdefault.jpg")
+            }
+        }
+        return nil
     }
 }
 
