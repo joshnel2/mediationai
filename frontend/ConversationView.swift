@@ -24,6 +24,12 @@ struct ConversationView: View {
     @EnvironmentObject var social: SocialAPIService
     let dispute: MockDispute
 
+    // Preference key to detect vertical scroll offset
+    private struct ScrollOffsetKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+    }
+
     // Simple chat model
     struct ChatMsg: Identifiable {
         enum Sender { case a, b, ai }
@@ -47,6 +53,9 @@ struct ConversationView: View {
 
     // Live summary of the debate
     @State private var argumentSummary: String = "No summary yet"
+
+    // Collapsing header state – 1 = full size, 0.6 = collapsed
+    @State private var headerScale: CGFloat = 1.0
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -135,6 +144,7 @@ struct ConversationView: View {
                     tabLabel(title:"Result", index:2, color:Color.yellow)
                 }
             }
+            .scaleEffect(headerScale, anchor: .top)
             .padding(8)
             .background(AppTheme.cardGradient)
             .cornerRadius(16)
@@ -187,6 +197,11 @@ struct ConversationView: View {
         }
         .navigationTitle(dispute.title)
         .onAppear{ seed(); updateSummary() }
+        .onPreferenceChange(ScrollOffsetKey.self) { value in
+            // value is negative when scrolled up; Compress header between 1.0 and 0.6
+            let newScale = max(0.6, 1 - (-value / 240))
+            withAnimation(.easeOut(duration: 0.2)) { headerScale = newScale }
+        }
     }
 
     // MARK: - Live Summary Helper
@@ -459,9 +474,16 @@ struct ConversationView: View {
                         let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
                         bubble(for: msg, showAvatar: showAvatar)
                     }
+                    // GeometryReader to capture offset
+                    GeometryReader { geo in
+                        Color.clear
+                            .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("chatScroll")).minY)
+                    }
+                    .frame(height: 0)
                 }
                 .padding()
             }
+            .coordinateSpace(name: "chatScroll")
             .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
         }
     }
