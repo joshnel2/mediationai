@@ -63,6 +63,14 @@ struct ConversationView: View {
         return Double(max(0, min(1, t)))
     }
 
+    // Pull-to-refresh state
+    @State private var pullOffset: CGFloat = 0
+
+    private var pullProgress: Double {
+        // 0 → 60pt maps to 0→1
+        Double(min(max(pullOffset / 60, 0), 1))
+    }
+
     @EnvironmentObject var authService: MockAuthService
 
     // Determine if the current signed-in user is a participant in this crash-out.
@@ -208,6 +216,9 @@ struct ConversationView: View {
             // value is negative when scrolled up; Compress header between 1.0 and 0.6
             let newScale = max(0.6, 1 - (-value / 240))
             withAnimation(.easeOut(duration: 0.2)) { headerScale = newScale }
+
+            // Track pull offset (positive values)
+            pullOffset = max(0, value)
         }
     }
 
@@ -487,30 +498,88 @@ struct ConversationView: View {
     // Pages
     private func chatPage(for side:ChatMsg.Sender) -> some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing:12){
-                    let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
-                    ForEach(filtered.indices, id: \.self) { idx in
-                        let msg = filtered[idx]
-                        let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
-                        bubble(for: msg, showAvatar: showAvatar)
-                    }
+            HStack(spacing:0){
+                // Heat meter sidebar
+                HeatMeterView(messages: filtered)
+                    .frame(width: 4)
 
-                    // Typing indicator
-                    if aiThinking {
-                        typingIndicatorBubble
+                ScrollView {
+                    VStack(spacing:12){
+                        let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
+                        ForEach(filtered.indices, id: \.self) { idx in
+                            let msg = filtered[idx]
+                            let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
+                            bubble(for: msg, showAvatar: showAvatar)
+                        }
+
+                        // Typing indicator
+                        if aiThinking {
+                            typingIndicatorBubble
+                        }
+                        // GeometryReader to capture offset
+                        GeometryReader { geo in
+                            Color.clear
+                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("chatScroll")).minY)
+                        }
+                        .frame(height: 0)
                     }
-                    // GeometryReader to capture offset
-                    GeometryReader { geo in
-                        Color.clear
-                            .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("chatScroll")).minY)
-                    }
-                    .frame(height: 0)
+                    .padding()
                 }
-                .padding()
+                // Custom pull-to-refresh morph icon
+                .overlay(alignment: .top) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(AppTheme.primary)
+                        .rotationEffect(.degrees(pullProgress * 180))
+                        .scaleEffect(0.7 + pullProgress * 0.4)
+                        .opacity(pullProgress)
+                        .padding(.top, -32)
+                }
             }
             .coordinateSpace(name: "chatScroll")
+            .onPreferenceChange(ScrollOffsetKey.self) { value in
+                // Collapse header (existing logic)
+                let newScale = max(0.6, 1 - (-value / 240))
+                withAnimation(.easeOut(duration: 0.2)) { headerScale = newScale }
+
+                // Track pull offset (positive values)
+                pullOffset = max(0, value)
+            }
             .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
+        }
+    }
+
+    // MARK: - Heat Meter View
+    private struct HeatMeterView: View {
+        let messages: [ChatMsg]
+
+        private func color(for msg: ChatMsg) -> Color {
+            guard case .text(let txt) = msg.kind else { return .blue }
+            let exclam = txt.filter { $0 == "!" }.count
+            let capsRatio = Double(txt.filter { $0.isUppercase }.count) / Double(max(1, txt.count))
+            let angryWords = ["hate", "stupid", "trash", "noob"]
+            let hasAngry = angryWords.contains { txt.lowercased().contains($0) }
+            let score = Double(exclam) * 0.3 + capsRatio * 0.5 + (hasAngry ? 0.4 : 0)
+            switch score {
+            case 0..<0.3: return .blue
+            case 0.3..<0.6: return .orange
+            default: return .red
+            }
+        }
+
+        var body: some View {
+            GeometryReader { geo in
+                VStack(spacing: 4) {
+                    ForEach(messages) { msg in
+                        Rectangle()
+                            .fill(color(for: msg))
+                            .frame(height: 8)
+                            .cornerRadius(2)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .frame(width: geo.size.width)
+            }
         }
     }
 
