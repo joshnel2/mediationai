@@ -436,6 +436,7 @@ struct CreateDisputeView: View {
                 .cornerRadius(AppTheme.radiusLG)
                 .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
             }
+            .primaryButtonStyle()
             .disabled(title.isEmpty || description.isEmpty)
             .opacity((title.isEmpty || description.isEmpty) ? 0.6 : 1.0)
             
