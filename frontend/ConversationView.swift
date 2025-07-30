@@ -69,7 +69,7 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Topic title & scoreboard + live summary
+            // Header card
             VStack(spacing:AppTheme.spacingSM){
                 // Clean VS layout
                 versusSection
@@ -87,7 +87,7 @@ struct ConversationView: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                         .padding(.horizontal,8).padding(.vertical,4)
-                        .background(Color.white.opacity(0.15))
+                        .background(Color.gray.opacity(0.15))
                         .clipShape(Capsule())
                 }
 
@@ -117,7 +117,7 @@ struct ConversationView: View {
                 GeometryReader { geo in
                     ZStack(alignment:.leading){
                         RoundedRectangle(cornerRadius:4)
-                            .fill(Color.white.opacity(0.15))
+                            .fill(Color.gray.opacity(0.15))
                         let total = max(1, votesA + votesB)
                         let percentA = CGFloat(votesA) / CGFloat(total)
                         RoundedRectangle(cornerRadius:4)
@@ -135,10 +135,13 @@ struct ConversationView: View {
                     tabLabel(title:"Result", index:2, color:AppTheme.success)
                 }
             }
-            .padding(8)
-            .background(AppTheme.cardGradient)
-            .cornerRadius(16)
-            .padding(.top,2)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius:24)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.05), radius:6, x:0, y:2)
+            )
+            .padding(.horizontal)
 
             // Swipeable pages
             TabView(selection:$selectedTab){
