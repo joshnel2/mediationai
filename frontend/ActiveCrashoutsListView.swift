@@ -11,15 +11,30 @@ struct ActiveCrashoutsListView: View {
     }
 
     var body: some View {
-        List(active) { disp in
-            NavigationLink(destination: ConversationView(dispute: disp)) {
-                VStack(alignment:.leading,spacing:4){
-                    Text(disp.title).bold()
-                    Text("Score: \(disp.votesA)-\(disp.votesB)").font(.caption).foregroundColor(.secondary)
+        if active.isEmpty {
+            VStack(spacing:16){
+                Image(systemName:"info.circle")
+                    .font(.system(size:48))
+                    .foregroundColor(AppTheme.primary)
+                Text("You don't have any active crashouts yet")
+                    .font(AppTheme.body())
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth:.infinity,maxHeight:.infinity)
+            .background(AppTheme.backgroundGradient)
+            .navigationTitle("Active Crashouts")
+        } else {
+            List(active) { disp in
+                NavigationLink(destination: ConversationView(dispute: disp)) {
+                    VStack(alignment:.leading,spacing:4){
+                        Text(disp.title).bold()
+                        Text("Score: \(disp.votesA)-\(disp.votesB)").font(.caption).foregroundColor(.secondary)
+                    }
                 }
             }
+            .listStyle(.plain)
+            .navigationTitle("Active Crashouts")
         }
-        .navigationTitle("Active Crashouts")
     }
 }
 
