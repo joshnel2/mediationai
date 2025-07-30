@@ -323,13 +323,14 @@ struct ConversationView: View {
         HStack(alignment:.bottom,spacing:4){
             if msg.sender == .b { Spacer() }
             VStack(alignment: msg.sender == .a ? .trailing : .leading){
+                let txtColor: Color = (msg.sender == .a) ? .white : .black
                 content(for: msg)
-                    .font(AppTheme.body())
-                    .foregroundColor(AppTheme.textPrimary)
-                    .padding(AppTheme.spacingMD)
+                    .font(.body)
+                    .foregroundColor(txtColor)
+                    .padding(12)
                     .background(bubbleGradient(for: msg))
-                    .clipShape(RoundedRectangle(cornerRadius:20))
-                    .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
+                    .clipShape(RoundedRectangle(cornerRadius:18))
+                    .shadow(color: Color.black.opacity(0.06), radius:3, x:0, y:1)
             }
             if msg.sender == .a { Spacer() }
         }
@@ -370,11 +371,11 @@ struct ConversationView: View {
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
         switch msg.sender {
         case .ai:
-            return LinearGradient(colors:[Color(UIColor.secondarySystemBackground)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[Color(UIColor.systemGray5), Color(UIColor.systemGray4)], startPoint:.topLeading, endPoint:.bottomTrailing)
         case .a:
-            return LinearGradient(colors:[AppTheme.primary.opacity(0.15), AppTheme.primary.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[AppTheme.primary.opacity(0.9), AppTheme.primary.opacity(0.8)], startPoint:.topLeading, endPoint:.bottomTrailing)
         case .b:
-            return LinearGradient(colors:[AppTheme.accent.opacity(0.15), AppTheme.accent.opacity(0.05)], startPoint:.topLeading, endPoint:.bottomTrailing)
+            return LinearGradient(colors:[Color(UIColor.systemGray6), Color(UIColor.systemGray5)], startPoint:.topLeading, endPoint:.bottomTrailing)
         }
     }
 
