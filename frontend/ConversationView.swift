@@ -50,6 +50,11 @@ struct ConversationView: View {
 
     @EnvironmentObject var authService: MockAuthService
 
+    // MARK: - Live WS Typing Indicator
+    @State private var wsTask: URLSessionWebSocketTask?
+    @State private var opponentTyping = false
+    @State private var lastTypingSent = Date(timeIntervalSince1970: 0)
+
     // Determine if the current signed-in user is a participant in this crash-out.
     private var isParticipant: Bool {
         guard let myID = authService.currentUser?.id.uuidString else { return false }
@@ -167,6 +172,7 @@ struct ConversationView: View {
 
                         TextField("Type your point", text:$input)
                             .foregroundColor(.primary)
+                            .onChange(of: input) { _ in sendTypingPing() }
                         Button(action: send){
                             Image(systemName:"paperplane.fill")
                                 .rotationEffect(.degrees(45))
@@ -183,6 +189,12 @@ struct ConversationView: View {
                     .clipShape(Capsule())
                     .padding(.horizontal)
 
+                    if opponentTyping {
+                        TypingIndicator()
+                            .transition(.opacity)
+                            .padding(.horizontal)
+                    }
+
                     if voted {
                         opponentSection
                     }
@@ -192,7 +204,9 @@ struct ConversationView: View {
             }
         }
         .navigationTitle(dispute.title)
-        .onAppear{ seed(); updateSummary() }
+        .onAppear { seed(); updateSummary() }
+        .onAppear { connectWebSocket() }
+        .onDisappear { wsTask?.cancel() }
     }
 
     // MARK: - Live Summary Helper
@@ -537,6 +551,53 @@ struct ConversationView: View {
             .cornerRadius(12)
             .opacity(isOn ? 1.0 : 0.7)
             .onTapGesture { withAnimation{ isOn.toggle() } }
+        }
+    }
+
+    // MARK: - Typing WS Helpers
+    private func connectWebSocket() {
+        guard wsTask == nil else { return }
+        guard let base = URL(string: APIConfig.baseURL) else { return }
+        var comps = URLComponents(url: base, resolvingAgainstBaseURL: false)
+        comps?.scheme = base.scheme == "https" ? "wss" : "ws"
+        comps?.path = "/ws/clash/\(dispute.id)"
+        guard let url = comps?.url else { return }
+        wsTask = URLSession.shared.webSocketTask(with: url)
+        wsTask?.resume()
+        listenWS()
+    }
+
+    private func listenWS() {
+        wsTask?.receive { [weak self] res in
+            switch res {
+            case .failure:
+                break
+            case .success(let msg):
+                if case .string(let text) = msg,
+                   let data = text.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String:Any],
+                   let type = json["type"] as? String, type == "typing",
+                   let uid = json["userId"] as? String,
+                   uid != self?.authService.currentUser?.id.uuidString {
+                    DispatchQueue.main.async {
+                        self?.opponentTyping = true
+                        // auto-hide after 3s
+                        DispatchQueue.main.asyncAfter(deadline: .now()+3) { self?.opponentTyping = false }
+                    }
+                }
+            }
+            self?.listenWS()
+        }
+    }
+
+    private func sendTypingPing() {
+        // Limit pings to once every 2 seconds
+        guard Date().timeIntervalSince(lastTypingSent) > 2 else { return }
+        lastTypingSent = Date()
+        guard let uid = authService.currentUser?.id.uuidString else { return }
+        let obj: [String:Any] = ["type":"typing", "userId": uid]
+        if let data = try? JSONSerialization.data(withJSONObject: obj), let str = String(data: data, encoding: .utf8) {
+            wsTask?.send(.string(str)) { _ in }
         }
     }
 }
