@@ -319,10 +319,11 @@ struct ConversationView: View {
     }
 
     @ViewBuilder
-    private func bubble(for msg:ChatMsg)-> some View {
+    private func bubble(for msg:ChatMsg, showAvatar: Bool)-> some View {
         HStack(alignment:.bottom,spacing:4){
+            if msg.sender == .a { avatarView(for: .a, visible: showAvatar) }
             if msg.sender == .b { Spacer() }
-            VStack(alignment: msg.sender == .a ? .trailing : .leading){
+            VStack(alignment: msg.sender == .a ? .leading : .trailing){
                 content(for: msg)
                     .font(AppTheme.body())
                     .foregroundColor(AppTheme.textPrimary)
@@ -332,8 +333,10 @@ struct ConversationView: View {
                     .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
             }
             if msg.sender == .a { Spacer() }
+            if msg.sender == .b { avatarView(for: .b, visible: showAvatar) }
         }
-        .transition(.move(edge: msg.sender == .a ? .trailing : .leading).combined(with:.opacity))
+        .transition(.move(edge: msg.sender == .a ? .leading : .trailing).combined(with:.opacity))
+        .animation(.easeOut(duration:0.25), value: messages.count)
         .id(msg.id)
         .contextMenu{
             switch msg.kind {
@@ -341,6 +344,35 @@ struct ConversationView: View {
                 Button{ UIPasteboard.general.string = t } label:{ Text("Copy") }
                 Button{ shareText(t) } label:{ Label("Share",systemImage:"square.and.arrow.up") }
             default: EmptyView()
+            }
+        }
+    }
+
+    // Avatar helper
+    @ViewBuilder
+    private func avatarView(for sender: ChatMsg.Sender, visible: Bool) -> some View {
+        if !visible {
+            Color.clear.frame(width:32, height:32)
+        } else {
+            switch sender {
+            case .a:
+                AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:64)) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:32, height:32)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(AppTheme.primary, lineWidth:1))
+            case .b:
+                AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:64)) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:32, height:32)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(AppTheme.accent, lineWidth:1))
+            case .ai:
+                Image(systemName: "brain.head.profile").resizable()
+                    .frame(width:32, height:32)
+                    .foregroundColor(.purple)
             }
         }
     }
@@ -421,7 +453,12 @@ struct ConversationView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing:12){
-                    ForEach(messages.filter{ $0.sender == side || $0.sender == .ai }){ msg in bubble(for: msg) }
+                    let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
+                    ForEach(filtered.indices, id: \.self) { idx in
+                        let msg = filtered[idx]
+                        let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
+                        bubble(for: msg, showAvatar: showAvatar)
+                    }
                 }
                 .padding()
             }
