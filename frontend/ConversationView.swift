@@ -474,6 +474,11 @@ struct ConversationView: View {
                         let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
                         bubble(for: msg, showAvatar: showAvatar)
                     }
+
+                    // Typing indicator
+                    if aiThinking {
+                        typingIndicatorBubble
+                    }
                     // GeometryReader to capture offset
                     GeometryReader { geo in
                         Color.clear
@@ -567,6 +572,40 @@ struct ConversationView: View {
             .cornerRadius(12)
             .opacity(isOn ? 1.0 : 0.7)
             .onTapGesture { withAnimation{ isOn.toggle() } }
+        }
+    }
+
+    // MARK: - Typing Indicator Bubble
+    private var typingIndicatorBubble: some View {
+        HStack {
+            Spacer(minLength: 40)
+            HStack(spacing: 6) {
+                ForEach(0..<3) { idx in
+                    Circle()
+                        .fill(Color.secondary)
+                        .frame(width: 6, height: 6)
+                        .opacity(0.7)
+                        .scaleEffect(typingDotScale[idx])
+                        .animation(Animation.easeInOut(duration: 0.8).repeatForever().delay(Double(idx) * 0.15), value: typingDotScale[idx])
+                }
+            }
+            .padding(12)
+            .background(Color.secondary.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            Spacer(minLength: 40)
+        }
+        .onAppear { startTypingAnimation() }
+    }
+
+    @State private var typingDotScale: [CGFloat] = [0.5, 0.5, 0.5]
+
+    private func startTypingAnimation() {
+        for i in 0..<3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.15) {
+                withAnimation(Animation.easeInOut(duration: 0.8).repeatForever()) {
+                    typingDotScale[i] = 1.0
+                }
+            }
         }
     }
 }
