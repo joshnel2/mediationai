@@ -32,6 +32,11 @@ struct LeaderboardView: View {
                         .listRowInsets(EdgeInsets(top:8, leading:0, bottom:8, trailing:0))
                 }
             }
+            .refreshable {
+                await MainActor.run {
+                    social.fetchLeaderboard()
+                }
+            }
             .listStyle(.plain)
             .listRowSeparatorTint(Color.gray.opacity(0.3))
         }
