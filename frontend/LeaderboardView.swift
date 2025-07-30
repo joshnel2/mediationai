@@ -42,7 +42,10 @@ struct LeaderboardView: View {
         }
         .navigationTitle("Leaderboard")
         .background(AppTheme.backgroundGradient)
-        .onAppear { social.fetchLeaderboard() }
+        .onAppear {
+            social.fetchLeaderboard()
+            social.startLeaderboardLive()
+        }
     }
 
     // Sort by dispute wins so that the top performers are decided by victories, not experience points
