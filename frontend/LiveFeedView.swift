@@ -71,8 +71,14 @@ struct LiveFeedView: View {
             let list = listBinding.wrappedValue
 
             if socialService.isLoading && list.isEmpty {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: AppTheme.primary))
+                VStack(spacing: 0) {
+                    ForEach(0..<5) { _ in
+                        SkeletonClashRow()
+                        Divider()
+                            .background(Color.white.opacity(0.1))
+                    }
+                }
+                .padding(.horizontal)
             } else if list.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "bolt.bubble")
@@ -122,7 +128,32 @@ struct LiveFeedView: View {
         }
     }
 
-    // MARK: - Row
+    // MARK: - Skeleton Row (loading placeholder)
+    private struct SkeletonClashRow: View {
+        var body: some View {
+            HStack(alignment: .center, spacing: 12) {
+                Circle()
+                    .fill(AppTheme.glassSecondary)
+                    .frame(width: 40, height: 40)
+                Circle()
+                    .fill(AppTheme.glassSecondary)
+                    .frame(width: 40, height: 40)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.glassSecondary)
+                        .frame(height: 14)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(AppTheme.glassSecondary)
+                        .frame(width: 100, height: 10)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 12)
+            .shimmer()
+        }
+    }
+
     private struct FeedClashRow: View {
         let clash: Clash
         @EnvironmentObject var social: SocialAPIService
