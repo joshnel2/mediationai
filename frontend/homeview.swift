@@ -420,8 +420,8 @@ struct StatCard: View {
                     .font(AppTheme.caption())
                     .foregroundColor(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
         }
         .frame(maxWidth: .infinity)
