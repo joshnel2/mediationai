@@ -156,18 +156,18 @@ class SocialAPIService: ObservableObject {
         // Only seed if arrays are empty (first launch / offline)
         guard overallLeaders.isEmpty else { return }
 
-        // More believable (yet still fun) user display names
+        // Youthful streamer-style handles
         let sampleNames = [
-            "Alex Mercer",
-            "Jamie Rivera",
-            "Morgan Lee",
-            "Taylor Brooks",
-            "Chris Jordan",
-            "Avery Kim",
-            "Riley Patel",
-            "Sydney Parker",
-            "Jordan Chen",
-            "Casey Nguyen"
+            "ShadowSlayer",
+            "NovaBurst",
+            "PixelPanda",
+            "RogueKnight",
+            "FrostByte",
+            "SolarBlitz",
+            "EchoRift",
+            "VibeViper",
+            "NeonNinja",
+            "AeroAce"
         ]
 
         overallLeaders = sampleNames.map { UserSummary(id: UUID().uuidString, displayName: $0, xp: Int.random(in: 1500...5000), wins: Int.random(in: 5...30)) }
@@ -496,8 +496,9 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Avatar helper (DiceBear – cartoon style)
     func avatarURL(id: String, size:Int = 96) -> URL? {
+        // Use pravatar for more realistic youthful faces instead of cartoon avatars
         let safe = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
-        let urlStr = "https://api.dicebear.com/7.x/adventurer/png?seed=\(safe)&size=\(size)&radius=50"
+        let urlStr = "https://i.pravatar.cc/\(size)?u=\(safe)"
         return URL(string: urlStr)
     }
 
