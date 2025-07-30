@@ -496,9 +496,9 @@ class SocialAPIService: ObservableObject {
 
     // MARK: - Avatar helper (DiceBear – cartoon style)
     func avatarURL(id: String, size:Int = 96) -> URL? {
-        // Use pravatar for more realistic youthful faces instead of cartoon avatars
+        // Use DiceBear "shapes" style for stylized gamer avatars (non-cartoon, non-photo)
         let safe = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
-        let urlStr = "https://i.pravatar.cc/\(size)?u=\(safe)"
+        let urlStr = "https://api.dicebear.com/7.x/shapes/png?seed=\(safe)&size=\(size)"
         return URL(string: urlStr)
     }
 
