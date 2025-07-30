@@ -12,6 +12,39 @@ from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, Highl
 from pyapns2.client import APNsClient
 from pyapns2.payload import Payload
 
+# ----------------------------
+# WebSocket connection stores
+# ----------------------------
+
+leaderboard_ws_connections: List[WebSocket] = []  # live connections for realtime leaderboard
+
+# Helper to compute current leaderboard (top 20 by follower count)
+def _current_leaderboard(db: Session, limit: int = 20):
+    from sqlalchemy import func
+    results = (
+        db.query(Follow.followee_id, func.count(Follow.follower_id).label("followers"))
+        .group_by(Follow.followee_id)
+        .order_by(func.count(Follow.follower_id).desc())
+        .limit(limit)
+        .all()
+    )
+    return [{"userId": uid, "followers": count} for uid, count in results]
+
+# Helper to broadcast updated leaderboard to all connected clients
+async def _broadcast_leaderboard(db: Session):
+    if not leaderboard_ws_connections:
+        return
+    payload = {"type": "leaderboard", "data": _current_leaderboard(db)}
+    living: List[WebSocket] = []
+    for ws in leaderboard_ws_connections:
+        try:
+            await ws.send_json(payload)
+            living.append(ws)
+        except Exception:
+            # connection is dead, skip it
+            pass
+    leaderboard_ws_connections[:] = living
+
 router = APIRouter(prefix="/api")
 
 # Helper function
@@ -51,6 +84,11 @@ async def follow_user(target_user_id: str, current_user: DBUser = Depends(get_cu
     follow = Follow(follower_id=current_user.id, followee_id=target_user_id)
     db.add(follow)
     db.commit()
+
+    # Broadcast leaderboard update
+    import asyncio
+    asyncio.create_task(_broadcast_leaderboard(db))
+
     return {"status": "following"}
 
 
@@ -62,8 +100,31 @@ async def unfollow_user(target_user_id: str, current_user: DBUser = Depends(get_
 
     db.delete(follow)
     db.commit()
+
+    import asyncio
+    asyncio.create_task(_broadcast_leaderboard(db))
+
     return {"status": "unfollowed"}
 
+# ----------------------------
+# LEADERBOARD WEBSOCKET
+# ----------------------------
+
+@router.websocket("/ws/leaderboard")
+async def leaderboard_ws(websocket: WebSocket, db: Session = Depends(get_db)):
+    await websocket.accept()
+    leaderboard_ws_connections.append(websocket)
+
+    # Send initial snapshot
+    await websocket.send_json({"type": "leaderboard", "data": _current_leaderboard(db)})
+
+    try:
+        while True:
+            # We don't expect messages from client; just keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        if websocket in leaderboard_ws_connections:
+            leaderboard_ws_connections.remove(websocket)
 
 @router.get("/users/{user_id}/followers")
 async def get_followers(user_id: str, db: Session = Depends(get_db)):
