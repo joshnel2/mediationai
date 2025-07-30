@@ -56,6 +56,11 @@ struct ConversationView: View {
 
     // Collapsing header state – 1 = full size, 0.6 = collapsed
     @State private var headerScale: CGFloat = 1.0
+    private var avatarOpacity: Double {
+        // Map headerScale 1.0→1 to 0.6→0
+        let t = (headerScale - 0.6) / 0.4
+        return Double(max(0, min(1, t)))
+    }
 
     @EnvironmentObject var authService: MockAuthService
 
@@ -180,6 +185,7 @@ struct ConversationView: View {
                             .clipShape(Circle())
                             .foregroundColor(.white)
                     }
+                    .accessibilityLabel("Send message")
                     .disabled(input.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || aiThinking)
                 }
                 .padding(.vertical,10)
@@ -427,7 +433,7 @@ struct ConversationView: View {
 
     // MARK: - Versus Header
     private var versusSection: some View {
-        HStack(alignment:.center, spacing:16){
+        HStack(alignment:.center, spacing:16) {
             VStack(spacing:4){
                 AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:120)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
                     .frame(width:56,height:56)
@@ -454,6 +460,7 @@ struct ConversationView: View {
                     .lineLimit(1)
             }
         }
+        .opacity(avatarOpacity)
     }
 
     // Simple blur view helper

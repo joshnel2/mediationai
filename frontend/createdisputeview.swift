@@ -118,13 +118,12 @@ struct CreateDisputeView: View {
         HStack {
             Button(action: { dismiss() }) {
                 Image(systemName: "xmark")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundColor(AppTheme.textPrimary)
-                    .frame(width: 32, height: 32)
-                    .background(AppTheme.glassPrimary)
-                    .cornerRadius(AppTheme.radiusSM)
+                    .font(.headline)
+                    .padding(8)
+                    .background(AppTheme.cardGradient)
+                    .clipShape(Circle())
             }
+            .accessibilityLabel("Close")
             
             Spacer()
             
