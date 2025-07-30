@@ -68,19 +68,13 @@ struct JoinDisputeView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             if selectedInputType == .link {
                                 TextField("Paste dispute link here...", text: $linkOrCode)
-                                    .padding()
-                                    .background(AppTheme.card)
-                                    .cornerRadius(12)
-                                    .shadow(radius: 2)
+                                    .modernTextField()
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                             } else {
                                 TextField("Enter 6-digit code", text: $linkOrCode)
                                     .textCase(.uppercase)
-                                    .padding()
-                                    .background(AppTheme.card)
-                                    .cornerRadius(12)
-                                    .shadow(radius: 2)
+                                    .modernTextField()
                                     .textInputAutocapitalization(.characters)
                             }
                             

@@ -228,9 +228,7 @@ struct HomeView: View {
             }
             .padding(32)
             .frame(maxWidth: .infinity)
-            .background(LinearGradient(colors: [AppTheme.accent, AppTheme.primary], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .cornerRadius(32)
-            .shadow(color: AppTheme.primary.opacity(0.3), radius: 12, x: 0, y: 6)
+            .heroCard()
         }
         .scaleEffect(animateCards ? 1 : 0.95)
         .opacity(animateCards ? 1 : 0)
@@ -275,9 +273,7 @@ struct HomeView: View {
                 }
                 .padding()
                 .frame(width: 200, height: 100)
-                .background(LinearGradient(colors: [AppTheme.primary, AppTheme.accent], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .cornerRadius(18)
-                .shadow(radius: 4)
+                .modernCard()
             }
             .buttonStyle(PlainButtonStyle())
         }
