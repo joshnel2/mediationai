@@ -18,6 +18,11 @@ struct MainTabView: View {
                     Image(systemName: "bolt.fill")
                 }
 
+            TournamentView()
+                .tabItem {
+                    Image(systemName: "rosette")
+                }
+
             PeopleSearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
