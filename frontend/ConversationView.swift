@@ -478,6 +478,8 @@ struct ConversationView: View {
                 VideoPreviewView(videoURL: video, thumbnailURL: thumb) {
                     videoToPlay = video
                 }
+            } else if let url = URL(string: t), url.scheme?.hasPrefix("http") == true {
+                LinkPreviewCard(url: url)
             } else {
                 Text(t).font(.body).foregroundColor(.primary)
             }
