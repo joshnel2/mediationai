@@ -84,6 +84,10 @@ struct ConversationView: View {
     @State private var showReactionPicker: Bool = false
     @State private var reactions: [UUID: String] = [:]
 
+    // Pull-to-refresh success indicator
+    @State private var hasTriggeredRefresh = false
+    @State private var showRefreshSuccess = false
+
     @EnvironmentObject var authService: MockAuthService
     @EnvironmentObject var featureFlags: FeatureFlags
 
@@ -392,7 +396,7 @@ struct ConversationView: View {
                     .foregroundColor(AppTheme.textPrimary)
                     .padding(AppTheme.spacingMD)
                     .background(bubbleGradient(for: msg))
-                    .clipShape(RoundedRectangle(cornerRadius:20))
+                    .clipShape(RoundedRectangle(cornerRadius: bubbleCorner(for: msg)))
                     .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
                     .overlay(alignment: .topTrailing) {
                         if let emo = reactions[msg.id] {
@@ -424,6 +428,13 @@ struct ConversationView: View {
             default: EmptyView()
             }
         }
+    }
+
+    private func bubbleCorner(for msg: ChatMsg) -> CGFloat {
+        guard case .text(let text) = msg.kind else { return 20 }
+        let lineCount = text.split(separator: "\n").count
+        let approxLines = max(lineCount, text.count / 40)
+        return approxLines >= 4 ? 10 : 20
     }
 
     // Avatar helper
@@ -579,13 +590,21 @@ struct ConversationView: View {
                 }
                 // Custom pull-to-refresh morph icon
                 .overlay(alignment: .top) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(AppTheme.primary)
-                        .rotationEffect(.degrees(pullProgress * 180))
-                        .scaleEffect(0.7 + pullProgress * 0.4)
-                        .opacity(pullProgress)
-                        .padding(.top, -32)
+                    if showRefreshSuccess {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(AppTheme.success)
+                            .transition(.scale.combined(with:.opacity))
+                            .padding(.top, -32)
+                    } else {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(AppTheme.primary)
+                            .rotationEffect(.degrees(pullProgress * 180))
+                            .scaleEffect(0.7 + pullProgress * 0.4)
+                            .opacity(pullProgress)
+                            .padding(.top, -32)
+                    }
                 }
             }
             .coordinateSpace(name: "chatScroll")
@@ -596,6 +615,21 @@ struct ConversationView: View {
 
                 // Track pull offset (positive values)
                 pullOffset = max(0, value)
+
+                // Trigger refresh when pulled enough
+                if pullOffset > 80, !hasTriggeredRefresh {
+                    hasTriggeredRefresh = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        social.fetchLiveClashes() // example refresh
+                    }
+                }
+
+                // Show success checkmark after release
+                if hasTriggeredRefresh && pullOffset == 0 {
+                    hasTriggeredRefresh = false
+                    showRefreshSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { showRefreshSuccess = false }
+                }
             }
             .onPreferenceChange(BottomOffsetKey.self) { bottom in
                 // When bottom>150 show button
