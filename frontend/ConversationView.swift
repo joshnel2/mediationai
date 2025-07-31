@@ -120,6 +120,86 @@ struct ConversationView: View {
         dispute.title.components(separatedBy: " vs ").last ?? "Side B"
     }
 
+    // MARK: - Header Composite Views
+
+    private var headerContent: some View {
+        VStack(spacing: AppTheme.spacingSM) {
+            versusSection
+            titleCapsule
+            if !argumentSummary.isEmpty { summaryCapsule }
+            scoreBoard
+            progressBar
+            tabChooserView
+        }
+    }
+
+    private var titleCapsule: some View {
+        Text(dispute.title)
+            .font(.caption.bold())
+            .foregroundColor(.white)
+            .padding(.horizontal, 12).padding(.vertical, 4)
+            .background(AppTheme.accent)
+            .clipShape(Capsule())
+            .eraseToAnyView()
+    }
+
+    private var summaryCapsule: some View {
+        Text(argumentSummary)
+            .font(.caption)
+            .foregroundColor(.white.opacity(0.8))
+            .padding(.horizontal, 8).padding(.vertical, 4)
+            .background(Color.white.opacity(0.15))
+            .clipShape(Capsule())
+    }
+
+    private var scoreBoard: some View {
+        HStack(alignment: .center) {
+            VStack(spacing: 2) {
+                Text("🔥 \(votesA)")
+                    .font(.title3.bold())
+                    .foregroundColor(AppTheme.primary)
+                Text(sideAName)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            VStack(spacing: 2) {
+                Text("🔥 \(votesB)")
+                    .font(.title3.bold())
+                    .foregroundColor(AppTheme.accent)
+                Text(sideBName)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private var progressBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.white.opacity(0.15))
+                let total = max(1, votesA + votesB)
+                let percentA = CGFloat(votesA) / CGFloat(total)
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(AppTheme.primary)
+                    .frame(width: geo.size.width * percentA)
+                    .shadow(color: AppTheme.primary.opacity(0.6), radius: 6)
+            }
+        }
+        .frame(height: 8)
+    }
+
+    private var tabChooserView: some View {
+        HStack(spacing: 0) {
+            tabLabel(title: sideAName, index: 0, color: AppTheme.primary)
+            tabLabel(title: sideBName, index: 1, color: AppTheme.accent)
+            tabLabel(title: "Result", index: 2, color: .yellow)
+        }
+    }
+
     var body: some View {
         VStack {
             headerContent
