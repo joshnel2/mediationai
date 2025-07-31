@@ -38,10 +38,16 @@ struct ConversationView: View {
     struct ChatMsg: Identifiable {
         enum Sender { case a, b, ai }
         enum Kind { case text(String), image(UIImage), file(URL) }
-        var pending: Bool = false
         let id = UUID()
         let kind: Kind
         let sender: Sender
+        var pending: Bool = false
+
+        init(kind: Kind, sender: Sender, pending: Bool = false) {
+            self.kind = kind
+            self.sender = sender
+            self.pending = pending
+        }
     }
 
     @State private var messages: [ChatMsg] = []
@@ -116,73 +122,7 @@ struct ConversationView: View {
 
     var body: some View {
         VStack {
-            // Topic title & scoreboard + live summary
-            VStack(spacing:AppTheme.spacingSM){
-                // Clean VS layout
-                versusSection
-
-                // Topic capsule
-                Text(dispute.title)
-                    .font(.caption.bold())
-                    .foregroundColor(.white)
-                    .padding(.horizontal,12).padding(.vertical,4)
-                    .background(AppTheme.accent)
-                    .clipShape(Capsule())
-                    .eraseToAnyView()
-
-                if !argumentSummary.isEmpty {
-                    Text(argumentSummary)
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding(.horizontal,8).padding(.vertical,4)
-                        .background(Color.white.opacity(0.15))
-                        .clipShape(Capsule())
-                }
-
-                HStack(alignment:.center){
-                    VStack(spacing:2){
-                        Text("🔥 \(votesA)")
-                            .font(.title3.bold())
-                            .foregroundColor(AppTheme.primary)
-                        Text(sideAName)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    VStack(spacing:2){
-                        Text("🔥 \(votesB)")
-                            .font(.title3.bold())
-                            .foregroundColor(AppTheme.accent)
-                        Text(sideBName)
-                            .font(.caption2)
-                            .lineLimit(1)
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                // Progress bar with glow
-                GeometryReader { geo in
-                    ZStack(alignment:.leading){
-                        RoundedRectangle(cornerRadius:4)
-                            .fill(Color.white.opacity(0.15))
-                        let total = max(1, votesA + votesB)
-                        let percentA = CGFloat(votesA) / CGFloat(total)
-                        RoundedRectangle(cornerRadius:4)
-                            .fill(AppTheme.primary)
-                            .frame(width: geo.size.width * percentA)
-                            .shadow(color: AppTheme.primary.opacity(0.6), radius:6)
-                    }
-                }
-                .frame(height:8)
-
-                // Tab chooser
-                HStack(spacing:0){
-                    tabLabel(title:sideAName, index:0, color:AppTheme.primary)
-                    tabLabel(title:sideBName, index:1, color:AppTheme.accent)
-                    tabLabel(title:"Result", index:2, color:Color.yellow)
-                }
-            }
+            headerContent
             .scaleEffect(headerScale, anchor: .top)
             .padding(8)
             .background(AppTheme.cardGradient)
