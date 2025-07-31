@@ -79,6 +79,11 @@ struct ConversationView: View {
     @State private var showSearch: Bool = false
     @State private var scrollToMessageID: UUID?
 
+    // Reactions
+    @State private var activeReactionTarget: UUID? = nil
+    @State private var showReactionPicker: Bool = false
+    @State private var reactions: [UUID: String] = [:]
+
     @EnvironmentObject var authService: MockAuthService
 
     // Determine if the current signed-in user is a participant in this crash-out.
@@ -231,6 +236,19 @@ struct ConversationView: View {
             // Track pull offset (positive values)
             pullOffset = max(0, value)
         }
+        .overlay(
+            Group {
+                if showReactionPicker, let target = activeReactionTarget {
+                    ReactionPicker { emoji in
+                        reactions[target] = emoji
+                        showReactionPicker = false
+                        HapticManager.shared.selection()
+                    } onCancel: {
+                        showReactionPicker = false
+                    }
+                }
+            }
+        )
     }
 
     // MARK: - Live Summary Helper
@@ -375,6 +393,16 @@ struct ConversationView: View {
                     .background(bubbleGradient(for: msg))
                     .clipShape(RoundedRectangle(cornerRadius:20))
                     .shadow(color: Color.black.opacity(0.05), radius:3, x:0, y:1)
+                    .overlay(alignment: .topTrailing) {
+                        if let emo = reactions[msg.id] {
+                            Text(emo)
+                                .font(.system(size: 16))
+                                .padding(4)
+                                .background(Color.white.opacity(0.2))
+                                .clipShape(Circle())
+                                .offset(x: 8, y: -8)
+                        }
+                    }
             }
             if msg.sender == .a { Spacer() }
             if msg.sender == .b { avatarView(for: .b, visible: showAvatar) }
@@ -382,6 +410,10 @@ struct ConversationView: View {
         .transition(.move(edge: msg.sender == .a ? .leading : .trailing).combined(with:.opacity))
         .animation(.easeOut(duration:0.25), value: messages.count)
         .id(msg.id)
+        .onLongPressGesture(minimumDuration: 0.4) {
+            activeReactionTarget = msg.id
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showReactionPicker = true }
+        }
         .contextMenu{
             switch msg.kind {
             case .text(let t):
@@ -797,6 +829,43 @@ struct ConversationView: View {
                 .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always))
                 .navigationTitle("Search Messages")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+            }
+        }
+    }
+
+    // MARK: - ReactionPicker Component
+    private struct ReactionPicker: View {
+        let emojis = ["👍", "😂", "😮", "🚀", "😢"]
+        var didSelect: (String) -> Void
+        var onCancel: () -> Void
+        @State private var scale: CGFloat = 0.1
+        var body: some View {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture { onCancel() }
+
+                ZStack {
+                    ForEach(emojis.indices, id: \.self) { idx in
+                        let angle = Double(idx) / Double(emojis.count) * Double.pi * 2 - Double.pi/2
+                        let radius: CGFloat = 60
+                        Text(emojis[idx])
+                            .font(.system(size: 28))
+                            .frame(width:44,height:44)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius:2)
+                            .position(x: radius * cos(angle), y: radius * sin(angle))
+                            .onTapGesture {
+                                didSelect(emojis[idx])
+                            }
+                    }
+                }
+                .frame(width: 0, height: 0)
+                .scaleEffect(scale)
+                .onAppear {
+                    withAnimation(.spring(response:0.4,dampingFraction:0.7)) { scale = 1 }
+                }
             }
         }
     }
