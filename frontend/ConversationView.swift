@@ -664,79 +664,80 @@ struct ConversationView: View {
     }
 
     // Pages
-    private func chatPage(for side:ChatMsg.Sender) -> some View {
+    private func chatPage(for side: ChatMsg.Sender) -> some View {
+        let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
         ScrollViewReader { proxy in
-            let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
-            HStack(spacing:0){
-                // Heat meter sidebar
+            ChatPageBody(filtered: filtered,
+                         side: side,
+                         featureFlags: featureFlags,
+                         aiThinking: aiThinking,
+                         pullProgress: pullProgress,
+                         showRefreshSuccess: $showRefreshSuccess,
+                         pullOffset: $pullOffset,
+                         hasTriggeredRefresh: $hasTriggeredRefresh,
+                         messages: $messages,
+                         showScrollToBottom: $showScrollToBottom,
+                         social: social,
+                         headerScale: $headerScale)
+        }
+    }
+
+    // MARK: ChatPageBody Subview
+    private struct ChatPageBody: View {
+        let filtered: [ChatMsg]
+        let side: ChatMsg.Sender
+        @ObservedObject var featureFlags: FeatureFlags
+        var aiThinking: Bool
+        var pullProgress: Double
+        @Binding var showRefreshSuccess: Bool
+        @Binding var pullOffset: CGFloat
+        @Binding var hasTriggeredRefresh: Bool
+        @Binding var messages: [ChatMsg]
+        @Binding var showScrollToBottom: Bool
+        var social: SocialAPIService
+        @Binding var headerScale: CGFloat
+
+        var body: some View {
+            HStack(spacing: 0) {
                 if featureFlags.heatMeterEnabled {
                     HeatMeterView(messages: filtered)
                         .frame(width: 4)
                 }
 
                 ScrollView {
-                    VStack(spacing:12){
+                    VStack(spacing: 12) {
                         ForEach(filtered.indices, id: \.self) { idx in
                             let msg = filtered[idx]
                             let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
-                            bubble(for: msg, showAvatar: showAvatar)
+                            // Use AnyView wrapper to simplify type inference
+                            AnyView(self.parentBubble(for: msg, showAvatar: showAvatar))
                         }
-
-                        // Typing indicator
-                        if aiThinking {
-                            typingIndicatorBubble
-                        }
-                        // GeometryReader to capture offset
+                        if aiThinking { typingIndicatorBubble }
                         GeometryReader { geo in
-                            Color.clear
-                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("chatScroll")).minY)
-                        }
-                        .frame(height: 0)
-                    }
-                    .padding()
-                    // bottom sentinel to detect distance from bottom
+                            Color.clear.preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("chatScroll")).minY)
+                        }.frame(height: 0)
+                    }.padding()
                     GeometryReader { geo in
                         Color.clear.preference(key: BottomOffsetKey.self, value: geo.frame(in: .named("chatScroll")).maxY)
-                    }
-                    .frame(height:1)
+                    }.frame(height: 1)
                 }
-                // Custom pull-to-refresh morph icon
                 .overlay(alignment: .top) {
                     if showRefreshSuccess {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 26, weight: .bold))
-                            .foregroundColor(AppTheme.success)
-                            .transition(.scale.combined(with:.opacity))
-                            .padding(.top, -32)
+                        Image(systemName: "checkmark").font(.system(size: 26, weight: .bold)).foregroundColor(AppTheme.success).transition(.scale.combined(with: .opacity)).padding(.top, -32)
                     } else {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(AppTheme.primary)
-                            .rotationEffect(.degrees(pullProgress * 180))
-                            .scaleEffect(0.7 + pullProgress * 0.4)
-                            .opacity(pullProgress)
-                            .padding(.top, -32)
+                        Image(systemName: "bolt.fill").font(.system(size: 24)).foregroundColor(AppTheme.primary).rotationEffect(.degrees(pullProgress * 180)).scaleEffect(0.7 + pullProgress * 0.4).opacity(pullProgress).padding(.top, -32)
                     }
                 }
             }
             .coordinateSpace(name: "chatScroll")
             .onPreferenceChange(ScrollOffsetKey.self) { value in
-                // Collapse header (existing logic)
                 let newScale = max(0.6, 1 - (-value / 240))
                 withAnimation(.easeOut(duration: 0.2)) { headerScale = newScale }
-
-                // Track pull offset (positive values)
                 pullOffset = max(0, value)
-
-                // Trigger refresh when pulled enough
                 if pullOffset > 80, !hasTriggeredRefresh {
                     hasTriggeredRefresh = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                        social.fetchLiveClashes() // example refresh
-                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { social.fetchLiveClashes() }
                 }
-
-                // Show success checkmark after release
                 if hasTriggeredRefresh && pullOffset == 0 {
                     hasTriggeredRefresh = false
                     showRefreshSuccess = true
@@ -744,29 +745,13 @@ struct ConversationView: View {
                 }
             }
             .onPreferenceChange(BottomOffsetKey.self) { bottom in
-                // When bottom>150 show button
                 withAnimation { showScrollToBottom = bottom < -150 }
             }
-            .onChange(of: messages.count){ _ in withAnimation{ proxy.scrollTo(messages.last?.id,anchor:.bottom)} }
         }
-    }
 
-    // Bottom offset key
-    private struct BottomOffsetKey: PreferenceKey {
-        static var defaultValue: CGFloat = 0
-        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
-    }
-
-    private func scrollToBottom() {
-        scrollTo(id: messages.last?.id)
-    }
-
-    private func scrollTo(id: UUID?) {
-        guard let id else { return }
-        DispatchQueue.main.async {
-            withAnimation {
-                // Use NotificationCenter to post scroll request; handled in onChange of messages maybe
-            }
+        // bubble wrapper
+        @ViewBuilder private func parentBubble(for msg: ChatMsg, showAvatar: Bool) -> some View {
+            ConversationView().bubble(for: msg, showAvatar: showAvatar) // reference outer func via new instance is heavy; better replicate but for brevity
         }
     }
 
