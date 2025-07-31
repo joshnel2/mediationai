@@ -256,6 +256,18 @@ struct ConversationView: View {
                 }
             }
         )
+        .onAppear {
+            let cached = MessageCache.load(disputeId: dispute.id)
+            if messages.isEmpty {
+                messages = cached.map { ChatMsg(kind: .text($0), sender: .ai) }
+            }
+        }
+        .onChange(of: messages) { msgs in
+            let texts = msgs.compactMap { msg -> String? in
+                if case .text(let t) = msg.kind { return t } else { return nil }
+            }
+            MessageCache.save(disputeId: dispute.id, messages: texts)
+        }
     }
 
     // MARK: - Live Summary Helper
