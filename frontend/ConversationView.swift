@@ -128,6 +128,7 @@ struct ConversationView: View {
                     .padding(.horizontal,12).padding(.vertical,4)
                     .background(AppTheme.accent)
                     .clipShape(Capsule())
+                    .eraseToAnyView()
 
                 if !argumentSummary.isEmpty {
                     Text(argumentSummary)
@@ -623,7 +624,7 @@ struct ConversationView: View {
                 .clipShape(Circle())
                 .overlay(
                     Circle()
-                        .stroke(votesB > votesA ? AppTheme.accent : (votesA == votesB ? Color.secondary : Color.accent.opacity(0.3)), lineWidth: 3)
+                        .stroke(votesB > votesA ? AppTheme.accent : (votesA == votesB ? Color.secondary : AppTheme.accent.opacity(0.3)), lineWidth: 3)
                         .shadow(color: votesB > votesA ? AppTheme.accent.opacity(0.6) : .clear, radius: 6)
                 )
                 Text(sideBName)
@@ -645,6 +646,7 @@ struct ConversationView: View {
     // Pages
     private func chatPage(for side:ChatMsg.Sender) -> some View {
         ScrollViewReader { proxy in
+            let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
             HStack(spacing:0){
                 // Heat meter sidebar
                 if featureFlags.heatMeterEnabled {
@@ -654,7 +656,6 @@ struct ConversationView: View {
 
                 ScrollView {
                     VStack(spacing:12){
-                        let filtered = messages.filter { $0.sender == side || $0.sender == .ai }
                         ForEach(filtered.indices, id: \.self) { idx in
                             let msg = filtered[idx]
                             let showAvatar = idx == 0 || filtered[idx - 1].sender != msg.sender
@@ -929,6 +930,29 @@ struct ConversationView: View {
     // Video player sheet
     @State private var videoToPlay: URL? = nil
 
+    // declare video preview
+    private struct VideoPreviewView: View {
+        let videoURL: URL
+        let thumbnailURL: URL
+        var playAction: () -> Void
+        var body: some View {
+            ZStack {
+                AsyncImage(url: thumbnailURL) { phase in
+                    (phase.image ?? Image(systemName: "video")).resizable()
+                }
+                .aspectRatio(16/9, contentMode: .fill)
+                .frame(maxWidth: 200)
+                .clipped()
+
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4)
+            }
+            .onTapGesture { playAction() }
+        }
+    }
+
     // Helper to detect supported video links (YouTube for now)
     private func videoURL(from text: String) -> URL? {
         guard let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)) else { return nil }
@@ -1060,6 +1084,11 @@ struct ConversationView: View {
             }
         }
     }
+}
+
+// MARK: - View helper
+extension View {
+    func eraseToAnyView() -> AnyView { AnyView(self) }
 }
 
 #if DEBUG
