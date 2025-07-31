@@ -25,6 +25,7 @@ struct MediationAIApp: App {
     @StateObject var badgeService = BadgeService()
     @StateObject var viralService = ViralAPIService.shared
     @StateObject var socialService = SocialAPIService()
+    @StateObject var featureFlags = FeatureFlags.shared
 
     // Persistent appearance mode: "system", "light", "dark"
     @AppStorage("appearanceMode") private var appearanceMode: String = "system"
@@ -46,6 +47,7 @@ struct MediationAIApp: App {
                 .environmentObject(badgeService)
                 .environmentObject(viralService)
                 .environmentObject(socialService)
+                .environmentObject(featureFlags)
                 .preferredColorScheme(preferredScheme)
         }
     }

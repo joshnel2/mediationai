@@ -85,6 +85,7 @@ struct ConversationView: View {
     @State private var reactions: [UUID: String] = [:]
 
     @EnvironmentObject var authService: MockAuthService
+    @EnvironmentObject var featureFlags: FeatureFlags
 
     // Determine if the current signed-in user is a participant in this crash-out.
     private var isParticipant: Bool {
@@ -238,7 +239,7 @@ struct ConversationView: View {
         }
         .overlay(
             Group {
-                if showReactionPicker, let target = activeReactionTarget {
+                if showReactionPicker, featureFlags.reactionsEnabled, let target = activeReactionTarget {
                     ReactionPicker { emoji in
                         reactions[target] = emoji
                         showReactionPicker = false
@@ -411,6 +412,7 @@ struct ConversationView: View {
         .animation(.easeOut(duration:0.25), value: messages.count)
         .id(msg.id)
         .onLongPressGesture(minimumDuration: 0.4) {
+            guard featureFlags.reactionsEnabled else { return }
             activeReactionTarget = msg.id
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { showReactionPicker = true }
         }
@@ -543,8 +545,10 @@ struct ConversationView: View {
         ScrollViewReader { proxy in
             HStack(spacing:0){
                 // Heat meter sidebar
-                HeatMeterView(messages: filtered)
-                    .frame(width: 4)
+                if featureFlags.heatMeterEnabled {
+                    HeatMeterView(messages: filtered)
+                        .frame(width: 4)
+                }
 
                 ScrollView {
                     VStack(spacing:12){
