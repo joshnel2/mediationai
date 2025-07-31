@@ -674,7 +674,7 @@ struct ConversationView: View {
             .padding()
         }
         .sheet(isPresented: $showShare){
-            ActivityViewController(activityItems: [shareMessage])
+            ActivityViewController(activityItems: [shareMessage, generateShareImage()])
         }
     }
 
@@ -682,6 +682,33 @@ struct ConversationView: View {
 
     private var shareMessage: String {
         "Crashout debate: \(sideAName) vs \(sideBName) — Verdict: \(resolutionText) #Crashout"
+    }
+
+    private func generateShareImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 1080, height: 566))
+        return renderer.image { ctx in
+            // Background gradient
+            let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: [AppTheme.primary.cgColor!, AppTheme.accent.cgColor!] as CFArray, locations: [0,1])!
+            ctx.cgContext.drawLinearGradient(gradient, start: CGPoint(x:0,y:0), end: CGPoint(x:1080,y:566), options: [])
+
+            // Title
+            let title = "\(sideAName) vs \(sideBName)"
+            let titleAttr: [NSAttributedString.Key: Any] = [
+                .font: UIFont.boldSystemFont(ofSize: 64),
+                .foregroundColor: UIColor.white
+            ]
+            let titleSize = title.size(withAttributes: titleAttr)
+            title.draw(at: CGPoint(x: (1080 - titleSize.width)/2, y: 120), withAttributes: titleAttr)
+
+            // Verdict
+            let verdict = resolutionText
+            let verdictAttr: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 40, weight: .medium),
+                .foregroundColor: UIColor.white
+            ]
+            let rect = CGRect(x: 80, y: 280, width: 920, height: 240)
+            verdict.draw(with: rect, options: .usesLineFragmentOrigin, attributes: verdictAttr, context: nil)
+        }
     }
 
     private var resolutionText: String {

@@ -193,6 +193,16 @@ struct TermsOfServiceView: View {
                             We will respond within 30 business days.
                             """
                         )
+                        
+                        PolicySection(
+                            title: "9. AI-Generated Content Disclaimer",
+                            content: """
+                            Our platform uses machine-learning models to generate mediation summaries and recommendations. While we continually refine these systems, AI output may occasionally be inaccurate or biased. You acknowledge that:
+                            • AI advice is provided “AS IS” without warranty.
+                            • You should independently verify critical information.
+                            • MediationAI is not liable for decisions made solely on AI output.
+                            """
+                        )
                     }
                     
                     // Footer
