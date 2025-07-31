@@ -479,7 +479,13 @@ struct ConversationView: View {
                     videoToPlay = video
                 }
             } else if let url = URL(string: t), url.scheme?.hasPrefix("http") == true {
-                LinkPreviewCard(url: url)
+                if url.pathExtension.lowercased() == "gif" {
+                    GIFPreview(url: url)
+                } else if url.pathExtension.lowercased() == "pdf" {
+                    PDFPreview(url: url)
+                } else {
+                    LinkPreviewCard(url: url)
+                }
             } else {
                 Text(t).font(.body).foregroundColor(.primary)
             }
@@ -976,6 +982,41 @@ struct ConversationView: View {
                 .scaleEffect(scale)
                 .onAppear {
                     withAnimation(.spring(response:0.4,dampingFraction:0.7)) { scale = 1 }
+                }
+            }
+        }
+    }
+
+    // MARK: - GIF Preview (basic via WebView)
+    private struct GIFPreview: UIViewRepresentable {
+        let url: URL
+        func makeUIView(context: Context) -> WKWebView {
+            let wv = WKWebView()
+            wv.scrollView.isScrollEnabled = false
+            wv.backgroundColor = .clear
+            wv.isOpaque = false
+            return wv
+        }
+        func updateUIView(_ uiView: WKWebView, context: Context) {
+            uiView.load(URLRequest(url: url))
+        }
+    }
+
+    // MARK: - PDF Preview (first page thumbnail)
+    private struct PDFPreview: View {
+        let url: URL
+        var body: some View {
+            if let doc = PDFDocument(url: url), let page = doc.page(at: 0) {
+                let thumb = page.thumbnail(of: CGSize(width: 200, height: 260), for: .cropBox)
+                Image(uiImage: thumb)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 200)
+                    .cornerRadius(12)
+            } else {
+                HStack {
+                    Image(systemName: "doc.richtext").font(.largeTitle)
+                    Text(url.lastPathComponent).font(.caption)
                 }
             }
         }

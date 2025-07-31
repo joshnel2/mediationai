@@ -31,12 +31,21 @@ struct LinkPreviewCard: View {
                 .background(AppTheme.cardGradient)
                 .cornerRadius(12)
             } else {
-                HStack {
-                    ProgressView()
-                    Text(url.absoluteString)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    Rectangle()
+                        .fill(AppTheme.glassSecondary)
+                        .frame(height: 90)
+                        .shimmer()
+                    Rectangle()
+                        .fill(AppTheme.glassSecondary)
+                        .frame(height: 14)
+                        .shimmer()
+                    Rectangle()
+                        .fill(AppTheme.glassSecondary)
+                        .frame(height: 10)
+                        .shimmer()
                 }
+                .cornerRadius(12)
             }
         }
         .onAppear { fetch() }
