@@ -35,7 +35,7 @@ struct ConversationView: View {
     // Simple chat model
     struct ChatMsg: Identifiable {
         enum Sender { case a, b, ai }
-        enum Kind { case text(String), image(UIImage) }
+        enum Kind { case text(String), image(UIImage), file(URL) }
         let id = UUID()
         let kind: Kind
         let sender: Sender
@@ -44,6 +44,8 @@ struct ConversationView: View {
     @State private var messages: [ChatMsg] = []
     @State private var pickerItem: PhotosPickerItem?
     @State private var pickedImage: UIImage?
+    @State private var pickedFile: URL?
+    @State private var showFileImporter = false
     @State private var input: String = ""
     @State private var aiThinking = false
     @State private var voted = false
@@ -425,7 +427,10 @@ struct ConversationView: View {
             case .text(let t):
                 Button{ UIPasteboard.general.string = t } label:{ Text("Copy") }
                 Button{ shareText(t) } label:{ Label("Share",systemImage:"square.and.arrow.up") }
-            default: EmptyView()
+            case .image(let ui):
+                Button{ shareImage(ui) } label:{ Label("Share", systemImage: "square.and.arrow.up") }
+            case .file(let url):
+                Button{ shareText(url.absoluteString) } label:{ Label("Share", systemImage: "square.and.arrow.up") }
             }
         }
     }
@@ -483,6 +488,22 @@ struct ConversationView: View {
                 .frame(maxWidth:200,maxHeight:200)
                 .clipped()
                 .cornerRadius(12)
+        case .file(let url):
+            HStack(spacing: 8) {
+                Image(systemName: "doc.text")
+                    .font(.title2)
+                VStack(alignment: .leading) {
+                    Text(url.lastPathComponent)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
+                    Text("Tap to share")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .onTapGesture {
+                shareText(url.absoluteString)
+            }
         }
     }
 
@@ -492,13 +513,24 @@ struct ConversationView: View {
         window.rootViewController?.present(av, animated:true)
     }
 
+    private func shareImage(_ image: UIImage) {
+        guard let window = UIApplication.shared.windows.first else { return }
+        let av = UIActivityViewController(activityItems:[image], applicationActivities:nil)
+        window.rootViewController?.present(av, animated:true)
+    }
+
     private func loadPickedImage(){
         guard let item = pickerItem else { return }
         Task {
             if let data = try? await item.loadTransferable(type: Data.self), let ui = UIImage(data:data){
                 pickedImage = ui
+                messages.append(ChatMsg(kind: .image(ui), sender: meIsA ? .a : .b))
             }
         }
+    }
+
+    private func handlePickedFile(_ url: URL) {
+        messages.append(ChatMsg(kind: .file(url), sender: meIsA ? .a : .b))
     }
 
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
