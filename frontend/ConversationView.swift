@@ -516,10 +516,16 @@ struct ConversationView: View {
     private var versusSection: some View {
         HStack(alignment:.center, spacing:16) {
             VStack(spacing:4){
-                AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:120)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
-                    .frame(width:56,height:56)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(AppTheme.primary,lineWidth:2))
+                AsyncImage(url: social.avatarURL(id: dispute.id+"a", size:120)) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:56,height:56)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(votesA > votesB ? AppTheme.primary : (votesA == votesB ? Color.secondary : Color.primary.opacity(0.3)), lineWidth: 3)
+                        .shadow(color: votesA > votesB ? AppTheme.primary.opacity(0.6) : .clear, radius: 6)
+                )
                 Text(sideAName)
                     .font(.caption)
                     .foregroundColor(.primary)
@@ -531,10 +537,16 @@ struct ConversationView: View {
                 .foregroundColor(.secondary)
 
             VStack(spacing:4){
-                AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:120)){ phase in (phase.image ?? Image(systemName:"person.circle")).resizable() }
-                    .frame(width:56,height:56)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(AppTheme.accent,lineWidth:2))
+                AsyncImage(url: social.avatarURL(id: dispute.id+"b", size:120)) { phase in
+                    (phase.image ?? Image(systemName:"person.circle")).resizable()
+                }
+                .frame(width:56,height:56)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(votesB > votesA ? AppTheme.accent : (votesA == votesB ? Color.secondary : Color.accent.opacity(0.3)), lineWidth: 3)
+                        .shadow(color: votesB > votesA ? AppTheme.accent.opacity(0.6) : .clear, radius: 6)
+                )
                 Text(sideBName)
                     .font(.caption)
                     .foregroundColor(.primary)
