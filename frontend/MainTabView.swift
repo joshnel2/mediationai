@@ -28,6 +28,11 @@ struct MainTabView: View {
                     Image(systemName: "magnifyingglass")
                 }
 
+#if DEBUG
+            ComponentCatalogView()
+                .tabItem { Image(systemName: "paintbrush") }
+#endif
+
             NavigationView {
                 HomeView()
             }
