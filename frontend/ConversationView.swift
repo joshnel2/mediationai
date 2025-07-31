@@ -3,6 +3,8 @@ import Combine
 import PhotosUI
 import AVKit
 import UniformTypeIdentifiers
+import WebKit
+import PDFKit
 
 // MARK: - Bubble Tail Shape
 struct BubbleTail: Shape {
