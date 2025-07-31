@@ -36,12 +36,14 @@ struct ConversationView: View {
     struct ChatMsg: Identifiable {
         enum Sender { case a, b, ai }
         enum Kind { case text(String), image(UIImage), file(URL) }
+        var pending: Bool = false
         let id = UUID()
         let kind: Kind
         let sender: Sender
     }
 
     @State private var messages: [ChatMsg] = []
+    @StateObject private var network = NetworkMonitor.shared
     @State private var pickerItem: PhotosPickerItem?
     @State private var pickedImage: UIImage?
     @State private var pickedFile: URL?
@@ -268,6 +270,7 @@ struct ConversationView: View {
             }
             MessageCache.save(disputeId: dispute.id, messages: texts)
         }
+        .onReceive(network.$isOnline) { _ in attemptResend() }
     }
 
     // MARK: - Live Summary Helper
@@ -407,7 +410,7 @@ struct ConversationView: View {
             VStack(alignment: msg.sender == .a ? .leading : .trailing){
                 content(for: msg)
                     .font(AppTheme.body())
-                    .foregroundColor(AppTheme.textPrimary)
+                    .foregroundColor(msg.pending ? .gray : AppTheme.textPrimary)
                     .padding(AppTheme.spacingMD)
                     .background(bubbleGradient(for: msg))
                     .clipShape(RoundedRectangle(cornerRadius: bubbleCorner(for: msg)))
@@ -544,13 +547,35 @@ struct ConversationView: View {
         Task {
             if let data = try? await item.loadTransferable(type: Data.self), let ui = UIImage(data:data){
                 pickedImage = ui
-                messages.append(ChatMsg(kind: .image(ui), sender: meIsA ? .a : .b))
+                enqueueMessage(ChatMsg(kind: .image(ui), sender: meIsA ? .a : .b, pending: !network.isOnline))
             }
         }
     }
 
     private func handlePickedFile(_ url: URL) {
-        messages.append(ChatMsg(kind: .file(url), sender: meIsA ? .a : .b))
+        enqueueMessage(ChatMsg(kind: .file(url), sender: meIsA ? .a : .b, pending: !network.isOnline))
+    }
+
+    private func enqueueMessage(_ msg: ChatMsg) {
+        messages.append(msg)
+        if !msg.pending {
+            // here you'd send to server
+        } else {
+            // store to outbox
+            pendingOutbox.append(msg.id)
+        }
+    }
+
+    @State private var pendingOutbox: [UUID] = []
+
+    private func attemptResend() {
+        guard network.isOnline else { return }
+        for id in pendingOutbox {
+            if let idx = messages.firstIndex(where: { $0.id == id }) {
+                messages[idx].pending = false
+            }
+        }
+        pendingOutbox.removeAll()
     }
 
     private func bubbleGradient(for msg:ChatMsg)->LinearGradient{
