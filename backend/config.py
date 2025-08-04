@@ -53,6 +53,13 @@ class Settings(BaseSettings):
     apns_team_id: str = ""
     apns_key_base64: str = ""  # Base64-encoded .p8 content
 
+    # Bank Connection (Plaid)
+    plaid_client_id: str = ""
+    plaid_secret: str = ""
+    plaid_env: str = "sandbox"
+    plaid_products: str = "auth,transactions"
+    plaid_country_codes: str = "US"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

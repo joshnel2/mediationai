@@ -21,11 +21,13 @@ logger = logging.getLogger(__name__)
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 # Initialize Plaid
+from config import settings
+
 configuration = plaid.Configuration(
-    host=getattr(plaid.Environment, os.getenv("PLAID_ENV", "sandbox"), plaid.Environment.sandbox),
+    host=getattr(plaid.Environment, settings.plaid_env, plaid.Environment.sandbox),
     api_key={
-        'clientId': os.getenv("PLAID_CLIENT_ID"),
-        'secret': os.getenv("PLAID_SECRET"),
+        'clientId': settings.plaid_client_id,
+        'secret': settings.plaid_secret,
     }
 )
 api_client = plaid.ApiClient(configuration)

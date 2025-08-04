@@ -43,6 +43,8 @@ import social_api
 from social_api import router as social_router
 import betting_api
 from betting_api import router as betting_router
+import webhooks
+from webhooks import router as webhook_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -58,6 +60,7 @@ app = FastAPI(
 # Add routers
 app.include_router(social_router)
 app.include_router(betting_router)
+app.include_router(webhook_router)
 
 # CORS middleware for iOS app
 app.add_middleware(
