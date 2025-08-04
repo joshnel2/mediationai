@@ -9,8 +9,20 @@ from fastapi.responses import Response
 from database import get_db, User as DBUser
 from auth import get_current_user
 from social_models import Follow, ClashRoom, ClashVote, Badge, InviteCode, HighlightClip, XPLog, PredictionVote
-from pyapns2.client import APNsClient
-from pyapns2.payload import Payload
+
+try:
+    from pyapns2.client import APNsClient
+    from pyapns2.payload import Payload
+    APNS_AVAILABLE = True
+except ImportError:
+    try:
+        from apns2.client import APNsClient
+        from apns2.payload import Payload
+        APNS_AVAILABLE = True
+    except ImportError:
+        APNS_AVAILABLE = False
+        APNsClient = None
+        Payload = None
 
 router = APIRouter(prefix="/api")
 
