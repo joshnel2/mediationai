@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Swift/Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserstate
+DerivedData/
+.DS_Store
+*.swp
+*~.nib
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/
+Pods/
+Carthage/Build/
+
+# Testing
+coverage/
+.pytest_cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
