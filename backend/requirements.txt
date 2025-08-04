@@ -20,3 +20,5 @@ pyapns2==2.0.0
 firebase-admin==6.4.0
 Pillow==10.3.0
 moviepy==1.0.3
+# payment processing
+stripe==7.6.0

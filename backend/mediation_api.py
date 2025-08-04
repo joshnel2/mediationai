@@ -38,6 +38,12 @@ try:
 except ImportError:
     fb_auth = None  # optional
 
+# Import routers
+import social_api
+from social_api import router as social_router
+import betting_api
+from betting_api import router as betting_router
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,9 +55,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# New: include social features (follow, clash rooms)
-import social_api
-app.include_router(social_api.router)
+# Add routers
+app.include_router(social_router)
+app.include_router(betting_router)
 
 # CORS middleware for iOS app
 app.add_middleware(

@@ -223,6 +223,11 @@ class ResolutionLog(Base):
     is_final = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
+# Import all models to ensure they're registered with Base
+from dispute_models import *
+from social_models import *
+from betting_models import *
+
 # Database dependency
 def get_db():
     db = SessionLocal()
