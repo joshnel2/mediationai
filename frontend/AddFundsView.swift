@@ -24,112 +24,97 @@ struct AddFundsView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Animated background
-                AnimatedMoneyBackground()
+                // Clean background
+                Color(UIColor.systemBackground)
+                    .ignoresSafeArea()
                 
-                VStack(spacing: 24) {
-                    // Header
-                    headerSection
-                    
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            // Balance Card
-                            balanceCard
-                            
-                            // Amount Selection
-                            amountSection
-                            
-                            // Payment Methods
-                            paymentMethodsSection
-                            
-                            // Summary
-                            if selectedAmountValue != nil {
-                                summaryCard
-                            }
-                            
-                            // Add Funds Button
-                            addFundsButton
-                            
-                            // Security Badge
-                            securityBadge
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Balance display
+                        balanceCard
+                        
+                        // Amount selection
+                        amountSection
+                        
+                        // Payment methods
+                        paymentMethodsSection
+                        
+                        // Summary
+                        if selectedAmountValue != nil {
+                            summaryCard
                         }
-                        .padding()
+                        
+                        // Add funds button
+                        addFundsButton
+                        
+                        // Security info
+                        securityInfo
                     }
+                    .padding()
                 }
                 
-                // Floating coins animation
+                // Success overlay
                 if showSuccessAnimation {
-                    FloatingCoinsAnimation()
+                    SuccessOverlay()
+                        .transition(.opacity)
                 }
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Add Funds")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
             .sheet(isPresented: $showBankConnection) {
                 BankConnectionView(walletBalance: $walletBalance)
             }
         }
     }
     
-    // MARK: - Header Section
-    var headerSection: some View {
-        HStack {
-            Button(action: { dismiss() }) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.white.opacity(0.8))
-            }
-            
-            Spacer()
-            
-            Text("Add Funds")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            Spacer()
-            
-            // Placeholder for balance
-            Image(systemName: "xmark.circle.fill")
-                .font(.title2)
-                .opacity(0)
-        }
-        .padding()
-    }
-    
     // MARK: - Balance Card
     var balanceCard: some View {
-        VStack(spacing: 12) {
-            Text("Current Balance")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Text("Current Balance")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Text("$\(walletBalance, specifier: "%.2f")")
+                    .font(.system(size: 44, weight: .semibold, design: .rounded))
+                    .contentTransition(.numericText())
+            }
             
-            Text("$\(walletBalance, specifier: "%.2f")")
-                .font(.system(size: 48, weight: .black, design: .rounded))
-                .foregroundColor(.white)
-                .contentTransition(.numericText())
+            HStack(spacing: 32) {
+                VStack(spacing: 4) {
+                    Text("$5,234")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                    Text("Total Deposited")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Divider()
+                    .frame(height: 30)
+                
+                VStack(spacing: 4) {
+                    Text("$1,234")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
+                    Text("Total Winnings")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
         }
-        .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [Color.purple, Color.blue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2
-                        )
-                )
-        )
+        .frame(maxWidth: .infinity)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(16)
     }
     
     // MARK: - Amount Section
@@ -137,50 +122,51 @@ struct AddFundsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Select Amount")
                 .font(.headline)
-                .foregroundColor(.white)
             
-            // Quick amounts grid
+            // Quick amount grid
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(quickAmounts, id: \.self) { amount in
                     QuickAmountButton(
                         amount: amount,
-                        isSelected: selectedAmount == String(amount),
-                        action: {
-                            withAnimation(.spring()) {
-                                selectedAmount = String(amount)
-                                customAmount = ""
-                            }
+                        isSelected: selectedAmount == String(amount)
+                    ) {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedAmount = String(amount)
+                            customAmount = ""
                         }
-                    )
+                    }
                 }
             }
             
             // Custom amount
-            HStack {
-                Text("$")
-                    .font(.title3)
-                    .foregroundColor(.white.opacity(0.6))
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Or enter custom amount")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
-                TextField("Custom amount", text: $customAmount)
-                    .font(.title3)
-                    .keyboardType(.decimalPad)
-                    .foregroundColor(.white)
-                    .onChange(of: customAmount) { _ in
-                        selectedAmount = ""
-                    }
+                HStack {
+                    Text("$")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("0", text: $customAmount)
+                        .font(.title3)
+                        .keyboardType(.decimalPad)
+                        .onChange(of: customAmount) { _ in
+                            selectedAmount = ""
+                        }
+                }
+                .padding()
+                .background(Color(UIColor.tertiarySystemBackground))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(
+                            customAmount.isEmpty ? Color.clear : Color.blue,
+                            lineWidth: 2
+                        )
+                )
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(
-                                customAmount.isEmpty ? Color.white.opacity(0.2) : Color.blue,
-                                lineWidth: customAmount.isEmpty ? 1 : 2
-                            )
-                    )
-            )
         }
     }
     
@@ -189,52 +175,36 @@ struct AddFundsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Payment Method")
                 .font(.headline)
-                .foregroundColor(.white)
             
             VStack(spacing: 12) {
-                // Bank Transfer Option
                 PaymentMethodCard(
-                    icon: "building.columns.fill",
+                    icon: "building.columns",
                     title: "Bank Transfer",
-                    subtitle: "No fees • 1-3 days",
+                    subtitle: "Free • 1-3 business days",
                     badge: "RECOMMENDED",
-                    badgeColor: .green,
-                    isSelected: selectedPaymentMethod == "bank",
-                    gradientColors: [Color.blue, Color.cyan]
+                    isSelected: selectedPaymentMethod == "bank"
                 ) {
-                    withAnimation(.spring()) {
-                        selectedPaymentMethod = "bank"
-                    }
+                    selectedPaymentMethod = "bank"
                 }
                 
-                // Instant Debit Card Option
                 PaymentMethodCard(
-                    icon: "creditcard.fill",
+                    icon: "creditcard",
                     title: "Debit Card",
                     subtitle: "2.5% fee • Instant",
-                    badge: "INSTANT",
-                    badgeColor: .orange,
-                    isSelected: selectedPaymentMethod == "card",
-                    gradientColors: [Color.purple, Color.pink]
+                    badge: nil,
+                    isSelected: selectedPaymentMethod == "card"
                 ) {
-                    withAnimation(.spring()) {
-                        selectedPaymentMethod = "card"
-                    }
+                    selectedPaymentMethod = "card"
                 }
                 
-                // Crypto Option
                 PaymentMethodCard(
-                    icon: "bitcoinsign.circle.fill",
-                    title: "Cryptocurrency",
-                    subtitle: "Low fees • 10-60 min",
-                    badge: "CRYPTO",
-                    badgeColor: .yellow,
-                    isSelected: selectedPaymentMethod == "crypto",
-                    gradientColors: [Color.orange, Color.yellow]
+                    icon: "applelogo",
+                    title: "Apple Pay",
+                    subtitle: "2.5% fee • Instant",
+                    badge: nil,
+                    isSelected: selectedPaymentMethod == "apple"
                 ) {
-                    withAnimation(.spring()) {
-                        selectedPaymentMethod = "crypto"
-                    }
+                    selectedPaymentMethod = "apple"
                 }
             }
         }
@@ -246,19 +216,18 @@ struct AddFundsView: View {
             HStack {
                 Text("Deposit Amount")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Text("$\(selectedAmountValue ?? 0, specifier: "%.2f")")
                     .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+                    .fontWeight(.medium)
             }
             
-            if selectedPaymentMethod == "card" {
+            if selectedPaymentMethod != "bank" {
                 HStack {
-                    Text("Processing Fee (2.5%)")
+                    Text("Processing Fee")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                     Spacer()
                     Text("$\(((selectedAmountValue ?? 0) * 0.025), specifier: "%.2f")")
                         .font(.subheadline)
@@ -267,42 +236,29 @@ struct AddFundsView: View {
             }
             
             Divider()
-                .background(Color.gray.opacity(0.3))
             
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("You'll receive")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                     
-                    if selectedPaymentMethod == "bank" {
-                        Text("in 1-3 business days")
-                            .font(.caption2)
-                            .foregroundColor(.blue)
-                    } else if selectedPaymentMethod == "card" {
-                        Text("instantly")
-                            .font(.caption2)
-                            .foregroundColor(.green)
-                    }
+                    Text(processingTimeText())
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
                 Text("$\(calculateFinalAmount(), specifier: "%.2f")")
                     .font(.title3)
-                    .fontWeight(.bold)
+                    .fontWeight(.semibold)
                     .foregroundColor(.green)
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-                )
-        )
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
     }
     
     // MARK: - Add Funds Button
@@ -313,89 +269,103 @@ struct AddFundsView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Image(systemName: selectedPaymentMethod == "bank" ? "building.columns.fill" : "plus.circle.fill")
-                    Text(selectedPaymentMethod == "bank" ? "Connect Bank & Deposit" : "Add Funds")
-                        .fontWeight(.bold)
+                    Image(systemName: paymentMethodIcon())
+                    Text(paymentMethodButtonText())
+                        .fontWeight(.semibold)
                 }
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
-                LinearGradient(
-                    colors: selectedAmountValue == nil || isProcessing ? 
-                        [Color.gray] : [Color.green, Color.blue],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+                Color.blue
+                    .opacity(selectedAmountValue == nil || isProcessing ? 0.5 : 1)
             )
-            .cornerRadius(16)
-            .shadow(color: .green.opacity(0.3), radius: 10, y: 5)
+            .cornerRadius(12)
         }
         .disabled(selectedAmountValue == nil || isProcessing)
-        .scaleEffect(isProcessing ? 0.95 : 1.0)
-        .animation(.spring(), value: isProcessing)
     }
     
-    // MARK: - Security Badge
-    var securityBadge: some View {
+    // MARK: - Security Info
+    var securityInfo: some View {
         HStack(spacing: 16) {
             Image(systemName: "lock.shield.fill")
-                .font(.title3)
+                .font(.title2)
                 .foregroundColor(.green)
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Bank-level Security")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Secure & Encrypted")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                 
-                Text("Your payment info is encrypted and secure")
-                    .font(.caption2)
-                    .foregroundColor(.gray)
+                Text("Your payment information is protected with bank-level security")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.green.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
-                )
-        )
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(12)
     }
     
     // MARK: - Helper Functions
     func calculateFinalAmount() -> Double {
         guard let amount = selectedAmountValue else { return 0 }
         
-        if selectedPaymentMethod == "card" {
+        if selectedPaymentMethod == "bank" {
+            return amount
+        } else {
             return amount * 0.975 // 2.5% fee
         }
-        return amount
+    }
+    
+    func processingTimeText() -> String {
+        switch selectedPaymentMethod {
+        case "bank":
+            return "in 1-3 business days"
+        default:
+            return "instantly"
+        }
+    }
+    
+    func paymentMethodIcon() -> String {
+        switch selectedPaymentMethod {
+        case "bank":
+            return "building.columns.fill"
+        case "apple":
+            return "applelogo"
+        default:
+            return "creditcard.fill"
+        }
+    }
+    
+    func paymentMethodButtonText() -> String {
+        if selectedPaymentMethod == "bank" {
+            return "Connect Bank & Deposit"
+        } else {
+            return "Add Funds"
+        }
     }
     
     func handleAddFunds() {
         if selectedPaymentMethod == "bank" {
-            // Show bank connection flow
             showBankConnection = true
         } else {
-            // Process other payment methods
             isProcessing = true
             
             Task {
-                // Simulate API call
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 
                 await MainActor.run {
                     walletBalance += calculateFinalAmount()
                     isProcessing = false
-                    showSuccessAnimation = true
                     
-                    // Dismiss after animation
+                    withAnimation(.spring()) {
+                        showSuccessAnimation = true
+                    }
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         dismiss()
                     }
@@ -414,28 +384,17 @@ struct QuickAmountButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
-                Text("$\(amount)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(isSelected ? .black : .white)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.white : Color.white.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(
-                                isSelected ? Color.clear : Color.white.opacity(0.3),
-                                lineWidth: 1
-                            )
-                    )
-            )
+            Text("$\(amount)")
+                .font(.subheadline)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .white : .primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isSelected ? Color.blue : Color(UIColor.tertiarySystemBackground))
+                )
         }
-        .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(.spring(response: 0.3), value: isSelected)
     }
 }
 
@@ -444,181 +403,97 @@ struct PaymentMethodCard: View {
     let title: String
     let subtitle: String
     let badge: String?
-    let badgeColor: Color
     let isSelected: Bool
-    let gradientColors: [Color]
     let action: () -> Void
-    
-    init(icon: String, title: String, subtitle: String, badge: String? = nil, 
-         badgeColor: Color = .blue, isSelected: Bool, gradientColors: [Color], action: @escaping () -> Void) {
-        self.icon = icon
-        self.title = title
-        self.subtitle = subtitle
-        self.badge = badge
-        self.badgeColor = badgeColor
-        self.isSelected = isSelected
-        self.gradientColors = gradientColors
-        self.action = action
-    }
     
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                // Icon with gradient
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: gradientColors.map { $0.opacity(0.3) },
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 50, height: 50)
-                    
-                    Image(systemName: icon)
-                        .font(.title2)
-                        .foregroundColor(.white)
-                }
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .frame(width: 32)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     HStack {
                         Text(title)
                             .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
                         
                         if let badge = badge {
                             Text(badge)
                                 .font(.caption2)
-                                .fontWeight(.bold)
+                                .fontWeight(.semibold)
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 8)
+                                .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(badgeColor)
-                                )
+                                .background(Color.green)
+                                .cornerRadius(4)
                         }
                     }
                     
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundColor(isSelected ? .green : .gray)
+                    .foregroundColor(isSelected ? .blue : .quaternary)
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.white.opacity(0.1) : Color.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(UIColor.secondarySystemBackground))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(
-                                isSelected ? 
-                                    LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing) :
-                                    LinearGradient(colors: [Color.white.opacity(0.1)], startPoint: .leading, endPoint: .trailing),
-                                lineWidth: isSelected ? 2 : 1
-                            )
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: 2)
                     )
             )
         }
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3), value: isSelected)
     }
 }
 
-// MARK: - Animations
-
-struct AnimatedMoneyBackground: View {
-    @State private var animationPhase = 0.0
+struct SuccessOverlay: View {
+    @State private var scale = 0.5
+    @State private var opacity = 0.0
     
     var body: some View {
         ZStack {
-            // Base gradient
-            LinearGradient(
-                colors: [Color.black, Color.green.opacity(0.1), Color.black],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
             
-            // Animated money symbols
-            GeometryReader { geometry in
-                ForEach(0..<20) { index in
-                    Text("$")
-                        .font(.system(size: 30))
-                        .foregroundColor(.green.opacity(0.1))
-                        .rotationEffect(.degrees(Double.random(in: -45...45)))
-                        .position(
-                            x: CGFloat.random(in: 0...geometry.size.width),
-                            y: CGFloat.random(in: 0...geometry.size.height)
-                        )
-                        .offset(y: animationPhase)
-                        .opacity(0.3 - (animationPhase / 1000))
-                }
+            VStack(spacing: 16) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundColor(.green)
+                
+                Text("Success!")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text("Funds added to your wallet")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
+            .padding(32)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color(UIColor.systemBackground))
+            )
+            .scaleEffect(scale)
+            .opacity(opacity)
         }
-        .ignoresSafeArea()
         .onAppear {
-            withAnimation(.linear(duration: 10).repeatForever(autoreverses: false)) {
-                animationPhase = 1000
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                scale = 1.0
+                opacity = 1.0
             }
         }
     }
-}
-
-struct FloatingCoinsAnimation: View {
-    @State private var coins: [CoinAnimation] = []
-    
-    var body: some View {
-        ZStack {
-            ForEach(coins) { coin in
-                Text("💰")
-                    .font(.system(size: coin.size))
-                    .position(coin.position)
-                    .opacity(coin.opacity)
-            }
-        }
-        .onAppear {
-            for i in 0..<15 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.1) {
-                    withAnimation(.easeOut(duration: 2)) {
-                        let coin = CoinAnimation(
-                            position: CGPoint(
-                                x: CGFloat.random(in: 100...300),
-                                y: UIScreen.main.bounds.height - 100
-                            ),
-                            size: CGFloat.random(in: 30...50),
-                            opacity: 1
-                        )
-                        coins.append(coin)
-                        
-                        // Animate up and fade
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            if let index = coins.firstIndex(where: { $0.id == coin.id }) {
-                                withAnimation(.easeOut(duration: 2)) {
-                                    coins[index].position.y -= 300
-                                    coins[index].opacity = 0
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct CoinAnimation: Identifiable {
-    let id = UUID()
-    var position: CGPoint
-    var size: CGFloat
-    var opacity: Double
 }
 
 #Preview {

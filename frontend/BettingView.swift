@@ -1,1405 +1,904 @@
 import SwiftUI
 
 struct BettingView: View {
-    @EnvironmentObject var authService: MockAuthService
-    @EnvironmentObject var disputeService: MockDisputeService
-    @State private var selectedDispute: Dispute?
-    @State private var betAmount: String = ""
-    @State private var selectedWinner: String = ""
-    @State private var showPaymentSheet = false
-    @State private var selectedPaymentMethod = "wallet"
-    @State private var isPlacingBet = false
-    @State private var errorMessage: String?
-    @State private var successMessage: String?
-    @State private var showConfetti = false
-    @State private var animateOdds = false
-    @State private var pulseAmount = false
-    
-    // Wallet state
-    @State private var walletBalance: Double = 0.0
-    @State private var pendingBalance: Double = 0.0
-    @State private var isVerified = false
-    
-    // Betting pool data
-    @State private var poolData: BettingPoolData?
-    
-    // UI State
-    @State private var selectedTab = 0
+    @State private var selectedTab = "active"
     @State private var showBetSlip = false
-    @State private var betSlipOffset: CGFloat = UIScreen.main.bounds.height
+    @State private var selectedDispute: Dispute?
+    @State private var betAmount = ""
+    @State private var selectedSide = ""
+    @State private var showAddFunds = false
+    @State private var walletBalance = 2500.0
+    @State private var activeBets: [Bet] = []
+    @State private var searchText = ""
     
-    let paymentMethods = [
-        ("wallet", "💰", "Instant Wallet"),
-        ("stripe", "💳", "Card"),
-        ("paypal", "🅿️", "PayPal"),
-        ("crypto", "₿", "Crypto")
+    let tabs = [
+        ("active", "Active Disputes"),
+        ("mybets", "My Bets"),
+        ("history", "History")
     ]
     
     var body: some View {
         NavigationView {
             ZStack {
-                // Animated gradient background
-                AnimatedGradientBackground()
+                // Clean background
+                Color(UIColor.systemBackground)
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Custom Navigation Header
-                    customHeader
+                    // Professional header
+                    headerSection
                     
-                    // Tab Selection
+                    // Search bar
+                    searchBar
+                    
+                    // Tab selector
                     tabSelector
                     
-                    // Main Content
-                    TabView(selection: $selectedTab) {
-                        hotBetsView
-                            .tag(0)
-                        
-                        myBetsView
-                            .tag(1)
-                        
-                        leaderboardView
-                            .tag(2)
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                }
-                
-                // Floating Bet Slip
-                if showBetSlip && selectedDispute != nil {
-                    floatingBetSlip
-                }
-                
-                // Confetti overlay
-                if showConfetti {
-                    ConfettiView()
-                        .allowsHitTesting(false)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                showConfetti = false
+                    // Content
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            if selectedTab == "active" {
+                                activeDisputesSection
+                            } else if selectedTab == "mybets" {
+                                myBetsSection
+                            } else {
+                                historySection
                             }
                         }
+                        .padding()
+                    }
+                }
+                
+                // Professional bet slip overlay
+                if showBetSlip {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring()) {
+                                showBetSlip = false
+                            }
+                        }
+                    
+                    ProfessionalBetSlip(
+                        dispute: selectedDispute,
+                        betAmount: $betAmount,
+                        selectedSide: $selectedSide,
+                        walletBalance: walletBalance,
+                        isShowing: $showBetSlip,
+                        onPlaceBet: placeBet
+                    )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .navigationBarHidden(true)
-        }
-        .onAppear {
-            loadWalletData()
+            .sheet(isPresented: $showAddFunds) {
+                AddFundsView(walletBalance: $walletBalance)
+            }
         }
     }
     
-    // MARK: - Custom Header
-    var customHeader: some View {
+    // MARK: - Header Section
+    var headerSection: some View {
         VStack(spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("💸 Crashout Bets")
+                    Text("Betting")
                         .font(.largeTitle)
-                        .fontWeight(.black)
-                        .foregroundColor(.white)
+                        .fontWeight(.bold)
                     
-                    Text("Bet on drama, win real money")
+                    Text("Place informed bets on dispute outcomes")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                // Wallet Widget
-                walletWidget
+                // Wallet button
+                Button(action: { showAddFunds = true }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wallet.pass")
+                            .font(.body)
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Balance")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("$\(walletBalance, specifier: "%.2f")")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding()
             
-            // Live Stats Ticker
-            liveStatsTicker
-        }
-        .background(
-            LinearGradient(
-                colors: [Color.black, Color.black.opacity(0.8)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
-    
-    var walletWidget: some View {
-        Button(action: { showPaymentSheet = true }) {
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(spacing: 4) {
-                    Image(systemName: "dollarsign.circle.fill")
-                        .font(.caption)
-                    Text("$\(walletBalance, specifier: "%.2f")")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                }
-                .foregroundColor(.green)
-                
-                if pendingBalance > 0 {
-                    Text("$\(pendingBalance, specifier: "%.2f") pending")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(Color.green.opacity(0.2))
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(Color.green, lineWidth: 1)
-                    )
-            )
-        }
-        .buttonStyle(ScaleButtonStyle())
-        .sheet(isPresented: $showPaymentSheet) {
-            AddFundsView(walletBalance: $walletBalance)
+            Divider()
         }
     }
     
-    var liveStatsTicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                StatBadge(icon: "flame", value: "$50K", label: "Today's Pool", color: .orange)
-                StatBadge(icon: "person.2.fill", value: "1.2K", label: "Active Bettors", color: .blue)
-                StatBadge(icon: "trophy.fill", value: "$500", label: "Biggest Win", color: .yellow)
-                StatBadge(icon: "chart.line.uptrend.xyaxis", value: "2.5x", label: "Avg Odds", color: .green)
+    // MARK: - Search Bar
+    var searchBar: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.secondary)
+            
+            TextField("Search disputes...", text: $searchText)
+                .textFieldStyle(PlainTextFieldStyle())
+            
+            if !searchText.isEmpty {
+                Button(action: { searchText = "" }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
             }
-            .padding(.horizontal)
         }
+        .padding(12)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(10)
+        .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Color.white.opacity(0.05))
     }
     
     // MARK: - Tab Selector
     var tabSelector: some View {
         HStack(spacing: 0) {
-            ForEach(0..<3) { index in
-                Button(action: { 
-                    withAnimation(.spring()) {
-                        selectedTab = index
+            ForEach(tabs, id: \.0) { tab in
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedTab = tab.0
                     }
                 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: tabIcon(for: index))
-                            .font(.title3)
-                        Text(tabTitle(for: index))
-                            .font(.caption)
-                            .fontWeight(.semibold)
+                    VStack(spacing: 8) {
+                        Text(tab.1)
+                            .font(.subheadline)
+                            .fontWeight(selectedTab == tab.0 ? .semibold : .regular)
+                            .foregroundColor(selectedTab == tab.0 ? .primary : .secondary)
+                        
+                        Rectangle()
+                            .fill(selectedTab == tab.0 ? Color.blue : Color.clear)
+                            .frame(height: 2)
                     }
-                    .foregroundColor(selectedTab == index ? .white : .gray)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        selectedTab == index ?
-                        Capsule()
-                            .fill(Color.blue)
-                            .matchedGeometryEffect(id: "tab", in: tabNamespace)
-                        : nil
-                    )
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(.horizontal)
-        .padding(.bottom, 8)
-        .background(Color.black.opacity(0.3))
+        .background(Color(UIColor.systemBackground))
     }
     
-    @Namespace private var tabNamespace
-    
-    func tabIcon(for index: Int) -> String {
-        switch index {
-        case 0: return "flame.fill"
-        case 1: return "ticket.fill"
-        case 2: return "crown.fill"
-        default: return ""
-        }
-    }
-    
-    func tabTitle(for index: Int) -> String {
-        switch index {
-        case 0: return "Hot Bets"
-        case 1: return "My Bets"
-        case 2: return "Leaderboard"
-        default: return ""
-        }
-    }
-    
-    // MARK: - Hot Bets View
-    var hotBetsView: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Featured Bet
-                if let featured = disputeService.disputes.first(where: { $0.status == .active }) {
-                    FeaturedBetCard(
-                        dispute: featured,
-                        poolData: poolData,
-                        onBet: {
-                            selectedDispute = featured
-                            loadPoolData(for: featured.id)
-                            withAnimation(.spring()) {
-                                showBetSlip = true
-                            }
-                        }
-                    )
-                    .padding(.horizontal)
-                }
+    // MARK: - Active Disputes Section
+    var activeDisputesSection: some View {
+        VStack(spacing: 16) {
+            // Stats cards
+            HStack(spacing: 12) {
+                StatCard(
+                    title: "Total Volume",
+                    value: "$125.4K",
+                    change: "+12.5%",
+                    icon: "chart.line.uptrend.xyaxis"
+                )
                 
-                // Live Disputes Grid
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("🔥 Live Crashouts")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal)
-                    
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        ForEach(disputeService.disputes.filter { $0.status == .active }) { dispute in
-                            LiveDisputeCard(
-                                dispute: dispute,
-                                poolAmount: Double.random(in: 100...5000),
-                                onTap: {
-                                    selectedDispute = dispute
-                                    loadPoolData(for: dispute.id)
-                                    withAnimation(.spring()) {
-                                        showBetSlip = true
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
-                }
+                StatCard(
+                    title: "Active Bets",
+                    value: "1,234",
+                    change: "+8.2%",
+                    icon: "person.2"
+                )
             }
-            .padding(.vertical)
-        }
-    }
-    
-    // MARK: - My Bets View
-    var myBetsView: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Quick Stats
-                HStack(spacing: 16) {
-                    QuickStatCard(
-                        title: "Active Bets",
-                        value: "3",
-                        subtitle: "$250 at risk",
-                        color: .orange,
-                        icon: "clock.fill"
-                    )
-                    
-                    QuickStatCard(
-                        title: "Today's P/L",
-                        value: "+$125",
-                        subtitle: "5 bets settled",
-                        color: .green,
-                        icon: "chart.line.uptrend.xyaxis"
-                    )
-                }
-                .padding(.horizontal)
-                
-                // Active Bets
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Active Bets")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        NavigationLink(destination: BettingHistoryView()) {
-                            Text("View All")
-                                .font(.caption)
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .padding(.horizontal)
-                    
-                    // Mock active bets
-                    VStack(spacing: 12) {
-                        ActiveBetCard(
-                            disputeTitle: "Best Fortnite Builder",
-                            amount: 50,
-                            odds: 2.5,
-                            predictedWinner: "NinjaMaster",
-                            timeRemaining: "2h 15m",
-                            currentStatus: .winning
-                        )
-                        
-                        ActiveBetCard(
-                            disputeTitle: "Warzone Kill Record",
-                            amount: 100,
-                            odds: 1.8,
-                            predictedWinner: "SniperElite",
-                            timeRemaining: "45m",
-                            currentStatus: .losing
-                        )
-                    }
-                    .padding(.horizontal)
-                }
-            }
-            .padding(.vertical)
-        }
-    }
-    
-    // MARK: - Leaderboard View
-    var leaderboardView: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Leaderboard Header
-                VStack(spacing: 8) {
-                    Text("👑 Top Bettors")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text("This Week")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                
-                // Top 3 Podium
-                HStack(alignment: .bottom, spacing: 0) {
-                    // 2nd Place
-                    PodiumPlace(
-                        rank: 2,
-                        username: "BetKing",
-                        profit: "$2,450",
-                        avatar: "🥈"
-                    )
-                    
-                    // 1st Place
-                    PodiumPlace(
-                        rank: 1,
-                        username: "CrashGod",
-                        profit: "$5,230",
-                        avatar: "🥇"
-                    )
-                    
-                    // 3rd Place
-                    PodiumPlace(
-                        rank: 3,
-                        username: "LuckyAce",
-                        profit: "$1,890",
-                        avatar: "🥉"
-                    )
-                }
-                .padding(.horizontal)
-                
-                // Rest of leaderboard
-                VStack(spacing: 8) {
-                    ForEach(4...10, id: \.self) { rank in
-                        LeaderboardRow(
-                            rank: rank,
-                            username: "Player\(rank)",
-                            profit: "$\(Int.random(in: 500...1500))",
-                            winRate: "\(Int.random(in: 45...75))%"
-                        )
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .padding(.vertical)
-        }
-    }
-    
-    // MARK: - Floating Bet Slip
-    var floatingBetSlip: some View {
-        VStack(spacing: 0) {
-            // Handle
-            Capsule()
-                .fill(Color.gray)
-                .frame(width: 40, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 16)
             
-            // Content
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Dispute Info
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Betting on")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            Text(selectedDispute?.title ?? "")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                        }
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            withAnimation(.spring()) {
-                                showBetSlip = false
-                                selectedDispute = nil
-                            }
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    
-                    // Odds Selection
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Pick Your Side")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                        
-                        HStack(spacing: 12) {
-                            OddsButton(
-                                player: selectedDispute?.partyA?.username ?? "Party A",
-                                odds: poolData?.partyAOdds ?? 1.5,
-                                isSelected: selectedWinner == "partyA",
-                                color: .blue
-                            ) {
-                                withAnimation(.spring()) {
-                                    selectedWinner = "partyA"
-                                    animateOdds = true
-                                }
-                            }
-                            
-                            Text("VS")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.gray)
-                            
-                            OddsButton(
-                                player: selectedDispute?.partyB?.username ?? "Party B",
-                                odds: poolData?.partyBOdds ?? 2.0,
-                                isSelected: selectedWinner == "partyB",
-                                color: .red
-                            ) {
-                                withAnimation(.spring()) {
-                                    selectedWinner = "partyB"
-                                    animateOdds = true
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Bet Amount
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Bet Amount")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                        
-                        // Amount Input with Animation
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.1))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .strokeBorder(
-                                            pulseAmount ? Color.green : Color.white.opacity(0.3),
-                                            lineWidth: 2
-                                        )
-                                )
-                            
-                            HStack {
-                                Text("$")
-                                    .font(.title2)
-                                    .foregroundColor(.green)
-                                
-                                TextField("0", text: $betAmount)
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .keyboardType(.numberPad)
-                                    .foregroundColor(.white)
-                                    .onChange(of: betAmount) { _ in
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            pulseAmount = true
-                                        }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                            pulseAmount = false
-                                        }
-                                    }
-                            }
-                            .padding()
-                        }
-                        .frame(height: 60)
-                        
-                        // Quick amounts
-                        HStack(spacing: 8) {
-                            ForEach([10, 25, 50, 100, 250], id: \.self) { amount in
-                                QuickAmountChip(amount: amount) {
-                                    betAmount = "\(amount)"
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Potential Win Display
-                    if let amount = Double(betAmount), amount > 0, !selectedWinner.isEmpty {
-                        PotentialWinDisplay(
-                            betAmount: amount,
-                            odds: selectedWinner == "partyA" ? 
-                                (poolData?.partyAOdds ?? 1.5) : 
-                                (poolData?.partyBOdds ?? 2.0),
-                            animate: animateOdds
-                        )
-                    }
-                    
-                    // Payment Method
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Pay With")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                        
-                        HStack(spacing: 8) {
-                            ForEach(paymentMethods, id: \.0) { method in
-                                PaymentChip(
-                                    id: method.0,
-                                    icon: method.1,
-                                    title: method.2,
-                                    isSelected: selectedPaymentMethod == method.0
-                                ) {
-                                    selectedPaymentMethod = method.0
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Place Bet Button
-                    PlaceBetButton(
-                        isLoading: isPlacingBet,
-                        isDisabled: betAmount.isEmpty || selectedWinner.isEmpty
-                    ) {
-                        placeBet()
-                    }
-                    
-                    // Messages
-                    if let error = errorMessage {
-                        ErrorBanner(message: error)
-                    }
-                    
-                    if let success = successMessage {
-                        SuccessBanner(message: success)
+            // Featured disputes
+            ForEach(mockDisputes) { dispute in
+                DisputeCard(dispute: dispute) {
+                    selectedDispute = dispute
+                    selectedSide = ""
+                    betAmount = ""
+                    withAnimation(.spring()) {
+                        showBetSlip = true
                     }
                 }
-                .padding()
             }
         }
-        .frame(maxHeight: UIScreen.main.bounds.height * 0.8)
-        .background(
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .fill(Color.black)
-                .ignoresSafeArea()
-        )
-        .transition(.move(edge: .bottom))
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showBetSlip)
+    }
+    
+    // MARK: - My Bets Section
+    var myBetsSection: some View {
+        VStack(spacing: 16) {
+            if activeBets.isEmpty {
+                EmptyStateView(
+                    icon: "ticket",
+                    title: "No Active Bets",
+                    subtitle: "Start betting on disputes to see them here"
+                )
+                .frame(height: 300)
+            } else {
+                ForEach(activeBets) { bet in
+                    MyBetCard(bet: bet)
+                }
+            }
+        }
+    }
+    
+    // MARK: - History Section
+    var historySection: some View {
+        VStack(spacing: 16) {
+            // Summary card
+            BettingSummaryCard()
+            
+            // History items
+            ForEach(0..<5) { _ in
+                HistoryItemCard()
+            }
+        }
     }
     
     // MARK: - Actions
-    
-    func loadWalletData() {
-        Task {
-            // Mock data
-            walletBalance = 250.00
-            pendingBalance = 50.00
-            isVerified = false
-        }
-    }
-    
-    func loadPoolData(for disputeId: String) {
-        Task {
-            // Mock data
-            poolData = BettingPoolData(
-                totalPool: 5000,
-                partyAPool: 3000,
-                partyBPool: 2000,
-                partyAOdds: 1.67,
-                partyBOdds: 2.5,
-                isActive: true
-            )
-        }
-    }
-    
     func placeBet() {
-        guard let amount = Double(betAmount),
-              let dispute = selectedDispute else { return }
+        guard let dispute = selectedDispute,
+              let amount = Double(betAmount),
+              !selectedSide.isEmpty else { return }
         
-        isPlacingBet = true
-        errorMessage = nil
-        successMessage = nil
+        // Create bet
+        let newBet = Bet(
+            id: UUID().uuidString,
+            disputeId: dispute.id,
+            disputeTitle: dispute.title,
+            amount: amount,
+            side: selectedSide,
+            odds: selectedSide == dispute.sideA ? dispute.oddsA : dispute.oddsB,
+            status: "active",
+            timestamp: Date()
+        )
         
-        Task {
-            // Simulate API call
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            
-            await MainActor.run {
-                successMessage = "Bet placed! Good luck 🎰"
-                walletBalance -= amount
-                pendingBalance += amount
-                showConfetti = true
-                
-                // Reset after delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    withAnimation {
-                        showBetSlip = false
-                        selectedDispute = nil
-                        betAmount = ""
-                        selectedWinner = ""
-                    }
-                }
-                
-                isPlacingBet = false
-            }
+        activeBets.append(newBet)
+        walletBalance -= amount
+        
+        withAnimation(.spring()) {
+            showBetSlip = false
         }
     }
 }
 
 // MARK: - Supporting Views
 
-struct AnimatedGradientBackground: View {
-    @State private var animateGradient = false
-    
-    var body: some View {
-        LinearGradient(
-            colors: [
-                Color.black,
-                Color.blue.opacity(0.3),
-                Color.purple.opacity(0.2),
-                Color.black
-            ],
-            startPoint: animateGradient ? .topLeading : .bottomLeading,
-            endPoint: animateGradient ? .bottomTrailing : .topTrailing
-        )
-        .ignoresSafeArea()
-        .onAppear {
-            withAnimation(.linear(duration: 10).repeatForever(autoreverses: true)) {
-                animateGradient.toggle()
-            }
-        }
-    }
-}
-
-struct StatBadge: View {
-    let icon: String
+struct StatCard: View {
+    let title: String
     let value: String
-    let label: String
-    let color: Color
+    let change: String
+    let icon: String
     
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundColor(color)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(value)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                Text(label)
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-            }
-        }
+    var isPositive: Bool {
+        change.contains("+")
     }
-}
-
-struct FeaturedBetCard: View {
-    let dispute: Dispute
-    let poolData: BettingPoolData?
-    let onBet: () -> Void
-    
-    @State private var animate = false
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Header
-            HStack {
-                Label("Featured", systemImage: "star.fill")
-                    .font(.caption)
-                    .foregroundColor(.yellow)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.yellow.opacity(0.2)))
-                
-                Spacer()
-                
-                if let pool = poolData {
-                    Text("$\(Int(pool.totalPool)) Pool")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                }
-            }
-            
-            // Title
-            Text(dispute.title)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            // Participants
-            HStack {
-                PlayerBadge(
-                    username: dispute.partyA?.username ?? "Party A",
-                    odds: poolData?.partyAOdds ?? 1.5,
-                    color: .blue
-                )
-                
-                Spacer()
-                
-                Text("VS")
-                    .font(.caption)
-                    .fontWeight(.black)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        Circle()
-                            .fill(Color.red)
-                            .shadow(color: .red, radius: animate ? 20 : 10)
-                    )
-                    .scaleEffect(animate ? 1.1 : 1.0)
-                
-                Spacer()
-                
-                PlayerBadge(
-                    username: dispute.partyB?.username ?? "Party B",
-                    odds: poolData?.partyBOdds ?? 2.0,
-                    color: .orange
-                )
-            }
-            
-            // Bet Button
-            Button(action: onBet) {
-                HStack {
-                    Text("Place Bet")
-                        .fontWeight(.bold)
-                    Image(systemName: "arrow.right")
-                }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    LinearGradient(
-                        colors: [Color.yellow, Color.orange],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(16)
-            }
-            .buttonStyle(ScaleButtonStyle())
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [Color.purple, Color.blue],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.5).repeatForever()) {
-                animate = true
-            }
-        }
-    }
-}
-
-struct PlayerBadge: View {
-    let username: String
-    let odds: Double
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(username)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-            
-            Text("\(odds, specifier: "%.2f")x")
-                .font(.title3)
-                .fontWeight(.black)
-                .foregroundColor(color)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(color.opacity(0.2))
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(color, lineWidth: 1)
-                        )
-                )
-        }
-    }
-}
-
-struct LiveDisputeCard: View {
-    let dispute: Dispute
-    let poolAmount: Double
-    let onTap: () -> Void
-    
-    @State private var isPressed = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Live indicator
-            HStack {
-                Circle()
-                    .fill(Color.red)
-                    .frame(width: 8, height: 8)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.red, lineWidth: 8)
-                            .opacity(0.3)
-                            .scaleEffect(2)
-                            .opacity(0)
-                            .repeatAnimation(duration: 1.5)
-                    )
-                
-                Text("LIVE")
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.red)
-                
-                Spacer()
-                
-                Text("$\(Int(poolAmount))")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-            }
-            
-            Text(dispute.title)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .lineLimit(2)
-            
-            Spacer()
-            
-            HStack {
-                Image(systemName: "person.2.fill")
-                    .font(.caption2)
-                Text("\(dispute.partyA?.username ?? "?") vs \(dispute.partyB?.username ?? "?")")
-                    .font(.caption2)
-            }
-            .foregroundColor(.gray)
-        }
-        .padding()
-        .frame(height: 120)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
-                )
-        )
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .onTapGesture {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                isPressed = false
-                onTap()
-            }
-        }
-    }
-}
-
-struct OddsButton: View {
-    let player: String
-    let odds: Double
-    let isSelected: Bool
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Text(player)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                
-                Text("\(odds, specifier: "%.2f")x")
-                    .font(.title2)
-                    .fontWeight(.black)
-                    .foregroundColor(isSelected ? .white : color)
-            }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? color : Color.white.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(color, lineWidth: isSelected ? 0 : 2)
-                    )
-            )
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-}
-
-struct QuickAmountChip: View {
-    let amount: Int
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text("$\(amount)")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.2))
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                )
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-}
-
-struct PotentialWinDisplay: View {
-    let betAmount: Double
-    let odds: Double
-    let animate: Bool
-    
-    var potentialWin: Double {
-        betAmount * odds * 0.95 // 5% platform fee
-    }
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Potential Win")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                
-                HStack(spacing: 4) {
-                    Text("$\(potentialWin, specifier: "%.2f")")
-                        .font(.title2)
-                        .fontWeight(.black)
-                        .foregroundColor(.green)
-                        .scaleEffect(animate ? 1.2 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: animate)
-                    
-                    Text("(\(odds, specifier: "%.2f")x)")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-            }
-            
-            Spacer()
-            
-            Image(systemName: "dollarsign.circle.fill")
-                .font(.largeTitle)
-                .foregroundColor(.green)
-                .rotationEffect(.degrees(animate ? 360 : 0))
-                .animation(.easeInOut(duration: 0.5), value: animate)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.green.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(Color.green.opacity(0.3), lineWidth: 1)
-                )
-        )
-    }
-}
-
-struct PaymentChip: View {
-    let id: String
-    let icon: String
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Text(icon)
-                    .font(.title3)
-                Text(title)
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-            }
-            .foregroundColor(isSelected ? .black : .white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.white : Color.white.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(Color.white.opacity(0.3), lineWidth: isSelected ? 0 : 1)
-                    )
-            )
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-}
-
-struct PlaceBetButton: View {
-    let isLoading: Bool
-    let isDisabled: Bool
-    let action: () -> Void
-    
-    @State private var animate = false
-    
-    var body: some View {
-        Button(action: action) {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: isDisabled ? 
-                        [Color.gray, Color.gray.opacity(0.8)] :
-                        [Color.green, Color.blue],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                
-                // Animated shimmer effect
-                if !isDisabled && !isLoading {
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0),
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: 100)
-                    .offset(x: animate ? 200 : -200)
-                    .mask(
-                        RoundedRectangle(cornerRadius: 16)
-                    )
-                }
-                
-                // Content
-                HStack {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text("Place Bet")
-                            .fontWeight(.bold)
-                        Image(systemName: "arrow.right.circle.fill")
-                    }
-                }
-                .foregroundColor(.white)
-            }
-            .frame(height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
-        .disabled(isDisabled || isLoading)
-        .buttonStyle(ScaleButtonStyle())
-        .onAppear {
-            withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
-                animate = true
-            }
-        }
-    }
-}
-
-struct ActiveBetCard: View {
-    let disputeTitle: String
-    let amount: Double
-    let odds: Double
-    let predictedWinner: String
-    let timeRemaining: String
-    let currentStatus: BetStatus
-    
-    enum BetStatus {
-        case winning, losing, neutral
-        
-        var color: Color {
-            switch self {
-            case .winning: return .green
-            case .losing: return .red
-            case .neutral: return .gray
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .winning: return "arrow.up.circle.fill"
-            case .losing: return "arrow.down.circle.fill"
-            case .neutral: return "minus.circle.fill"
-            }
-        }
-    }
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(disputeTitle)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                
-                HStack(spacing: 12) {
-                    Label("$\(Int(amount))", systemImage: "dollarsign.circle")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    Label("\(odds, specifier: "%.2f")x", systemImage: "chart.line.uptrend.xyaxis")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    Label(timeRemaining, systemImage: "clock")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
-            }
-            
-            Spacer()
-            
-            Image(systemName: currentStatus.icon)
-                .font(.title2)
-                .foregroundColor(currentStatus.color)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(currentStatus.color.opacity(0.3), lineWidth: 1)
-                )
-        )
-    }
-}
-
-struct QuickStatCard: View {
-    let title: String
-    let value: String
-    let subtitle: String
-    let color: Color
-    let icon: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(color)
+                    .font(.title3)
+                    .foregroundColor(.blue)
+                
                 Spacer()
+                
+                Text(change)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(isPositive ? .green : .red)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill((isPositive ? Color.green : Color.red).opacity(0.1))
+                    )
             }
             
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
             
-            Text(subtitle)
+            Text(title)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(color.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(color.opacity(0.3), lineWidth: 1)
-                )
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(16)
     }
 }
 
-struct PodiumPlace: View {
-    let rank: Int
-    let username: String
-    let profit: String
-    let avatar: String
+struct DisputeCard: View {
+    let dispute: Dispute
+    let onTap: () -> Void
     
-    var height: CGFloat {
-        switch rank {
-        case 1: return 150
-        case 2: return 120
-        case 3: return 90
-        default: return 90
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 16) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(dispute.category)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.blue)
+                        
+                        Text(dispute.title)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                            .lineLimit(2)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Label(dispute.status, systemImage: "circle.fill")
+                            .font(.caption)
+                            .foregroundColor(dispute.status == "Active" ? .green : .orange)
+                        
+                        Text(dispute.timeRemaining)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Betting options
+                HStack(spacing: 12) {
+                    BettingOptionView(
+                        side: dispute.sideA,
+                        percentage: dispute.percentageA,
+                        odds: dispute.oddsA,
+                        isLeading: dispute.percentageA > 50
+                    )
+                    
+                    Text("VS")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                    
+                    BettingOptionView(
+                        side: dispute.sideB,
+                        percentage: dispute.percentageB,
+                        odds: dispute.oddsB,
+                        isLeading: dispute.percentageB > 50
+                    )
+                }
+                
+                // Stats bar
+                HStack(spacing: 16) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2")
+                            .font(.caption)
+                        Text("\(dispute.totalBets)")
+                            .font(.caption)
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "dollarsign.circle")
+                            .font(.caption)
+                        Text("$\(dispute.totalPool, specifier: "%.0f")")
+                            .font(.caption)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("Bet Now")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(16)
         }
+        .buttonStyle(PlainButtonStyle())
     }
+}
+
+struct BettingOptionView: View {
+    let side: String
+    let percentage: Int
+    let odds: Double
+    let isLeading: Bool
     
     var body: some View {
         VStack(spacing: 8) {
-            VStack(spacing: 4) {
-                Text(avatar)
-                    .font(.system(size: rank == 1 ? 40 : 30))
-                
-                Text(username)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                
-                Text(profit)
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-            }
+            Text(side)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(1)
             
-            VStack {
-                Text("\(rank)")
-                    .font(.title2)
-                    .fontWeight(.black)
-                    .foregroundColor(.white)
+            Text("\(percentage)%")
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(isLeading ? .green : .primary)
+            
+            Text("\(odds, specifier: "%.2f")x")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isLeading ? Color.green.opacity(0.1) : Color(UIColor.tertiarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(isLeading ? Color.green.opacity(0.3) : Color.clear, lineWidth: 1)
+                )
+        )
+    }
+}
+
+struct ProfessionalBetSlip: View {
+    let dispute: Dispute?
+    @Binding var betAmount: String
+    @Binding var selectedSide: String
+    let walletBalance: Double
+    @Binding var isShowing: Bool
+    let onPlaceBet: () -> Void
+    
+    var potentialPayout: Double {
+        guard let amount = Double(betAmount),
+              let dispute = dispute else { return 0 }
+        let odds = selectedSide == dispute.sideA ? dispute.oddsA : dispute.oddsB
+        return amount * odds
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Handle
+            Capsule()
+                .fill(Color(UIColor.tertiaryLabel))
+                .frame(width: 40, height: 4)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            
+            // Content
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Dispute info
+                    if let dispute = dispute {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Place Your Bet")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                            
+                            Text(dispute.title)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            Divider()
+                        }
+                        
+                        // Side selection
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Select Side")
+                                .font(.headline)
+                            
+                            HStack(spacing: 12) {
+                                SideSelectionButton(
+                                    side: dispute.sideA,
+                                    odds: dispute.oddsA,
+                                    isSelected: selectedSide == dispute.sideA
+                                ) {
+                                    selectedSide = dispute.sideA
+                                }
+                                
+                                SideSelectionButton(
+                                    side: dispute.sideB,
+                                    odds: dispute.oddsB,
+                                    isSelected: selectedSide == dispute.sideB
+                                ) {
+                                    selectedSide = dispute.sideB
+                                }
+                            }
+                        }
+                        
+                        // Amount input
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Bet Amount")
+                                .font(.headline)
+                            
+                            HStack {
+                                Text("$")
+                                    .font(.title3)
+                                    .foregroundColor(.secondary)
+                                
+                                TextField("0", text: $betAmount)
+                                    .font(.title3)
+                                    .keyboardType(.decimalPad)
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                            
+                            // Quick amounts
+                            HStack(spacing: 8) {
+                                ForEach([10, 25, 50, 100], id: \.self) { amount in
+                                    Button(action: {
+                                        betAmount = "\(amount)"
+                                    }) {
+                                        Text("$\(amount)")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(betAmount == "\(amount)" ? .white : .primary)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(
+                                                Capsule()
+                                                    .fill(betAmount == "\(amount)" ? Color.blue : Color(UIColor.secondarySystemBackground))
+                                            )
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Summary
+                        VStack(spacing: 16) {
+                            HStack {
+                                Text("Potential Payout")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("$\(potentialPayout, specifier: "%.2f")")
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            HStack {
+                                Text("Wallet Balance")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("$\(walletBalance, specifier: "%.2f")")
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Double(betAmount) ?? 0 > walletBalance ? .red : .primary)
+                            }
+                        }
+                        .padding()
+                        .background(Color(UIColor.tertiarySystemBackground))
+                        .cornerRadius(12)
+                        
+                        // Place bet button
+                        Button(action: onPlaceBet) {
+                            Text("Place Bet")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    Color.blue
+                                        .opacity(isValidBet() ? 1 : 0.5)
+                                )
+                                .cornerRadius(12)
+                        }
+                        .disabled(!isValidBet())
+                    }
+                }
+                .padding()
+            }
+        }
+        .frame(maxHeight: UIScreen.main.bounds.height * 0.8)
+        .background(Color(UIColor.systemBackground))
+        .cornerRadius(20, corners: [.topLeft, .topRight])
+        .shadow(radius: 20)
+        .offset(y: isShowing ? 0 : UIScreen.main.bounds.height)
+    }
+    
+    func isValidBet() -> Bool {
+        guard let amount = Double(betAmount),
+              amount > 0,
+              amount <= walletBalance,
+              !selectedSide.isEmpty else { return false }
+        return true
+    }
+}
+
+struct SideSelectionButton: View {
+    let side: String
+    let odds: Double
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Text(side)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                
+                Text("\(odds, specifier: "%.2f")x")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: height)
+            .padding()
             .background(
-                LinearGradient(
-                    colors: rank == 1 ? 
-                        [Color.yellow, Color.orange] :
-                        [Color.gray, Color.gray.opacity(0.8)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? Color.blue : Color(UIColor.secondarySystemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    )
             )
-            .cornerRadius(8, corners: [.topLeft, .topRight])
+            .foregroundColor(isSelected ? .white : .primary)
+        }
+    }
+}
+
+struct MyBetCard: View {
+    let bet: Bet
+    
+    var statusColor: Color {
+        switch bet.status {
+        case "active": return .blue
+        case "won": return .green
+        case "lost": return .red
+        default: return .gray
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(bet.disputeTitle)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Text("Bet on: \(bet.side)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(bet.status.capitalized)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(statusColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(statusColor.opacity(0.1))
+                        )
+                    
+                    Text(bet.timestamp, style: .time)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Divider()
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Amount")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("$\(bet.amount, specifier: "%.2f")")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .center, spacing: 2) {
+                    Text("Odds")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("\(bet.odds, specifier: "%.2f")x")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Potential")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("$\(bet.amount * bet.odds, specifier: "%.2f")")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.green)
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+}
+
+struct BettingSummaryCard: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Your Betting Summary")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            HStack(spacing: 20) {
+                SummaryStatView(
+                    title: "Total Wagered",
+                    value: "$1,234",
+                    icon: "banknote",
+                    color: .blue
+                )
+                
+                Divider()
+                    .frame(height: 40)
+                
+                SummaryStatView(
+                    title: "Net Profit",
+                    value: "+$456",
+                    icon: "chart.line.uptrend.xyaxis",
+                    color: .green
+                )
+                
+                Divider()
+                    .frame(height: 40)
+                
+                SummaryStatView(
+                    title: "Win Rate",
+                    value: "67%",
+                    icon: "percent",
+                    color: .orange
+                )
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(16)
+    }
+}
+
+struct SummaryStatView: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
     }
 }
 
-struct LeaderboardRow: View {
-    let rank: Int
-    let username: String
-    let profit: String
-    let winRate: String
-    
+struct HistoryItemCard: View {
     var body: some View {
         HStack {
-            Text("#\(rank)")
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(.gray)
-                .frame(width: 40, alignment: .leading)
-            
-            Text(username)
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Parking Dispute #234")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                Text("Won • $50 → $125")
+                    .font(.caption)
+                    .foregroundColor(.green)
+            }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(profit)
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.green)
-                
-                Text(winRate)
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-            }
+            Text("2 days ago")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.05))
-        )
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
     }
 }
 
-struct ErrorBanner: View {
-    let message: String
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let subtitle: String
     
     var body: some View {
-        HStack {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.red)
-            Text(message)
-                .font(.caption)
-                .foregroundColor(.white)
+        VStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 48))
+                .foregroundColor(.secondary)
+            
+            Text(title)
+                .font(.headline)
+            
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
-        .padding()
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.red.opacity(0.2))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.red.opacity(0.5), lineWidth: 1)
-                )
-        )
-    }
-}
-
-struct SuccessBanner: View {
-    let message: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-            Text(message)
-                .font(.caption)
-                .foregroundColor(.white)
-        }
         .padding()
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.green.opacity(0.2))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(Color.green.opacity(0.5), lineWidth: 1)
-                )
-        )
     }
 }
 
-// MARK: - Button Styles
+// MARK: - Data Models
 
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
-    }
+struct Dispute: Identifiable {
+    let id = UUID().uuidString
+    let title: String
+    let category: String
+    let status: String
+    let timeRemaining: String
+    let sideA: String
+    let sideB: String
+    let percentageA: Int
+    let percentageB: Int
+    let oddsA: Double
+    let oddsB: Double
+    let totalBets: Int
+    let totalPool: Double
 }
 
-// MARK: - View Extensions
+struct Bet: Identifiable {
+    let id: String
+    let disputeId: String
+    let disputeTitle: String
+    let amount: Double
+    let side: String
+    let odds: Double
+    let status: String
+    let timestamp: Date
+}
 
+// Mock data
+let mockDisputes = [
+    Dispute(
+        title: "Tesla Autopilot caused the accident",
+        category: "Automotive",
+        status: "Active",
+        timeRemaining: "2h 15m",
+        sideA: "Driver Error",
+        sideB: "Autopilot Fault",
+        percentageA: 65,
+        percentageB: 35,
+        oddsA: 1.54,
+        oddsB: 2.86,
+        totalBets: 234,
+        totalPool: 5670
+    ),
+    Dispute(
+        title: "Landlord illegally withheld security deposit",
+        category: "Real Estate",
+        status: "Active",
+        timeRemaining: "5h 30m",
+        sideA: "Tenant Right",
+        sideB: "Landlord Right",
+        percentageA: 72,
+        percentageB: 28,
+        oddsA: 1.39,
+        oddsB: 3.57,
+        totalBets: 156,
+        totalPool: 3420
+    )
+]
+
+// Corner radius extension
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-    
-    func repeatAnimation(duration: Double) -> some View {
-        self.onAppear {
-            withAnimation(.easeInOut(duration: duration).repeatForever()) {
-                // Animation will be handled by the view
-            }
-        }
     }
 }
 
@@ -1417,19 +916,6 @@ struct RoundedCorner: Shape {
     }
 }
 
-// MARK: - Data Models
-
-struct BettingPoolData {
-    let totalPool: Double
-    let partyAPool: Double
-    let partyBPool: Double
-    let partyAOdds: Double
-    let partyBOdds: Double
-    let isActive: Bool
-}
-
 #Preview {
     BettingView()
-        .environmentObject(MockAuthService())
-        .environmentObject(MockDisputeService())
 }
