@@ -512,3 +512,168 @@ async def release_escrow_funds(escrow_id: str, recipient_email: str, provider: s
         await escrow_service.release_winnings(escrow_id, recipient_email, provider)
     except Exception as e:
         logger.error(f"Failed to release escrow {escrow_id}: {str(e)}")
+
+@router.post("/connect-bank/link-token")
+async def create_plaid_link_token(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create Plaid Link token for bank connection"""
+    try:
+        result = await payment_service.create_plaid_link_token(
+            user_id=current_user["id"],
+            user_email=current_user["email"]
+        )
+        
+        return {
+            "link_token": result["link_token"],
+            "expiration": result["expiration"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/connect-bank/exchange-token")
+async def exchange_plaid_token(
+    public_token: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Exchange Plaid public token and connect bank account"""
+    try:
+        result = await payment_service.exchange_plaid_token(
+            public_token=public_token,
+            user_id=current_user["id"]
+        )
+        
+        # Store bank account info in database
+        # You would create a BankAccount model for this
+        
+        return {
+            "success": True,
+            "bank_account": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/bank-accounts")
+async def get_bank_accounts(
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's connected bank accounts"""
+    accounts = await payment_service.get_bank_accounts(current_user["id"])
+    return {"bank_accounts": accounts}
+
+@router.post("/deposit/bank")
+async def deposit_from_bank(
+    amount: float = Field(gt=0, le=10000),
+    bank_account_id: str = Field(...),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Deposit funds from bank account (ACH)"""
+    
+    wallet = db.query(UserWallet).filter_by(user_id=current_user["id"]).first()
+    if not wallet:
+        wallet = UserWallet(user_id=current_user["id"])
+        db.add(wallet)
+        db.commit()
+    
+    try:
+        # Create ACH payment
+        payment_result = await payment_service.create_ach_payment(
+            user_id=current_user["id"],
+            amount=amount,
+            bank_account_id=bank_account_id,
+            metadata={
+                "type": "deposit",
+                "wallet_id": wallet.id
+            }
+        )
+        
+        # Create pending transaction
+        transaction = Transaction(
+            user_id=current_user["id"],
+            wallet_id=wallet.id,
+            type="deposit",
+            amount=amount,
+            status="pending",
+            external_id=payment_result["payment_id"],
+            payment_method="bank",
+            metadata={
+                "processing_time": payment_result["processing_time"],
+                "bank_account_id": bank_account_id
+            }
+        )
+        db.add(transaction)
+        db.commit()
+        
+        return {
+            "transaction_id": transaction.id,
+            "amount": amount,
+            "status": "pending",
+            "processing_time": payment_result["processing_time"],
+            "message": "Bank transfer initiated. Funds will be available in 1-3 business days."
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/deposit/instant")
+async def instant_deposit(
+    amount: float = Field(gt=0, le=10000),
+    payment_method_id: str = Field(...),  # Stripe payment method ID
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Instant deposit using debit card (higher fees)"""
+    
+    wallet = db.query(UserWallet).filter_by(user_id=current_user["id"]).first()
+    if not wallet:
+        wallet = UserWallet(user_id=current_user["id"])
+        db.add(wallet)
+        db.commit()
+    
+    try:
+        # Create instant deposit
+        payment_result = await payment_service.create_instant_deposit(
+            user_id=current_user["id"],
+            amount=amount,
+            payment_method_id=payment_method_id,
+            metadata={
+                "type": "instant_deposit",
+                "wallet_id": wallet.id
+            }
+        )
+        
+        if payment_result["status"] == "succeeded":
+            # Update wallet immediately for instant deposits
+            wallet.balance += amount
+            wallet.total_deposited += amount
+            
+            # Create completed transaction
+            transaction = Transaction(
+                user_id=current_user["id"],
+                wallet_id=wallet.id,
+                type="deposit",
+                amount=amount,
+                status="completed",
+                external_id=payment_result["payment_id"],
+                payment_method="debit_card",
+                description="Instant deposit"
+            )
+            db.add(transaction)
+            db.commit()
+            
+            return {
+                "transaction_id": transaction.id,
+                "amount": amount,
+                "status": "completed",
+                "new_balance": wallet.balance,
+                "message": "Funds added instantly!"
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Payment failed")
+            
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
