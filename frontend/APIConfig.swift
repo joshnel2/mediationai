@@ -48,8 +48,11 @@ struct APIConfig {
     static let enableLogging = true
     static let enableMockData = true
     #else
+    // TestFlight (non-DEBUG) builds currently rely on mock data until the backend is fully live.
+    // Flip `enableMockData` to `true` so the app always has placeholder content and layouts stay intact.
+    // Remember to revert this to `false` once real endpoints are stable.
     static let enableLogging = false
-    static let enableMockData = false
+    static let enableMockData = true
     #endif
 }
 
