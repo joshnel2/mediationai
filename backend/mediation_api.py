@@ -41,10 +41,12 @@ except ImportError:
 # Import routers
 import social_api
 from social_api import router as social_router
-import betting_api
-from betting_api import router as betting_router
+# Betting removed - using legal escrow model instead
 import webhooks
 from webhooks import router as webhook_router
+
+# Import the new escrow service
+from escrow_service import DisputeEscrowService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +61,7 @@ app = FastAPI(
 
 # Add routers
 app.include_router(social_router)
-app.include_router(betting_router)
+# Betting router removed - using escrow model
 app.include_router(webhook_router)
 
 # CORS middleware for iOS app
@@ -1349,6 +1351,184 @@ async def request_verification_code(phone: str):
     logger.info(f"[DEV] Verification code for {phone}: {code}")
 
     return {"status": "sent"}
+
+# ============= ESCROW ENDPOINTS =============
+
+@app.post("/api/escrow/create")
+async def create_dispute_escrow(
+    dispute_id: str,
+    disputed_amount: float,
+    escrow_type: str = "standard",
+    current_user: DBUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Create escrow for dispute resolution
+    Types: standard (5%), expedited (7.5%), binding_arbitration (10%)
+    """
+    try:
+        # Get dispute details
+        dispute = db.query(DBDispute).filter(DBDispute.id == dispute_id).first()
+        if not dispute:
+            raise HTTPException(status_code=404, detail="Dispute not found")
+            
+        # Verify user is party to the dispute
+        if current_user.email not in [dispute.party1_email, dispute.party2_email]:
+            raise HTTPException(status_code=403, detail="Not authorized for this dispute")
+            
+        # Create escrow
+        escrow_data = await escrow_service.create_dispute_escrow(
+            dispute_id=dispute_id,
+            party1_email=dispute.party1_email,
+            party2_email=dispute.party2_email,
+            disputed_amount=disputed_amount,
+            dispute_description=dispute.description,
+            escrow_type=escrow_type
+        )
+        
+        # Update dispute status
+        dispute.escrow_status = "awaiting_deposits"
+        dispute.escrow_data = json.dumps(escrow_data)
+        db.commit()
+        
+        return {
+            "success": True,
+            "escrow": escrow_data,
+            "message": f"Escrow created. Both parties must deposit ${disputed_amount + escrow_data['total_fee']/2:.2f} each"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating escrow: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/escrow/deposit/confirm")
+async def confirm_escrow_deposit(
+    payment_intent_id: str,
+    current_user: DBUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Confirm that a party has made their escrow deposit"""
+    try:
+        # Check payment status
+        is_paid = await escrow_service.check_deposit_status(payment_intent_id)
+        
+        if not is_paid:
+            return {"success": False, "message": "Payment not yet confirmed"}
+            
+        # Update dispute escrow status
+        # In production: properly track which party paid
+        
+        return {
+            "success": True,
+            "message": "Deposit confirmed",
+            "next_step": "Waiting for other party to deposit"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error confirming deposit: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/escrow/settlement/propose")
+async def propose_settlement(
+    dispute_id: str,
+    your_percentage: float,
+    settlement_reason: str,
+    current_user: DBUser = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Propose a settlement split instead of going to full arbitration"""
+    try:
+        dispute = db.query(DBDispute).filter(DBDispute.id == dispute_id).first()
+        if not dispute:
+            raise HTTPException(status_code=404, detail="Dispute not found")
+            
+        # Determine other party
+        other_party = dispute.party2_email if current_user.email == dispute.party1_email else dispute.party1_email
+        
+        # Create settlement proposal
+        settlement = await escrow_service.offer_settlement(
+            escrow_id=f"esc_{dispute_id}",
+            proposing_party=current_user.email,
+            settlement_split={
+                current_user.email: your_percentage,
+                other_party: 100 - your_percentage
+            },
+            settlement_reason=settlement_reason
+        )
+        
+        # Store in database
+        dispute.settlement_data = json.dumps(settlement)
+        db.commit()
+        
+        # Notify other party
+        await notify_participants(dispute, f"Settlement Proposed")
+        
+        return {
+            "success": True,
+            "settlement": settlement,
+            "message": "Settlement proposed. Other party has 48 hours to respond."
+        }
+        
+    except Exception as e:
+        logger.error(f"Error proposing settlement: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/escrow/pricing")
+async def get_escrow_pricing():
+    """Get pricing information for different escrow types"""
+    return {
+        "pricing_tiers": [
+            {
+                "type": "standard",
+                "name": "Standard Mediation",
+                "fee_percentage": 5.0,
+                "features": [
+                    "AI-powered mediation",
+                    "Secure fund holding",
+                    "Digital contract generation",
+                    "7-day resolution timeline",
+                    "Email support"
+                ],
+                "best_for": "Simple disputes under $5,000"
+            },
+            {
+                "type": "expedited",
+                "name": "Expedited Resolution",
+                "fee_percentage": 7.5,
+                "features": [
+                    "Priority AI mediation",
+                    "Human mediator review",
+                    "48-hour resolution timeline",
+                    "Priority support",
+                    "Video mediation session"
+                ],
+                "best_for": "Time-sensitive disputes"
+            },
+            {
+                "type": "binding_arbitration",
+                "name": "Binding Arbitration",
+                "fee_percentage": 10.0,
+                "features": [
+                    "Licensed arbitrator",
+                    "Legally binding decision",
+                    "Court-admissible documentation",
+                    "14-day resolution timeline",
+                    "Full legal support"
+                ],
+                "best_for": "High-value disputes over $10,000"
+            }
+        ],
+        "volume_discounts": "Available for 10+ disputes per month",
+        "enterprise_pricing": "Contact sales for custom pricing"
+    }
+
+@app.get("/api/escrow/analytics")
+async def get_escrow_analytics(
+    current_user: DBUser = Depends(get_current_user)
+):
+    """Get platform analytics (admin only in production)"""
+    analytics = await escrow_service.get_escrow_analytics()
+    return analytics
 
 if __name__ == "__main__":
     import uvicorn

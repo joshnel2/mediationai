@@ -135,6 +135,14 @@ class Dispute(Base):
     resolution_text = Column(Text, nullable=True)
     urgency_level = Column(String, default="normal")
     
+    # Escrow fields
+    escrow_enabled = Column(Boolean, default=False)
+    escrow_type = Column(String)  # standard, expedited, binding_arbitration
+    escrow_amount = Column(Float)
+    escrow_status = Column(String)  # awaiting_deposits, active, completed, refunded
+    escrow_data = Column(Text)  # JSON string
+    settlement_data = Column(Text)  # JSON string
+    
     # Relationships
     party_a = relationship("User", foreign_keys=[party_a_id], back_populates="created_disputes")
     party_b = relationship("User", foreign_keys=[party_b_id], back_populates="joined_disputes")

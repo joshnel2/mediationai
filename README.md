@@ -1,6 +1,6 @@
-# 🤖⚖️ MediationAI - AI-Powered Dispute Resolution
+# 🤖⚖️ MediationAI - AI-Powered Dispute Resolution with Secure Escrow
 
-**Resolve disputes fairly and efficiently with AI mediation, legal precedent lookup, and automated contract generation.**
+**Resolve disputes fairly with AI mediation, secure escrow services, legal precedent lookup, and automated contract generation.**
 
 ![AI Mediation](https://img.shields.io/badge/AI-Mediation-blue)
 ![Legal Research](https://img.shields.io/badge/Legal-Research-green)
